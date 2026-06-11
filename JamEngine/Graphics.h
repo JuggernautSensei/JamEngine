@@ -1179,7 +1179,7 @@ private:
     // d3d11 core objects
     ID3D11Device*        m_pd3d11Device        = nullptr;
     ID3D11DeviceContext* m_pd3d11DeviceContext = nullptr;
-    IDXGIAdapter3*       m_pDxgiAdapter3           = nullptr;
+    IDXGIAdapter3*       m_pdxgiAdapter3       = nullptr;
     IDXGISwapChain1*     m_pdxgiSwapchain      = nullptr;
     bool                 m_bAllowTearing       = false;
 

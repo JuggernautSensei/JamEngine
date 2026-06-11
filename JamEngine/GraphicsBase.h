@@ -627,6 +627,7 @@ struct GraphicsInit
     // back buffer
     Int32          backBufferWidth   = 0;
     Int32          backBufferHeight  = 0;
+    Int32          numBackBuffer     = 0;
     eTextureFormat backBufferFormat  = eTextureFormat::Unknown;
     Int32          backBufferSamples = 1;
 };

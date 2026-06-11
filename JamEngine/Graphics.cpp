@@ -468,17 +468,11 @@ void Graphics::OnEvent(Event& _event)
 
 void Graphics::Frame(const bool _bVSync)
 {
-    // query timer
-    EndTimerQueries_();
-
     // query gpu memory usage
-
-    {
-        DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
-        JAM_CHECK_HRESULT(m_pDxgiAdapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info));
-        m_stats.gpuMemoryMaxByte   = static_cast<Int64>(info.Budget);
-        m_stats.gpuMemoryUsageByte = static_cast<Int64>(info.CurrentUsage);
-    }
+    DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
+    JAM_CHECK_HRESULT(m_pdxgiAdapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info));
+    m_stats.gpuMemoryMaxByte   = static_cast<Int64>(info.Budget);
+    m_stats.gpuMemoryUsageByte = static_cast<Int64>(info.CurrentUsage);
 
     // Present
     const UInt32 interval = (m_bAllowTearing || !_bVSync) ? 0 : 1;
@@ -494,8 +488,6 @@ void Graphics::Frame(const bool _bVSync)
     // stats
     m_lastStats = m_stats;
     m_stats.Clear();
-
-    BeginTimerQueries_();
 }
 
 VertexBufferHandle Graphics::CreateVertexBuffer(
@@ -2325,7 +2317,7 @@ Graphics::Graphics(
         scDesc.SampleDesc.Count      = m_backbuffer.samples;
         scDesc.SampleDesc.Quality    = m_backbuffer.samples > 1 ? QueryMaxMsaaQualityLevel_(scDesc.Format, scDesc.SampleDesc.Count) : 0;
         scDesc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        scDesc.BufferCount           = 2;
+        scDesc.BufferCount           = _init.numBackBuffer;
         scDesc.Scaling               = DXGI_SCALING_NONE;
         scDesc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         scDesc.AlphaMode             = DXGI_ALPHA_MODE_UNSPECIFIED;
@@ -2346,7 +2338,7 @@ Graphics::Graphics(
 
         IDXGIAdapter* pDxgiAdapter = nullptr;
         JAM_CHECK_HRESULT(pDxgiDevice->GetAdapter(&pDxgiAdapter));
-        JAM_CHECK_HRESULT(pDxgiAdapter->QueryInterface(IID_PPV_ARGS(&m_pDxgiAdapter3)));
+        JAM_CHECK_HRESULT(pDxgiAdapter->QueryInterface(IID_PPV_ARGS(&m_pdxgiAdapter3)));
 
         pDxgiDevice->Release();
         pDxgiAdapter->Release();
@@ -2360,7 +2352,6 @@ Graphics::Graphics(
 
     // 타이머 쿼리 초기화
     InitTimerQueries_();
-    BeginTimerQueries_();
 }
 
 Graphics::~Graphics()
@@ -2428,7 +2419,7 @@ Graphics::~Graphics()
     m_pdxgiSwapchain->Release();
     m_pd3d11DeviceContext->Release();
     m_pd3d11Device->Release();
-    m_pDxgiAdapter3->Release();
+    m_pdxgiAdapter3->Release();
 
     // 릭 검사
     if (DetectLeak())
@@ -4765,6 +4756,7 @@ void Graphics::EndTimerQueries_()
     }
 
     // consume available queries
+    Int32 consumed = 0;
     while (!m_timerQueriesRbi.IsEmpty())
     {
         const TimerQuery& query = m_timerQueries[m_timerQueriesRbi.GetReadIndex()];
@@ -4776,6 +4768,7 @@ void Graphics::EndTimerQueries_()
             break;
         }
         m_timerQueriesRbi.Consume();
+        ++consumed;
 
         if (disjoint.Disjoint == TRUE)
         {

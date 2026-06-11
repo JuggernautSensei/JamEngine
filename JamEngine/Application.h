@@ -20,16 +20,19 @@ enum class eAppInitFlags : UInt32
     Subsystem_Editor       = 1 << 3,
 
     // graphics
-    Graphics_AllowTearing = 1 << 4,
+    Graphics_AllowTearing       = 1 << 4,
+    Graphics_TripleBuffering    = 1 << 5,
+    Graphics_QuadrupleBuffering = 2 << 5,
 
-    Graphics_BackBufferHDR10 = 1 << 5,
-    Graphics_BackBufferHDR16 = 2 << 5,
+    Graphics_BackBufferHDR10 = 1 << 7,
+    Graphics_BackBufferHDR16 = 2 << 7,
 
-    Graphics_BackBufferMSAAx4  = 1 << 7,
-    Graphics_BackBufferMSAAx8  = 2 << 7,
-    Graphics_BackBufferMSAAx16 = 3 << 7,
+    Graphics_BackBufferMSAAx4  = 1 << 9,
+    Graphics_BackBufferMSAAx8  = 2 << 9,
+    Graphics_BackBufferMSAAx16 = 3 << 9,
 
-    Graphics_GraphicsDebugger = 1 << 9,
+    Graphics_GraphicsDebugger = 1 << 11,
+
 };
 
 constexpr Flags<eAppInitFlags> kDefaultAppInitFlags = eAppInitFlags::Subsystem_SceneManager | eAppInitFlags::Subsystem_AssetManager | eAppInitFlags::Subsystem_ImGuiEngine;

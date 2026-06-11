@@ -45,13 +45,16 @@ Int32 Application::Run(
             m_commandQueue.Execute();   // execute submitted commands
 
             m_timer.Tick();
-            const float deltaTimeSec = m_timer.GetDeltaFloat(eSIPrefix::Sec);
-            Update(deltaTimeSec);
+            const float dtSec = m_timer.GetDeltaFloat(eSIPrefix::Sec);
+            Update(dtSec);
+
+            gfx.BeginTimerQueries_();
             Render();
 
             imgui.BeginFrame();
             ImGuiRender();
             imgui.EndFrame();
+            gfx.EndTimerQueries_();
 
             gfx.Frame(m_bVsync);   // present
             input.Update();        // update input
@@ -262,7 +265,8 @@ void Application::CoreInit()
 
     // init window
     WindowsPlatform::CreateInstance();
-    GetWindowsPlatform().SetTitle(m_appName);
+    WindowsPlatform& win = GetWindowsPlatform();
+    win.SetTitle(m_appName);
 
     // init graphics
     {
@@ -275,6 +279,9 @@ void Application::CoreInit()
         init.bAttachDebugger  = m_flags.IsEnabled(eAppInitFlags::Graphics_GraphicsDebugger);
         init.backBufferWidth  = res.x;
         init.backBufferHeight = res.y;
+        init.numBackBuffer    = m_flags & eAppInitFlags::Graphics_QuadrupleBuffering ? 4
+                              : m_flags & eAppInitFlags::Graphics_TripleBuffering    ? 3
+                                                                                     : 2;
 
         Flags<eAppInitFlags> hdrFlags = m_flags.WithFilter(eAppInitFlags::Graphics_BackBufferHDR10, eAppInitFlags::Graphics_BackBufferHDR16);
         init.backBufferFormat         = hdrFlags == eAppInitFlags::Graphics_BackBufferHDR10 ? eTextureFormat::RGB10A2_UNorm

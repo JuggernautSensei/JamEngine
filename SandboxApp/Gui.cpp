@@ -3,7 +3,6 @@
 
 #include "SampleCollector.h"
 #include "../JamEngine/Application.h"
-#include "../JamEngine/EditorWidgets.h"
 #include "../JamEngine/StaticString.h"
 
 bool BeginSceneDemoWindow(const char* _title)

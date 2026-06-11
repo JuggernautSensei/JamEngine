@@ -189,7 +189,7 @@ private:
     float m_dRot     = ToRad(45.f);
     bool  m_bAnimate = true;
 
-    constexpr static Int32        kTotalEntities = 20;
+    constexpr static Int32        kTotalEntities = 10;
     Array<Entity, kTotalEntities> m_entities     = {};
 
     Ref<Mesh> m_pCone   = nullptr;

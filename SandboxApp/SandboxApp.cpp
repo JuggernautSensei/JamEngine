@@ -27,7 +27,7 @@ void SandboxApp::Init(
 {
     ImageFilterManager::CreateInstance();
 
-    SetVsync(true);
+    SetVsync(false);
     WindowsPlatform& win = GetWindowsPlatform();
     win.AdjustClientRect(100, 100, 1600, 900);
     SceneManager& sm = GetSceneManager();
@@ -82,6 +82,15 @@ int main(
     if (parser.HasFlag("--allow-tearing"))
     {
         flags.Enable(eAppInitFlags::Graphics_AllowTearing);
+    }
+
+    if (parser.HasFlag("--triple-buffering"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_TripleBuffering);
+    }
+    else if (parser.HasFlag("--quadruple-buffering"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_QuadrupleBuffering);
     }
 
     if (parser.HasFlag("--hdr10"))
