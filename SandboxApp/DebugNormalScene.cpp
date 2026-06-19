@@ -85,10 +85,10 @@ void DebugNormalScene::OnImGuiRender()
 
                 // Rotation (Euler Degree로 변환하여 조작)
                 Vec3 eulerRad = _trans.ToEuler();
-                Vec3 eulerDeg = { ToDeg(eulerRad.x), ToDeg(eulerRad.y), ToDeg(eulerRad.z) };
+                Vec3 eulerDeg = eulerRad.ToDeg();
                 if (ImGui::DragFloat3("Rotation", &eulerDeg.x, 1.f, -180.f, 180.f))
                 {
-                    _trans.SetRotation(ToRad(eulerDeg.x), ToRad(eulerDeg.y), ToRad(eulerDeg.z));
+                    _trans.SetRotation(eulerDeg.ToRad());
                 }
 
                 // Scale
@@ -222,7 +222,7 @@ void DebugNormalScene::InitRenderGraph_()
         .SetFrameBuffer("FB_Scene")
         .SetFrameBufferResolutionForViewport()
         .SetProgram("P_DrawNormalNoWIT")
-        .SetRenderFlags(eRenderFlags::Primitive_PointList | eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite)
+        .SetRenderFlags(eRenderFlags::PrimitiveTopology_PointList | eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
         .SetConstantBuffer("CB_NoWIT", eShader::GeometryShader, CBNoWIT::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::GeometryShader, CBCamera::kSlot)
@@ -233,7 +233,7 @@ void DebugNormalScene::InitRenderGraph_()
         .SetFrameBuffer("FB_Scene")
         .SetFrameBufferResolutionForViewport()
         .SetProgram("P_DrawNormalWithWIT")
-        .SetRenderFlags(eRenderFlags::Primitive_PointList | eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite)
+        .SetRenderFlags(eRenderFlags::PrimitiveTopology_PointList | eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
         .SetConstantBuffer("CB_WithWIT", eShader::GeometryShader, CBWithWIT::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::GeometryShader, CBCamera::kSlot)
@@ -259,11 +259,11 @@ void DebugNormalScene::AddProgram_VP_(
     const StringView _name,
     const StringView _path)
 {
-    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompileInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompileInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
 
-    const Expect<ShaderCompiler> vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
-    const Expect<ShaderCompiler> psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
+    const Expect<ShaderBinary> vsc = ShaderBinary::CompileHLSLFile(_path, kVsInfo);
+    const Expect<ShaderBinary> psc = ShaderBinary::CompileHLSLFile(_path, kPsInfo);
     JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
     JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
 
@@ -279,13 +279,13 @@ void DebugNormalScene::AddProgram_VPG_(
     StringView _name,
     StringView _path)
 {
-    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompileInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompileInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompileInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
 
-    const Expect<ShaderCompiler> vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
-    const Expect<ShaderCompiler> psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
-    const Expect<ShaderCompiler> gsc = ShaderCompiler::CompileHLSLFile(_path, kGsInfo);
+    const Expect<ShaderBinary> vsc = ShaderBinary::CompileHLSLFile(_path, kVsInfo);
+    const Expect<ShaderBinary> psc = ShaderBinary::CompileHLSLFile(_path, kPsInfo);
+    const Expect<ShaderBinary> gsc = ShaderBinary::CompileHLSLFile(_path, kGsInfo);
     JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
     JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
     JAM_ASSERT(gsc, "Geometry shader compilation failed: {}", gsc.GetError());

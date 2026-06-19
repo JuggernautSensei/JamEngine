@@ -164,7 +164,8 @@ public:
     [[nodiscard]] bool IsMouseVisible() const noexcept;
 
 private:
-    Input() = default;
+    Input()  = default;
+    ~Input() = default;
 
     static void CreateInstance();
     static void DestroyInstance();

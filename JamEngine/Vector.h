@@ -26,30 +26,6 @@ struct Vec2i
     {
     }
 
-    [[nodiscard]] constexpr Vec2i Abs() const
-
-    {
-        return { x > 0 ? x : -x, y > 0 ? y : -y };
-    }
-
-    [[nodiscard]] constexpr Vec2i Min(const Vec2i _other) const
-
-    {
-        return { Jam::Min(x, _other.x), Jam::Min(y, _other.y) };
-    }
-
-    [[nodiscard]] constexpr Vec2i Max(const Vec2i _other) const
-
-    {
-        return { Jam::Max(x, _other.x), Jam::Max(y, _other.y) };
-    }
-
-    [[nodiscard]] constexpr Vec2i Clamp(const Vec2i _min, const Vec2i _max) const
-
-    {
-        return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y) };
-    }
-
     [[nodiscard]] Int32* GetPtr()
     {
         return &x;
@@ -266,7 +242,15 @@ struct Vec2
 
     void Normalize()
     {
-        const float invLen = 1.f / Sqrt(LengthSq());
+        const float lenSq = LengthSq();
+        if (lenSq == 0.f)
+        {
+            x = 0.f;
+            y = 0.f;
+            return;
+        }
+
+        const float invLen = RSqrt(lenSq);
         x *= invLen;
         y *= invLen;
     }
@@ -276,6 +260,11 @@ struct Vec2
         Vec2 v = *this;
         v.Normalize();
         return v;
+    }
+
+    [[nodiscard]] bool IsNormalized() const
+    {
+        return Jam::IsEqualApprox(LengthSq(), 1.f);
     }
 
     [[nodiscard]] constexpr Vec2 Min(const Vec2 _other) const
@@ -300,18 +289,20 @@ struct Vec2
 
     [[nodiscard]] constexpr Vec2 RcpSafe() const
     {
-        float xx = IsZeroApprox(x) ? 0.f : 1.f / x;
-        float yy = IsZeroApprox(y) ? 0.f : 1.f / y;
+        float xx = Jam::IsZeroApprox(x) ? 0.f : 1.f / x;
+        float yy = Jam::IsZeroApprox(y) ? 0.f : 1.f / y;
         return { xx, yy };
     }
 
     [[nodiscard]] constexpr Vec2 Reflect(const Vec2 _normal) const
     {
+        JAM_ASSERT(_normal.IsNormalized(), "Reflect requires normalized normal vector.");
         return *this - _normal * (2.f * Dot(_normal));
     }
 
     [[nodiscard]] Vec2 Refract(const Vec2 _normal, const float _eta) const
     {
+        JAM_ASSERT(_normal.IsNormalized(), "Refract requires normalized normal vector.");
         const float nDotV = Dot(_normal);
         const float k     = 1.f - _eta * _eta * (1.f - nDotV * nDotV);
         if (k < 0.f)
@@ -331,14 +322,14 @@ struct Vec2
         return Acos(Jam::Clamp(Dot(_other) / (Length() * _other.Length()), -1.f, 1.f));
     }
 
-    [[nodiscard]] constexpr bool IsZeroApprox(const float _epsilon = kEpsilon) const
+    [[nodiscard]] constexpr bool IsZeroApprox() const
     {
-        return Jam::IsZeroApprox(x, _epsilon) && Jam::IsZeroApprox(y, _epsilon);
+        return Jam::IsZeroApprox(x) && Jam::IsZeroApprox(y);
     }
 
-    [[nodiscard]] constexpr bool IsEqualApprox(const Vec2 _other, const float _epsilon = kEpsilon) const
+    [[nodiscard]] constexpr bool IsEqualApprox(const Vec2 _other) const
     {
-        return Jam::IsEqualApprox(x, _other.x, _epsilon) && Jam::IsEqualApprox(y, _other.y, _epsilon);
+        return Jam::IsEqualApprox(x, _other.x) && Jam::IsEqualApprox(y, _other.y);
     }
 
     [[nodiscard]] float* GetPtr()
@@ -490,26 +481,6 @@ struct Vec3i
         , y(_xy.y)
         , z(_z)
     {
-    }
-
-    [[nodiscard]] constexpr Vec3i Abs() const
-    {
-        return { x > 0 ? x : -x, y > 0 ? y : -y, z > 0 ? z : -z };
-    }
-
-    [[nodiscard]] constexpr Vec3i Min(const Vec3i _other) const
-    {
-        return { Jam::Min(x, _other.x), Jam::Min(y, _other.y), Jam::Min(z, _other.z) };
-    }
-
-    [[nodiscard]] constexpr Vec3i Max(const Vec3i _other) const
-    {
-        return { Jam::Max(x, _other.x), Jam::Max(y, _other.y), Jam::Max(z, _other.z) };
-    }
-
-    [[nodiscard]] constexpr Vec3i Clamp(const Vec3i _min, const Vec3i _max) const
-    {
-        return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y), Jam::Clamp(z, _min.z, _max.z) };
     }
 
     [[nodiscard]] Int32* GetPtr()
@@ -718,50 +689,51 @@ struct Vec3
     }
 
     [[nodiscard]] constexpr Vec3 Lerp(const Vec3 _other, const float _t) const
-
     {
         return { Jam::Lerp(x, _other.x, _t), Jam::Lerp(y, _other.y, _t), Jam::Lerp(z, _other.z, _t) };
     }
 
     [[nodiscard]] constexpr Vec3 Abs() const
-
     {
         return { Jam::Abs(x), Jam::Abs(y), Jam::Abs(z) };
     }
 
     [[nodiscard]] float Length() const
-
     {
         return Sqrt(x * x + y * y + z * z);
     }
 
     [[nodiscard]] constexpr float LengthSq() const
-
     {
         return x * x + y * y + z * z;
     }
 
     [[nodiscard]] float Distance(const Vec3 _other) const
-
     {
         return (*this - _other).Length();
     }
 
     [[nodiscard]] constexpr float DistanceSq(const Vec3 _other) const
-
     {
         return (*this - _other).LengthSq();
     }
 
     [[nodiscard]] constexpr float Dot(const Vec3 _other) const
-
     {
         return x * _other.x + y * _other.y + z * _other.z;
     }
 
     void Normalize()
     {
-        const float lenSq  = LengthSq();
+        const float lenSq = LengthSq();
+        if (lenSq == 0.f)
+        {
+            x = 0.f;
+            y = 0.f;
+            z = 0.f;
+            return;
+        }
+
         const float invLen = RSqrt(lenSq);
         x *= invLen;
         y *= invLen;
@@ -770,9 +742,14 @@ struct Vec3
 
     [[nodiscard]] Vec3 Normalized() const
     {
-        const float lenSq  = LengthSq();
-        const float invLen = RSqrt(lenSq);
-        return { x * invLen, y * invLen, z * invLen };
+        Vec3 v = *this;
+        v.Normalize();
+        return v;
+    }
+
+    [[nodiscard]] bool IsNormalized() const
+    {
+        return Jam::IsEqualApprox(LengthSq(), 1.f);
     }
 
     [[nodiscard]] constexpr Vec3 Cross(const Vec3 _other) const
@@ -809,27 +786,25 @@ struct Vec3
     }
 
     [[nodiscard]] constexpr Vec3 RcpSafe() const
-
     {
-        float xx = IsZeroApprox(x) ? 0.f : 1.f / x;
-        float yy = IsZeroApprox(y) ? 0.f : 1.f / y;
-        float zz = IsZeroApprox(z) ? 0.f : 1.f / z;
+        float xx = Jam::IsZeroApprox(x) ? 0.f : 1.f / x;
+        float yy = Jam::IsZeroApprox(y) ? 0.f : 1.f / y;
+        float zz = Jam::IsZeroApprox(z) ? 0.f : 1.f / z;
         return { xx, yy, zz };
     }
 
     [[nodiscard]] constexpr Vec3 Reflect(const Vec3 _normal) const
-
     {
+        JAM_ASSERT(_normal.IsNormalized(), "Reflect requires normalized normal vector.");
         return *this - _normal * (2.f * Dot(_normal));
     }
 
     [[nodiscard]] Vec3 Refract(const Vec3 _normal, const float _eta) const
-
     {
+        JAM_ASSERT(_normal.IsNormalized(), "Refract requires normalized normal vector.");
         const float dotNV = Dot(_normal);
         const float k     = 1.f - _eta * _eta * (1.f - dotNV * dotNV);
         if (k < 0.f)
-
         {
             return Vec3::kZero;
         }
@@ -837,27 +812,33 @@ struct Vec3
     }
 
     [[nodiscard]] constexpr Vec3 Project(const Vec3 _onto) const
-
     {
         return _onto * (Dot(_onto) / _onto.LengthSq());
     }
 
     [[nodiscard]] float Angle(const Vec3 _other) const
-
     {
         return Acos(Jam::Clamp(Dot(_other) / (Length() * _other.Length()), -1.f, 1.f));
     }
 
-    [[nodiscard]] constexpr bool IsZeroApprox(const float _epsilon = kEpsilon) const
-
+    [[nodiscard]] constexpr Vec3 ToDeg() const
     {
-        return Jam::IsZeroApprox(x, _epsilon) && Jam::IsZeroApprox(y, _epsilon) && Jam::IsZeroApprox(z, _epsilon);
+        return { Jam::ToDeg(x), Jam::ToDeg(y), Jam::ToDeg(z) };
     }
 
-    [[nodiscard]] constexpr bool IsEqualApprox(const Vec3 _other, const float _epsilon = kEpsilon) const
-
+    [[nodiscard]] constexpr Vec3 ToRad() const
     {
-        return Jam::IsEqualApprox(x, _other.x, _epsilon) && Jam::IsEqualApprox(y, _other.y, _epsilon) && Jam::IsEqualApprox(z, _other.z, _epsilon);
+        return { Jam::ToRad(x), Jam::ToRad(y), Jam::ToRad(z) };
+    }
+
+    [[nodiscard]] constexpr bool IsZeroApprox() const
+    {
+        return Jam::IsZeroApprox(x) && Jam::IsZeroApprox(y) && Jam::IsZeroApprox(z);
+    }
+
+    [[nodiscard]] constexpr bool IsEqualApprox(const Vec3 _other) const
+    {
+        return Jam::IsEqualApprox(x, _other.x) && Jam::IsEqualApprox(y, _other.y) && Jam::IsEqualApprox(z, _other.z);
     }
 
     [[nodiscard]] float* GetPtr()
@@ -1104,26 +1085,6 @@ struct Vec4i
         , z(_xyz.z)
         , w(_w)
     {
-    }
-
-    [[nodiscard]] constexpr Vec4i Abs() const
-    {
-        return { x > 0 ? x : -x, y > 0 ? y : -y, z > 0 ? z : -z, w > 0 ? w : -w };
-    }
-
-    [[nodiscard]] constexpr Vec4i Min(const Vec4i _other) const
-    {
-        return { Jam::Min(x, _other.x), Jam::Min(y, _other.y), Jam::Min(z, _other.z), Jam::Min(w, _other.w) };
-    }
-
-    [[nodiscard]] constexpr Vec4i Max(const Vec4i _other) const
-    {
-        return { Jam::Max(x, _other.x), Jam::Max(y, _other.y), Jam::Max(z, _other.z), Jam::Max(w, _other.w) };
-    }
-
-    [[nodiscard]] constexpr Vec4i Clamp(const Vec4i _min, const Vec4i _max) const
-    {
-        return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y), Jam::Clamp(z, _min.z, _max.z), Jam::Clamp(w, _min.w, _max.w) };
     }
 
     [[nodiscard]] Int32* GetPtr()
@@ -1421,20 +1382,36 @@ struct alignas(16) Vec4
     void Normalize()
     {
 #ifdef JAM_SIMD_SSE
-        __m128 sq = _mm_mul_ps(m128, m128);
-
+        __m128       sq    = _mm_mul_ps(m128, m128);
         const __m128 shuf1 = _mm_shuffle_ps(sq, sq, _MM_SHUFFLE(2, 3, 0, 1));
         sq                 = _mm_add_ps(sq, shuf1);
         const __m128 shuf2 = _mm_movehl_ps(sq, sq);
         __m128       lenSq = _mm_add_ss(sq, shuf2);
         lenSq              = _mm_shuffle_ps(lenSq, lenSq, _MM_SHUFFLE(0, 0, 0, 0));
 
-        const __m128 len  = _mm_sqrt_ps(lenSq);
-        const __m128 zero = _mm_setzero_ps();
-        const __m128 mask = _mm_cmpneq_ps(len, zero);
-        m128              = _mm_and_ps(_mm_div_ps(m128, len), mask);
+        if (_mm_comieq_ss(lenSq, _mm_setzero_ps()))
+        {
+            x = 0.f;
+            y = 0.f;
+            z = 0.f;
+            w = 0.f;
+            return;
+        }
+
+        const __m128 len = _mm_sqrt_ps(lenSq);
+        m128             = _mm_div_ps(m128, len);
 #else
-        const float invLen = RSqrt(LengthSq());
+        const float lenSq = LengthSq();
+        if (lenSq == 0.f)
+        {
+            x = 0.f;
+            y = 0.f;
+            z = 0.f;
+            w = 0.f;
+            return;
+        }
+
+        const float invLen = RSqrt(lenSq);
         x *= invLen;
         y *= invLen;
         z *= invLen;
@@ -1447,6 +1424,11 @@ struct alignas(16) Vec4
         Vec4 ret = *this;
         ret.Normalize();
         return ret;
+    }
+
+    [[nodiscard]] bool IsNormalized() const
+    {
+        return Jam::IsEqualApprox(LengthSq(), 1.f);
     }
 
     [[nodiscard]] Vec4 Cross(const Vec4 _other) const
@@ -1523,40 +1505,43 @@ struct alignas(16) Vec4
         return Acos(Jam::Clamp(Dot(_other) / (Length() * _other.Length()), -1.f, 1.f));
     }
 
-    [[nodiscard]] bool IsZeroApprox(const float _epsilon = kEpsilon) const
+    [[nodiscard]] bool IsZeroApprox() const
     {
 #ifdef JAM_SIMD_SSE
-        const __m128        eps      = _mm_set1_ps(_epsilon);
+        const __m128        eps      = _mm_set1_ps(kEpsilon);
         static const __m128 kAbsMask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
         const __m128        abs_v    = _mm_and_ps(m128, kAbsMask);
         const __m128        cmp      = _mm_cmple_ps(abs_v, eps);
         return (_mm_movemask_ps(cmp) == 0x0F);
 #else
-        return Jam::IsZeroApprox(x, _epsilon) && Jam::IsZeroApprox(y, _epsilon)
-            && Jam::IsZeroApprox(z, _epsilon) && Jam::IsZeroApprox(w, _epsilon);
+        return Jam::IsZeroApprox(x) && Jam::IsZeroApprox(y)
+            && Jam::IsZeroApprox(z) && Jam::IsZeroApprox(w);
 #endif
     }
 
-    [[nodiscard]] bool IsEqualApprox(const Vec4 _other, const float _epsilon = kEpsilon) const
+    [[nodiscard]] bool IsEqualApprox(const Vec4 _other) const
     {
 #ifdef JAM_SIMD_SSE
-        const __m128        eps      = _mm_set1_ps(_epsilon);
+        const __m128        eps      = _mm_set1_ps(kEpsilon);
         static const __m128 kAbsMask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
         const __m128        abs_diff = _mm_and_ps(_mm_sub_ps(m128, _other.m128), kAbsMask);
         const __m128        cmp      = _mm_cmple_ps(abs_diff, eps);
         return (_mm_movemask_ps(cmp) == 0x0F);
 #else
-        return Jam::IsEqualApprox(x, _other.x, _epsilon) && Jam::IsEqualApprox(y, _other.y, _epsilon)
-            && Jam::IsEqualApprox(z, _other.z, _epsilon) && Jam::IsEqualApprox(w, _other.w, _epsilon);
+        return Jam::IsEqualApprox(x, _other.x) && Jam::IsEqualApprox(y, _other.y)
+            && Jam::IsEqualApprox(z, _other.z) && Jam::IsEqualApprox(w, _other.w);
 #endif
     }
 
     [[nodiscard]] Vec4 Reflect(const Vec4 _normal) const
     {
+        JAM_ASSERT(_normal.xyz.IsNormalized() && Jam::IsZeroApprox(_normal.w), "Reflect requires normalized normal vector with w component equal to zero.");
+
 #ifdef JAM_SIMD_SSE
         const __m128 dot2 = _mm_set1_ps(2.f * Dot(_normal));
-        Vec4         ret  = kZero;
-        ret.m128          = _mm_sub_ps(m128, _mm_mul_ps(_normal.m128, dot2));
+
+        Vec4 ret = kZero;
+        ret.m128 = _mm_sub_ps(m128, _mm_mul_ps(_normal.m128, dot2));
         return ret;
 #else
         const float dot2 = 2.f * Dot(_normal);
@@ -1566,6 +1551,8 @@ struct alignas(16) Vec4
 
     [[nodiscard]] Vec4 Refract(const Vec4 _normal, const float _eta) const
     {
+        JAM_ASSERT(_normal.xyz.IsNormalized() && Jam::IsZeroApprox(_normal.w), "Refract requires normalized normal vector with w component equal to zero.");
+
         const float dotNV = Dot(_normal);
         const float k     = 1.f - _eta * _eta * (1.f - dotNV * dotNV);
         if (k < 0.f)
@@ -1896,9 +1883,9 @@ struct alignas(16) Vec4
 #ifdef JAM_SIMD_SSE
     const __m128 numer = _mm_set1_ps(_scalar);
 
-    Vec4 result = Vec4::kZero;
-    result.m128 = _mm_div_ps(numer, _vec.m128);
-    return result;
+    Vec4 ret = Vec4::kZero;
+    ret.m128 = _mm_div_ps(numer, _vec.m128);
+    return ret;
 #else
     return { _scalar / _vec.x, _scalar / _vec.y, _scalar / _vec.z, _scalar / _vec.w };
 #endif

@@ -189,9 +189,14 @@ public:
         return Flags { static_cast<UnderlyingT>(m_value & _mask) };
     }
 
+    // _low 부터 _high 까지의 비트만 남기고 나머지는 제거합니다.
     [[nodiscard]] constexpr Flags WithFilter(const E _low, const E _high) const noexcept
     {
-        return Flags { static_cast<UnderlyingT>(m_value & MakeMask_(_low, _high)) };
+        const UnderlyingT low  = NextPowerOf2(static_cast<UnderlyingT>(_low));
+        const UnderlyingT high = NextPowerOf2(static_cast<UnderlyingT>(_high) + 1);
+        JAM_ASSERT(low > 0 && high > 0, "Low and high values must be greater than zero");
+        JAM_ASSERT(low <= high, "Low value must be less than or equal to high value");
+        return Flags { static_cast<UnderlyingT>(m_value & ((high - 1) & ~(low - 1))) };
     }
 
     [[nodiscard]] constexpr Flags operator|(const Flags _other) const noexcept
@@ -232,6 +237,28 @@ public:
         return WithNot();
     }
 
+    [[nodiscard]] constexpr Flags operator<<(const SizeT _shift) const noexcept
+    {
+        return WithLeftShift(_shift);
+    }
+
+    constexpr Flags& operator<<=(const SizeT _shift) noexcept
+    {
+        LeftShift(_shift);
+        return *this;
+    }
+
+    [[nodiscard]] constexpr Flags operator>>(const SizeT _shift) const noexcept
+    {
+        return WithRightShift(_shift);
+    }
+
+    constexpr Flags& operator>>=(const SizeT _shift) noexcept
+    {
+        RightShift(_shift);
+        return *this;
+    }
+
     [[nodiscard]] constexpr bool operator==(const Flags _other) const noexcept
     {
         return m_value == _other.m_value;
@@ -253,14 +280,6 @@ public:
     }
 
 private:
-    [[nodiscard]] static constexpr UnderlyingT MakeMask_(const E _low, const E _high) noexcept
-    {
-        const UnderlyingT low  = AsUnderlying(_low);
-        const UnderlyingT high = AsUnderlying(_high);
-        JAM_ASSERT(low <= high, "Low value must be less than or equal to high value");
-        return ((UnderlyingT { 1 } << (high - low + 1)) - 1) << low;
-    }
-
     UnderlyingT m_value = UnderlyingT { 0 };
 };
 

@@ -74,8 +74,7 @@ public:
 
     [[nodiscard]] BasicMemoryView Slice(const SizeT _offset, const SizeT _length) const
     {
-        JAM_ASSERT(_offset <= m_byteWidth, "Offset exceeds memory block size.");
-        JAM_ASSERT(_length <= m_byteWidth - _offset, "Length exceeds remaining memory block size after offset.");
+        JAM_ASSERT(_length + _offset <= m_byteWidth, "Length exceeds remaining memory block size after offset.");
         return { m_pMem + _offset, _length };
     }
 
@@ -112,4 +111,3 @@ template<typename T>
 }
 
 }   // namespace Jam
-

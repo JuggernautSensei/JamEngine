@@ -4,12 +4,13 @@
 
 #include "Application.h"
 #include "Events.h"
+#include "FileSystem.h"
 
 #include "Material.h"
 #include "Mesh.h"
 #include "Texture.h"
 #include "Model.h"
-#include "FileSystem.h"
+
 
 namespace Jam
 {
@@ -22,7 +23,7 @@ namespace
     {
         Application&     app  = GetApp();
         const StringView base = app.GetWorkingDirectory();
-        const String     path = FileSystem::Relative(base, _rawPath);
+        const String     path = FS::Relative(base, _rawPath);
 
         // check path is under working directory
         if (!base.IsBasePathOf(path))

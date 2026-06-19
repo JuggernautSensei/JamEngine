@@ -17,21 +17,21 @@ concept HasComponentEssentialMarker =
     requires { { TCmp::COMPONENT_ESSENTIAL_MARKER } -> std::convertible_to<bool>; }
     && TCmp::COMPONENT_ESSENTIAL_MARKER;
 
-// editor display name
-#define JAM_COMPONENT_EDITOR_DISPLAY_NAME(_name) \
-    static constexpr StringView COMPONENT_EDITOR_DISPLAY_NAME { _name }
+// custom display name (on editor, inspector)
+#define JAM_COMPONENT_DISPLAY_NAME(_name) \
+    static constexpr StringView COMPONENT_DISPLAY_NAME = { _name }
 
 // check
 template<typename TCmp>
-concept HasComponentEditorDisplayName =
-    requires { TCmp::COMPONENT_EDITOR_DISPLAY_NAME; };
+concept HashComponenDisplayName =
+    requires { TCmp::COMPONENT_DISPLAY_NAME; };
 
 // editor display name getter
 template<typename TCmp>
-    requires HasComponentEditorDisplayName<TCmp>
-constexpr StringView GetComponentEditorDisplayName()
+    requires HashComponenDisplayName<TCmp>
+constexpr StringView ComponentDisplayNameOf()
 {
-    return TCmp::COMPONENT_EDITOR_DISPLAY_NAME;
+    return TCmp::COMPONENT_DISPLAY_NAME;
 }
 
 // component property flags

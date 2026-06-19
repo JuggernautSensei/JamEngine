@@ -32,7 +32,7 @@ enum class eAttributeFormat
     UInt8x4,
 };
 
-struct VertexLayoutElement
+struct VertexElement
 {
     eVertexAttribute attrib    = eVertexAttribute::Position;
     eAttributeFormat format    = eAttributeFormat::Float;
@@ -49,16 +49,16 @@ public:
     [[nodiscard]] bool Has(eVertexAttribute _attrib) const;
     void               Reset();
 
-    [[nodiscard]] Int32                           GetStride() const;
-    [[nodiscard]] const VertexLayoutElement&      GetElem(eVertexAttribute _attrib) const;
-    [[nodiscard]] Span<const VertexLayoutElement> GetElems() const;
-    [[nodiscard]] Int32                           GetNumElems() const;
-    [[nodiscard]] bool                            IsEmpty() const;
-    [[nodiscard]] UInt64                          GetHash() const;
+    [[nodiscard]] Int32                     GetStride() const;
+    [[nodiscard]] const VertexElement&      GetElement(eVertexAttribute _attrib) const;
+    [[nodiscard]] Span<const VertexElement> GetElements() const;
+    [[nodiscard]] Int32                     GetNumElements() const;
+    [[nodiscard]] bool                      IsEmpty() const;
+    [[nodiscard]] UInt64                    GetHash() const;
 
 private:
-    Array<VertexLayoutElement, CountOf<eVertexAttribute>()> m_vles   = {};   // vertex layout elements.
-    EnumArray<eVertexAttribute, VertexLayoutElement*>       m_vleLut = {};   // vertex layout element lookup table.
+    Array<VertexElement, CountOf<eVertexAttribute>()> m_ves   = {};   // vertex elements.
+    EnumArray<eVertexAttribute, VertexElement*>       m_veLUT = {};   // vertex element lookup table.
 
     Int32 m_numElems = 0;
     Int32 m_stride   = 0;

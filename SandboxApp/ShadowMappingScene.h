@@ -99,7 +99,9 @@ class ShadowMappingScene : public Scene
         Mtx4  viewProj;
         Mtx4  invViewProj;
         Vec3  eyePos;
-        float padding;
+        float padding0;
+        Vec3  eyeDir;
+        float padding1;
     };
 
     struct CBLight
@@ -189,7 +191,7 @@ private:
     float m_dRot     = ToRad(45.f);
     bool  m_bAnimate = true;
 
-    constexpr static Int32        kTotalEntities = 10;
+    constexpr static Int32        kTotalEntities = 50;
     Array<Entity, kTotalEntities> m_entities     = {};
 
     Ref<Mesh> m_pCone   = nullptr;

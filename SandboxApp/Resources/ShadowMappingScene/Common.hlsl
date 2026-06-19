@@ -32,6 +32,8 @@ cbuffer CBCamera : register(b1)
     float4x4 cb_invViewProj;
     float3 cb_eyePos;
     PADDING1;
+    float3 cb_eyeDir;
+    PADDING1;
 };
 
 cbuffer CBLight : register(b2)

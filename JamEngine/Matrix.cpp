@@ -8,7 +8,11 @@ Mtx4::Mtx4()
 {
 }
 
-Mtx4::Mtx4(const Vec4 _r0, const Vec4 _r1, const Vec4 _r2, const Vec4 _r3)
+Mtx4::Mtx4(
+    const Vec4 _r0,
+    const Vec4 _r1,
+    const Vec4 _r2,
+    const Vec4 _r3)
     : r0(_r0)
     , r1(_r1)
     , r2(_r2)
@@ -43,8 +47,8 @@ Mtx4::Mtx4(
 Mtx4 Mtx4::MakeOrtho(
     const float left,
     const float right,
-    const float top,
     const float bottom,
+    const float top,
     const float nearZ,
     const float farZ)
 {
@@ -56,7 +60,7 @@ Mtx4 Mtx4::MakeOrtho(
         {             2.f / w,                 0.f,        0.f, 0.f },
         {                 0.f,             2.f / h,        0.f, 0.f },
         {                 0.f,                 0.f,    1.f / d, 0.f },
-        { -(right + left) / w, -(top + bottom) / h, -nearZ / d, 1.f }
+        { -(right + left) / w, -(bottom + top) / h, -nearZ / d, 1.f }
     };
 }
 
@@ -66,14 +70,14 @@ Mtx4 Mtx4::MakeOrtho(
     const float _nearZ,
     const float _farZ)
 {
-    return MakeOrtho(-_width * 0.5f, _width * 0.5f, _height * 0.5f, -_height * 0.5f, _nearZ, _farZ);
+    return MakeOrtho(-_width * 0.5f, _width * 0.5f, -_height * 0.5f, _height * 0.5f, _nearZ, _farZ);
 }
 
 Mtx4 Mtx4::MakeInvOrtho(
     const float left,
     const float right,
-    const float top,
     const float bottom,
+    const float top,
     const float nearZ,
     const float farZ)
 {
@@ -95,10 +99,10 @@ Mtx4 Mtx4::MakeInvOrtho(
     const float _nearZ,
     const float _farZ)
 {
-    return MakeInvOrtho(-_width * 0.5f, _width * 0.5f, _height * 0.5f, -_height * 0.5f, _nearZ, _farZ);
+    return MakeInvOrtho(-_width * 0.5f, _width * 0.5f, -_height * 0.5f, _height * 0.5f, _nearZ, _farZ);
 }
 
-Mtx4 Mtx4::MakeInvPerspectiveFov(
+Mtx4 Mtx4::MakeInvPerspective(
     const float _fovYRad,
     const float _aspect,
     const float _nearZ,
@@ -119,7 +123,7 @@ Mtx4 Mtx4::MakeInvPerspectiveFov(
     };
 }
 
-Mtx4 Mtx4::MakePerspectiveFov(
+Mtx4 Mtx4::MakePerspective(
     const float _fovYRad,
     const float _aspect,
     const float _nearZ,
@@ -164,9 +168,10 @@ Mtx4 Mtx4::MakeScale(
 }
 
 Mtx4 Mtx4::MakeRotationX(
-    const float _angleRad)
+    const float _rad)
 {
-    const float c = Cos(_angleRad), s = Sin(_angleRad);
+    const float c = Cos(_rad);
+    const float s = Sin(_rad);
     return {
         { 1.f, 0.f, 0.f, 0.f },
         { 0.f,   c,   s, 0.f },
@@ -176,9 +181,10 @@ Mtx4 Mtx4::MakeRotationX(
 }
 
 Mtx4 Mtx4::MakeRotationY(
-    const float _angleRad)
+    const float _rad)
 {
-    const float c = Cos(_angleRad), s = Sin(_angleRad);
+    const float c = Cos(_rad);
+    const float s = Sin(_rad);
     return {
         {   c, 0.f,  -s, 0.f },
         { 0.f, 1.f, 0.f, 0.f },
@@ -188,9 +194,10 @@ Mtx4 Mtx4::MakeRotationY(
 }
 
 Mtx4 Mtx4::MakeRotationZ(
-    const float _angleRad)
+    const float _rad)
 {
-    const float c = Cos(_angleRad), s = Sin(_angleRad);
+    const float c = Cos(_rad);
+    const float s = Sin(_rad);
     return {
         {   c,   s, 0.f, 0.f },
         {  -s,   c, 0.f, 0.f },
@@ -201,13 +208,17 @@ Mtx4 Mtx4::MakeRotationZ(
 
 Mtx4 Mtx4::FromAxisAngle(
     const Vec3  _axis,
-    const float _angleRad)
+    const float _rad)
 {
-    JAM_ASSERT(!_axis.IsZeroApprox(), "Rotation axis cannot be zero vector.");
+    JAM_ASSERT(_axis.IsNormalized(), "Rotation axis must be normalized.");
 
-    const float c = Cos(_angleRad), s = Sin(_angleRad), t = 1.f - c;
-    const Vec3  a = _axis.Normalized();
-    const float x = a.x, y = a.y, z = a.z;
+    const float c = Cos(_rad);
+    const float s = Sin(_rad);
+    const float t = 1.f - c;
+    const float x = _axis.x;
+    const float y = _axis.y;
+    const float z = _axis.z;
+
     return {
         {     t * x * x + c, t * x * y + z * s, t * x * z - y * s, 0.f },
         { t * x * y - z * s,     t * y * y + c, t * y * z + x * s, 0.f },
@@ -219,11 +230,11 @@ Mtx4 Mtx4::FromAxisAngle(
 Mtx4 Mtx4::FromEuler(
     const Vec3 _euler)
 {
+    // YXZ order (yaw-pitch-roll)
     const float cx = Cos(_euler.x), sx = Sin(_euler.x);
     const float cy = Cos(_euler.y), sy = Sin(_euler.y);
     const float cz = Cos(_euler.z), sz = Sin(_euler.z);
     const float sxsy = sx * sy, cxsy = cx * sy;
-
     return {
         {             cy * cz,             cy * sz,     -sy, 0.f },
         { sxsy * cz - cx * sz, sxsy * sz + cx * cz, sx * cy, 0.f },
@@ -233,14 +244,14 @@ Mtx4 Mtx4::FromEuler(
 }
 
 Mtx4 Mtx4::FromQuaternion(
-    const Quat _quat)
+    const Quat _q)
 {
-    JAM_ASSERT(!_quat.IsZeroApprox(), "Rotation quaternion cannot be zero quaternion.");
+    JAM_ASSERT(_q.IsNormalized(), "Quaternion must be normalized.");
 
-    const Quat  q  = _quat.Normalized();
-    const float xx = q.x * q.x, yy = q.y * q.y, zz = q.z * q.z;
-    const float xy = q.x * q.y, xz = q.x * q.z, yz = q.y * q.z;
-    const float wx = q.w * q.x, wy = q.w * q.y, wz = q.w * q.z;
+    const float xx = _q.x * _q.x, yy = _q.y * _q.y, zz = _q.z * _q.z;
+    const float xy = _q.x * _q.y, xz = _q.x * _q.z, yz = _q.y * _q.z;
+    const float wx = _q.w * _q.x, wy = _q.w * _q.y, wz = _q.w * _q.z;
+
     return {
         { 1.f - 2.f * (yy + zz),       2.f * (xy + wz),       2.f * (xz - wy), 0.f },
         {       2.f * (xy - wz), 1.f - 2.f * (xx + zz),       2.f * (yz + wx), 0.f },
@@ -262,12 +273,14 @@ Mtx4 Mtx4::MakeLookTo(
     const Vec3 _forward,
     const Vec3 _up)
 {
-    JAM_ASSERT(!_forward.IsZeroApprox(), "Forward direction cannot be zero vector.");
-    JAM_ASSERT(!_up.IsZeroApprox(), "Up direction cannot be zero vector.");
+    JAM_ASSERT(_forward.IsNormalized(), "Forward direction must be normalized.");
+    JAM_ASSERT(_up.IsNormalized(), "Up direction must be normalized.");
+    JAM_ASSERT(!_forward.IsEqualApprox(_up) && !_forward.IsEqualApprox(-_up), "Forward and up directions cannot be parallel.");
 
-    const Vec3  f  = _forward.Normalized();
-    const Vec3  r  = _up.Cross(f).Normalized();
-    const Vec3  u  = f.Cross(r);
+    const Vec3 f = _forward;
+    const Vec3 r = _up.Cross(f).Normalized();
+    const Vec3 u = f.Cross(r).Normalized();
+
     const float tx = -r.Dot(_eyePos);
     const float ty = -u.Dot(_eyePos);
     const float tz = -f.Dot(_eyePos);
@@ -281,17 +294,16 @@ Mtx4 Mtx4::MakeLookTo(
 
 Mtx4 Mtx4::MakeSRT(
     const Vec3 _scale,
-    const Quat _rotation,
+    const Quat _quat,
     const Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
-    JAM_ASSERT(!_rotation.IsZeroApprox(), "Rotation cannot be zero quaternion.");
+    JAM_ASSERT(_quat.IsNormalized(), "Rotation must be normalized.");
 
-    const Quat  q  = _rotation.Normalized();
     const float sx = _scale.x, sy = _scale.y, sz = _scale.z;
-    const float xx = q.x * q.x, yy = q.y * q.y, zz = q.z * q.z;
-    const float xy = q.x * q.y, xz = q.x * q.z, yz = q.y * q.z;
-    const float wx = q.w * q.x, wy = q.w * q.y, wz = q.w * q.z;
+    const float xx = _quat.x * _quat.x, yy = _quat.y * _quat.y, zz = _quat.z * _quat.z;
+    const float xy = _quat.x * _quat.y, xz = _quat.x * _quat.z, yz = _quat.y * _quat.z;
+    const float wx = _quat.w * _quat.x, wy = _quat.w * _quat.y, wz = _quat.w * _quat.z;
     return {
         { sx * (1.f - 2.f * (yy + zz)),         sx * 2.f * (xy + wz),         sx * 2.f * (xz - wy), 0.f },
         {         sy * 2.f * (xy - wz), sy * (1.f - 2.f * (xx + zz)),         sy * 2.f * (yz + wx), 0.f },
@@ -300,7 +312,10 @@ Mtx4 Mtx4::MakeSRT(
     };
 }
 
-Mtx4 Mtx4::MakeSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
+Mtx4 Mtx4::MakeSRT(
+    const Vec3 _scale,
+    const Vec3 _euler,
+    const Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
 
@@ -317,15 +332,20 @@ Mtx4 Mtx4::MakeSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
     };
 }
 
-Mtx4 Mtx4::MakeSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation)
+Mtx4 Mtx4::MakeSRT(
+    const Vec3 _scale,
+    const Vec3 _forward,
+    const Vec3 _up,
+    const Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
-    JAM_ASSERT(!_forward.IsZeroApprox(), "Forward direction cannot be zero vector.");
-    JAM_ASSERT(!_up.IsZeroApprox(), "Up direction cannot be zero vector.");
+    JAM_ASSERT(_forward.IsNormalized(), "Forward direction must be normalized.");
+    JAM_ASSERT(_up.IsNormalized(), "Up direction must be normalized.");
+    JAM_ASSERT(!_forward.IsEqualApprox(_up) && !_forward.IsEqualApprox(-_up), "Forward and up directions cannot be parallel.");
 
-    const Vec3 f = _forward.Normalized();
+    const Vec3 f = _forward;
     const Vec3 r = _up.Cross(f).Normalized();
-    const Vec3 u = f.Cross(r);
+    const Vec3 u = f.Cross(r).Normalized();
 
     return {
         { r.x * _scale.x, r.y * _scale.x, r.z * _scale.x, 0.f },
@@ -337,20 +357,19 @@ Mtx4 Mtx4::MakeSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation)
 
 Mtx4 Mtx4::MakeInvSRT(
     const Vec3 _scale,
-    const Quat _rotation,
+    const Quat _quat,
     const Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
-    JAM_ASSERT(!_rotation.IsZeroApprox(), "Rotation cannot be zero quaternion.");
+    JAM_ASSERT(_quat.IsNormalized(), "Rotation must be normalized.");
 
-    const Quat  q  = _rotation.Normalized();
     const float sx = _scale.x, sy = _scale.y, sz = _scale.z;
     const float isx = 1.f / sx, isy = 1.f / sy, isz = 1.f / sz;
     const float tx = _translation.x, ty = _translation.y, tz = _translation.z;
 
-    const float xx = q.x * q.x, yy = q.y * q.y, zz = q.z * q.z;
-    const float xy = q.x * q.y, xz = q.x * q.z, yz = q.y * q.z;
-    const float wx = q.w * q.x, wy = q.w * q.y, wz = q.w * q.z;
+    const float xx = _quat.x * _quat.x, yy = _quat.y * _quat.y, zz = _quat.z * _quat.z;
+    const float xy = _quat.x * _quat.y, xz = _quat.x * _quat.z, yz = _quat.y * _quat.z;
+    const float wx = _quat.w * _quat.x, wy = _quat.w * _quat.y, wz = _quat.w * _quat.z;
 
     const float r00 = 1.f - 2.f * (yy + zz);
     const float r01 = 2.f * (xy + wz);
@@ -370,7 +389,10 @@ Mtx4 Mtx4::MakeInvSRT(
     };
 }
 
-Mtx4 Mtx4::MakeInvSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
+Mtx4 Mtx4::MakeInvSRT(
+    const Vec3 _scale,
+    const Vec3 _euler,
+    const Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
 
@@ -394,15 +416,20 @@ Mtx4 Mtx4::MakeInvSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
     };
 }
 
-Mtx4 Mtx4::MakeInvSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation)
+Mtx4 Mtx4::MakeInvSRT(
+    const Vec3 _scale,
+    const Vec3 _forward,
+    const Vec3 _up,
+    const Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
-    JAM_ASSERT(!_forward.IsZeroApprox(), "Forward direction cannot be zero vector.");
-    JAM_ASSERT(!_up.IsZeroApprox(), "Up direction cannot be zero vector.");
+    JAM_ASSERT(_forward.IsNormalized(), "Forward direction must be normalized.");
+    JAM_ASSERT(_up.IsNormalized(), "Up direction must be normalized.");
+    JAM_ASSERT(!_forward.IsEqualApprox(_up) && !_forward.IsEqualApprox(-_up), "Forward and up directions cannot be parallel.");
 
-    const Vec3  f   = _forward.Normalized();
+    const Vec3  f   = _forward;
     const Vec3  r   = _up.Cross(f).Normalized();
-    const Vec3  u   = f.Cross(r);
+    const Vec3  u   = f.Cross(r).Normalized();
     const float isx = 1.f / _scale.x, isy = 1.f / _scale.y, isz = 1.f / _scale.z;
     const float tx = _translation.x, ty = _translation.y, tz = _translation.z;
     return {
@@ -432,10 +459,12 @@ void Mtx4::DecomposeSRT(
         if (IsZeroApprox(sx) || IsZeroApprox(sy) || IsZeroApprox(sz))
         {
             *_pRotationOrNull = Quat::kIdentity;
-            return;
         }
-        const Mtx4 rmtx   = { r0 / sx, r1 / sy, r2 / sz, Vec4::kUnitW };
-        *_pRotationOrNull = Quat::FromRotationMatrix(rmtx).Normalized();
+        else
+        {
+            const Mtx4 rmtx   = { r0 / sx, r1 / sy, r2 / sz, Vec4::kUnitW };
+            *_pRotationOrNull = Quat::FromRotationMatrix(rmtx);
+        }
     }
 
     if (_pTranslationOrNull)
@@ -676,7 +705,7 @@ Vec4 Mtx4::Mult(Vec4 _vec) const
     const __m128 vz = _mm_permute_ps(_vec.m128, _MM_SHUFFLE(2, 2, 2, 2));
     const __m128 vw = _mm_permute_ps(_vec.m128, _MM_SHUFFLE(3, 3, 3, 3));
 
-    Vec4 ret;
+    Vec4 ret = {};
     ret.m128 = _mm_mul_ps(vx, m128r0);
     ret.m128 = _mm_fmadd_ps(vy, m128r1, ret.m128);
     ret.m128 = _mm_fmadd_ps(vz, m128r2, ret.m128);
@@ -684,10 +713,10 @@ Vec4 Mtx4::Mult(Vec4 _vec) const
     return ret;
 #else
     return {
-        m00 * _vec.x + m01 * _vec.y + m02 * _vec.z + m03 * _vec.w,
-        m10 * _vec.x + m11 * _vec.y + m12 * _vec.z + m13 * _vec.w,
-        m20 * _vec.x + m21 * _vec.y + m22 * _vec.z + m23 * _vec.w,
-        m30 * _vec.x + m31 * _vec.y + m32 * _vec.z + m33 * _vec.w
+        m00 * _vec.x + m10 * _vec.y + m20 * _vec.z + m30 * _vec.w,
+        m01 * _vec.x + m11 * _vec.y + m21 * _vec.z + m31 * _vec.w,
+        m02 * _vec.x + m12 * _vec.y + m22 * _vec.z + m32 * _vec.w,
+        m03 * _vec.x + m13 * _vec.y + m23 * _vec.z + m33 * _vec.w
     };
 #endif
 }

@@ -93,7 +93,7 @@ TEST(Quat, AxisAngleRoundTrip)
 TEST(Quat, EulerRoundTrip_XOnly)
 {
     const Vec3 euler = { kPi / 4.f, 0.f, 0.f };
-    const Vec3 back  = Quat::FromEuler(euler).ToEuler();
+    const Vec3 back  = Quat::FromEuler(euler).ToEuler(TODO);
     EXPECT_NEAR(back.x, euler.x, kTol);
     EXPECT_NEAR(back.y, 0.f, kTol);
     EXPECT_NEAR(back.z, 0.f, kTol);
@@ -102,7 +102,7 @@ TEST(Quat, EulerRoundTrip_XOnly)
 TEST(Quat, EulerRoundTrip_YOnly)
 {
     const Vec3 euler = { 0.f, kPi / 3.f, 0.f };
-    const Vec3 back  = Quat::FromEuler(euler).ToEuler();
+    const Vec3 back  = Quat::FromEuler(euler).ToEuler(TODO);
     EXPECT_NEAR(back.x, 0.f, kTol);
     EXPECT_NEAR(back.y, euler.y, kTol);
     EXPECT_NEAR(back.z, 0.f, kTol);
@@ -111,7 +111,7 @@ TEST(Quat, EulerRoundTrip_YOnly)
 TEST(Quat, EulerRoundTrip_ZOnly)
 {
     const Vec3 euler = { 0.f, 0.f, kPi / 5.f };
-    const Vec3 back  = Quat::FromEuler(euler).ToEuler();
+    const Vec3 back  = Quat::FromEuler(euler).ToEuler(TODO);
     EXPECT_NEAR(back.x, 0.f, kTol);
     EXPECT_NEAR(back.y, 0.f, kTol);
     EXPECT_NEAR(back.z, euler.z, kTol);

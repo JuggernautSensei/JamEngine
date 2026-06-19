@@ -14,6 +14,6 @@ enum class eWindowsErrorCode
 [[nodiscard]] String  MakeWindowsLastErrorMessage();
 [[nodiscard]] WString MakeWindowsErrorMessageW(UInt32 _errorCode, eWindowsErrorCode _errorType);
 [[nodiscard]] WString MakeWindowsLastErrorMessageW();
-[[nodiscard]] Error   ErrorFromPlatformErrorCode(UInt32 _err);
+[[nodiscard]] Error   ErrorFromWindowsErrorCode(UInt32 _err);
 
 }   // namespace Jam

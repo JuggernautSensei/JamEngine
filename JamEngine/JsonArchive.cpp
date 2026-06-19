@@ -83,17 +83,17 @@ Expect<String> JsonWriter::Stringify(const Flags<eJsonWriteFlags> _flags) const
 }
 
 Error JsonWriter::SaveToFile(
-    const StringView                 _path,
-    const Flags<eJsonWriteFlags>     _flags,
-    const eFileWriterCollisionPolicy _policy) const
+    const StringView             _path,
+    const Flags<eJsonWriteFlags> _flags,
+    const eFileWrite             _mode) const
 {
-    Expect<FileWriter> writer = FileWriter::Open(_path, _policy);
+    Expect<FileWriter> writer = FileWriter::Open(_path, _mode);
     if (!writer)
     {
         return writer.GetError();
     }
 
-    size_t len  = {};
+    USizeT len  = 0;
     char*  json = yyjson_mut_write(m_pDoc, _flags.GetValue(), &len);
     if (!json)
     {
@@ -101,8 +101,8 @@ Error JsonWriter::SaveToFile(
         return Error::RuntimeError;
     }
 
-    const Expect<SizeT> ret = writer->WriteString({ json, static_cast<SizeT>(len) });
-    free(json);
+    const Expect<SizeT> ret = writer->Write({ json, static_cast<SizeT>(len) });
+    Free(json);
     if (!ret)
     {
         JAM_LOG_ERROR("Failed to write JSON to file '{}'\n{}", _path, ret.GetError());
@@ -303,13 +303,21 @@ Expect<JsonReader> JsonReader::ParseFromFile(
     const StringView            _path,
     const Flags<eJsonReadFlags> _flags)
 {
-    Expect<String> data = FileReader::ReadFileAsString(_path);
-    if (!data)
+    Expect<FileReader> reader = FileReader::Open(_path);
+    if (!reader)
     {
-        return data.GetError();
+        return reader.GetError();
     }
 
-    return Parse(*data, _flags);
+    String buf = {};
+    buf.ResizeUninitialized(reader->CalcTotalSize());
+    Expect<SizeT> size = reader->Read(buf);
+    if (!size)
+    {
+        return size.GetError();
+    }
+
+    return Parse(buf, _flags);
 }
 
 Error JsonReader::EnterField(const StringView _key)

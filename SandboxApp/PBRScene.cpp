@@ -281,11 +281,11 @@ void PBRScene::InitRenderGraph_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc tmDesc = {};
-    tmDesc.filter          = eImageFilter::ToneMapping;
-    tmDesc.output          = eImageFilterOutput::Final;
-    tmDesc.input0Texture   = "T_HDR";
-    ifm.AddImageFilter(m_graph, "Pass_ToneMapping", tmDesc);
+    ImageFilterInfo tmInfo = {};
+    tmInfo.filter          = eImageFilter::ToneMapping;
+    tmInfo.output          = eImageFilterOutput::Final;
+    tmInfo.input0Texture   = "T_HDR";
+    ifm.AddImageFilter(m_graph, "Pass_ToneMapping", tmInfo);
     UpdateToneMappingParams_();
 }
 

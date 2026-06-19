@@ -27,7 +27,9 @@ void SandboxApp::Init(
 {
     ImageFilterManager::CreateInstance();
 
-    SetVsync(false);
+    Graphics& gfx = GetGraphics();
+    gfx.SetVSync(true);
+
     WindowsPlatform& win = GetWindowsPlatform();
     win.AdjustClientRect(100, 100, 1600, 900);
     SceneManager& sm = GetSceneManager();
@@ -79,11 +81,6 @@ int main(
         flags |= eAppInitFlags::Subsystem_Editor;
     }
 
-    if (parser.HasFlag("--allow-tearing"))
-    {
-        flags.Enable(eAppInitFlags::Graphics_AllowTearing);
-    }
-
     if (parser.HasFlag("--triple-buffering"))
     {
         flags.Enable(eAppInitFlags::Graphics_TripleBuffering);
@@ -117,7 +114,7 @@ int main(
 
     if (parser.HasFlag("--graphics-debugger"))
     {
-        flags.Enable(eAppInitFlags::Graphics_GraphicsDebugger);
+        flags.Enable(eAppInitFlags::Graphics_ConnectDebugger);
     }
 
     SandboxApp app { "SandboxApp", flags };

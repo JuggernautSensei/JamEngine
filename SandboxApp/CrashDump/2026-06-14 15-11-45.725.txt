@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-06-14 15:11:45.724
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\ImageFilterManager.cpp
+function name: class Jam::Handle<struct Jam::Program> __cdecl ImageFilterManager::GetOrLoadProgram_(enum eImageFilter,bool,bool)
+line: 269
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: psc
+Pixel shader compilation failed: Error ShaderCompileFailed: Shader compilation failed
+====================================

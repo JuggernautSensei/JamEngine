@@ -17,9 +17,9 @@ public:
     void               Clear();
 
 private:
-    UInt32       m_nextUidValue  = 0;
-    Vector<UID>  m_freeUids      = {};
-    HashSet<UID> m_allocatedUids = {};
+    UInt32       m_nextUIDValue  = 0;
+    Vector<UID>  m_freeUIDs      = {};
+    HashSet<UID> m_allocatedUIDs = {};
 };
 
 }   // namespace Jam

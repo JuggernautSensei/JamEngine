@@ -57,6 +57,11 @@ Vec3 FlyingCamera::GetEyePos() const
     return transform.GetTranslation();
 }
 
+Vec3 FlyingCamera::GetForward() const
+{
+    return transform.GetForward();
+}
+
 const Mtx4& FlyingCamera::GetProj() const
 {
     return camera.GetProj();

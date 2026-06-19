@@ -157,7 +157,7 @@ Error Model::LoadFromFile_(
 Error Model::Save(
     const StringView                 _path,
     const bool                       _bReplaceExtension,
-    const eFileWriterCollisionPolicy _policy) const
+    const eFileWrite _mode) const
 {
     JAM_FUNCTION_PROFILE();
     JAM_ASSERT(IsValid(), "Cannot save invalid model");
@@ -168,7 +168,7 @@ Error Model::Save(
         path.ReplaceExtension(kExtension);
     }
 
-    Expect<ModelSaver> saver = ModelSaver::Open(path.ToStringView(), _policy);
+    Expect<ModelSaver> saver = ModelSaver::Open(path.ToStringView(), _mode);
     if (!saver)
     {
         return saver.GetError();

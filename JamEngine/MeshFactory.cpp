@@ -35,66 +35,48 @@ namespace
             normals = ComputeNormals(_positions, _indexData, _bUseU32);
         }
 
-        TangentFrame tangentFrame = {};
+        TangentFrame frame = {};
         if (bHasTangent || bHasBitangent)
         {
             JAM_ASSERT(bHasTexCoord, "TexCoord0 attribute is required to compute tangents and bitangents.");
             JAM_ASSERT(!_texCoordsOrEmpty.empty(), "TexCoord0 data is required to compute tangents and bitangents.");
             JAM_ASSERT(!normals.empty(), "Normals must be computed before computing tangents and bitangents.");
-            tangentFrame = ComputeTangentFrame(_positions, normals, _texCoordsOrEmpty, _indexData, _bUseU32);
+            frame = ComputeTangentFrame(_positions, normals, _texCoordsOrEmpty, _indexData, _bUseU32);
         }
 
         if (bPosOnly)
         {
             return Mesh::Load(_positions, _indexData);
         }
-        else
+
+        const SizeT  numVerts = _positions.size();
+        Vector<Byte> attribData(_attribLayoutOrEmpty.GetStride() * numVerts);
+
+        VertexWriter vertexWriter { attribData, _attribLayoutOrEmpty };
+        for (SizeT i = 0; i < numVerts; ++i)
         {
-            const SizeT  numVerts = _positions.size();
-            Vector<Byte> attribData(_attribLayoutOrEmpty.GetStride() * numVerts);
-
-            VertexWriter vertWriter { attribData, _attribLayoutOrEmpty };
-            for (SizeT i = 0; i < numVerts; ++i)
+            if (bHasNormal)
             {
-                if (bHasNormal)
-                    vertWriter.WriteAt(i, eVertexAttribute::Normal, normals[i]);
-
-                if (bHasTangent)
-                    vertWriter.WriteAt(i, eVertexAttribute::Tangent, tangentFrame.tangents[i]);
-
-                if (bHasBitangent)
-                    vertWriter.WriteAt(i, eVertexAttribute::Bitangent, tangentFrame.bitangents[i]);
-
-                if (bHasTexCoord)
-                    vertWriter.WriteAt(i, eVertexAttribute::TexCoord0, _texCoordsOrEmpty[i]);
+                vertexWriter.WriteAt(i, eVertexAttribute::Normal, normals[i]);
             }
 
-            return Mesh::Load(_positions, attribData, _attribLayoutOrEmpty, _indexData);
-        }
-    }
+            if (bHasTangent)
+            {
+                vertexWriter.WriteAt(i, eVertexAttribute::Tangent, frame.tangents[i]);
+            }
 
-    [[nodiscard]] Quat NormalToRotation(const Vec3 _normal) noexcept
-    {
-        const Vec3 from = Vec3::kUp;   // { 0, 1, 0 }
-        const Vec3 to   = _normal.Normalized();
+            if (bHasBitangent)
+            {
+                vertexWriter.WriteAt(i, eVertexAttribute::Bitangent, frame.bitangents[i]);
+            }
 
-        const float dot = from.Dot(to);
-
-        if (dot >= 1.f - kEpsilon)
-            return Quat::kIdentity;
-
-        if (dot <= -1.f + kEpsilon)
-        {
-            // 180도 회전 — 임의의 수직 축 사용
-            Vec3 axis = Vec3::kRight.Cross(from);
-            if (axis.IsZeroApprox())
-                axis = Vec3::kForward.Cross(from);
-            return Quat::FromAxisAngle(axis.Normalized(), kPi);
+            if (bHasTexCoord)
+            {
+                vertexWriter.WriteAt(i, eVertexAttribute::TexCoord0, _texCoordsOrEmpty[i]);
+            }
         }
 
-        const Vec3  axis  = from.Cross(to).Normalized();
-        const float angle = Acos(Clamp(dot, -1.f, 1.f));
-        return Quat::FromAxisAngle(axis, angle);
+        return Mesh::Load(_positions, attribData, _attribLayoutOrEmpty, _indexData);
     }
 
 }   // namespace
@@ -170,7 +152,12 @@ Ref<Mesh> CreateCubeMesh(
     };
 
     constexpr UInt16 kIndices[] = {
-        0, 1, 2, 0, 2, 3,   // front
+        0,
+        1,
+        2,
+        0,
+        2,
+        3,   // front
         4,
         5,
         6,
@@ -308,7 +295,7 @@ Ref<Mesh> CreateSphereMesh(
 
     if (_divisionLevel > 0)
     {
-        LoopSubdivisionOutputWithTexcoords output = LoopSubdivide(positions, kTexCoords, kIndices, false, _divisionLevel);
+        LoopSubdivisionResult output = LoopSubdivide(positions, kTexCoords, kIndices, false, _divisionLevel);
 
         for (Vec3& pos: output.positions)
         {
@@ -649,17 +636,16 @@ Vector<Vec3> ComputeNormals(
     const bool             _bUseU32)
 {
     IndexReader indexReader { _indexData, _bUseU32 };
-    const Int32 numVerts = static_cast<Int32>(_positions.size());
-    const Int32 numIdxes = CalcNumIndices(_indexData, _bUseU32);
-    const Int32 numFaces = numIdxes / 3;
+    const SizeT numIdxes = _indexData.GetByteWidth() / (_bUseU32 ? sizeof(UInt32) : sizeof(UInt16));
+    const SizeT numFaces = numIdxes / 3;
 
-    Vector<Vec3> tmpNormals(numVerts);
+    Vector<Vec3> tmpNormals(_positions.size());
     for (Int32 i = 0; i < numFaces; ++i)
     {
         const UInt32 i0 = indexReader.ReadAt<UInt32>(i * 3 + 0);
         const UInt32 i1 = indexReader.ReadAt<UInt32>(i * 3 + 1);
         const UInt32 i2 = indexReader.ReadAt<UInt32>(i * 3 + 2);
-        JAM_ASSERT(Less(i0, numVerts) && Less(i1, numVerts) && Less(i2, numVerts), "Index out of range.");
+        JAM_ASSERT(Less(i0, _positions.size()) && Less(i1, _positions.size()) && Less(i2, _positions.size()), "Index out of range.");
 
         const Vec3 p0 = _positions[i0];
         const Vec3 p1 = _positions[i1];
@@ -686,9 +672,11 @@ Vector<Vec3> ComputeNormals(
     }
 
     Vector<Vec3> normals = {};
-    normals.reserve(numVerts);
-    for (SizeT i = 0; i < numVerts; ++i)
+    normals.reserve(_positions.size());
+    for (SizeT i = 0; i < _positions.size(); ++i)
+    {
         normals.emplace_back(tmpNormals[i].Normalized());
+    }
 
     return normals;
 }
@@ -701,18 +689,17 @@ TangentFrame ComputeTangentFrame(
     const bool             _bUseU32)
 {
     IndexReader indexReader { _indexData, _bUseU32 };
-    const Int32 numVerts = static_cast<Int32>(_positions.size());
-    const Int32 numIdxes = CalcNumIndices(_indexData, _bUseU32);
-    const Int32 numFaces = numIdxes / 3;
+    const SizeT numIdxes = _indexData.GetByteWidth() / (_bUseU32 ? sizeof(UInt32) : sizeof(UInt16));
+    const SizeT numFaces = numIdxes / 3;
 
-    Vector<Vec3> tan1(numVerts);
-    Vector<Vec3> tan2(numVerts);
+    Vector<Vec3> tan1(_positions.size());
+    Vector<Vec3> tan2(_positions.size());
     for (Int32 i = 0; i < numFaces; ++i)
     {
         const UInt32 i0 = indexReader.ReadAt<UInt32>(i * 3 + 0);
         const UInt32 i1 = indexReader.ReadAt<UInt32>(i * 3 + 1);
         const UInt32 i2 = indexReader.ReadAt<UInt32>(i * 3 + 2);
-        JAM_ASSERT(Less(i0, numVerts) && Less(i1, numVerts) && Less(i2, numVerts), "Index out of range.");
+        JAM_ASSERT(Less(i0, _positions.size()) && Less(i1, _positions.size()) && Less(i2, _positions.size()), "Index out of range.");
 
         const Vec3 v0 = _positions[i0];
         const Vec3 v1 = _positions[i1];
@@ -728,7 +715,8 @@ TangentFrame ComputeTangentFrame(
         const float y2 = v2.y - v0.y;
         const float z1 = v1.z - v0.z;
         const float z2 = v2.z - v0.z;
-        if (IsZeroApprox(x1) && IsZeroApprox(y1) && IsZeroApprox(z1) || IsZeroApprox(x2) && IsZeroApprox(y2) && IsZeroApprox(z2))
+        if ((IsZeroApprox(x1) && IsZeroApprox(y1) && IsZeroApprox(z1))
+            || (IsZeroApprox(x2) && IsZeroApprox(y2) && IsZeroApprox(z2)))
         {
             continue;
         }
@@ -737,7 +725,8 @@ TangentFrame ComputeTangentFrame(
         const float s2 = w2.x - w0.x;
         const float t1 = w1.y - w0.y;
         const float t2 = w2.y - w0.y;
-        if (IsZeroApprox(s1) && IsZeroApprox(t1) || IsZeroApprox(s2) && IsZeroApprox(t2))
+        if ((IsZeroApprox(s1) && IsZeroApprox(t1))
+            || (IsZeroApprox(s2) && IsZeroApprox(t2)))
         {
             continue;
         }
@@ -766,13 +755,12 @@ TangentFrame ComputeTangentFrame(
         tan2[i2] += tdir;
     }
 
-    Vector<Vec3> tans = {};
-    tans.reserve(numVerts);
-
+    Vector<Vec3> tans   = {};
     Vector<Vec3> bitans = {};
-    bitans.reserve(numVerts);
+    tans.reserve(_positions.size());
+    bitans.reserve(_positions.size());
 
-    for (SizeT i = 0; i < numVerts; ++i)
+    for (SizeT i = 0; i < _positions.size(); ++i)
     {
         const Vec3 n = _normals[i];
         const Vec3 t = tan1[i];

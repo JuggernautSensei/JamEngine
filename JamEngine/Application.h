@@ -1,6 +1,5 @@
 #pragma once
 #include "CommandQueue.h"
-#include "FileLock.h"
 #include "Timer.h"
 
 namespace Jam
@@ -20,18 +19,17 @@ enum class eAppInitFlags : UInt32
     Subsystem_Editor       = 1 << 3,
 
     // graphics
-    Graphics_AllowTearing       = 1 << 4,
-    Graphics_TripleBuffering    = 1 << 5,
-    Graphics_QuadrupleBuffering = 2 << 5,
+    Graphics_TripleBuffering    = 1 << 4,
+    Graphics_QuadrupleBuffering = 2 << 4,
 
-    Graphics_BackBufferHDR10 = 1 << 7,
-    Graphics_BackBufferHDR16 = 2 << 7,
+    Graphics_BackBufferHDR10 = 1 << 6,
+    Graphics_BackBufferHDR16 = 2 << 6,
 
-    Graphics_BackBufferMSAAx4  = 1 << 9,
-    Graphics_BackBufferMSAAx8  = 2 << 9,
-    Graphics_BackBufferMSAAx16 = 3 << 9,
+    Graphics_BackBufferMSAAx4  = 1 << 8,
+    Graphics_BackBufferMSAAx8  = 2 << 8,
+    Graphics_BackBufferMSAAx16 = 3 << 8,
 
-    Graphics_GraphicsDebugger = 1 << 11,
+    Graphics_ConnectDebugger = 1 << 10,
 
 };
 
@@ -54,12 +52,9 @@ public:
     void DispatchEvent(Event& _event);
     void SubmitCommandToMainThread(const Delegate<void()>& _command);
 
-    void               SetVsync(bool _bVsync);
-    [[nodiscard]] bool IsVsyncEnabled() const;
-
-    [[nodiscard]] StringView       GetAppName() const;
-    [[nodiscard]] const TickTimer& GetTimer() const;
-    [[nodiscard]] bool             IsAppInitFlagsEnabled(eAppInitFlags _flags) const;
+    [[nodiscard]] const TickTimer&     GetTimer() const;
+    [[nodiscard]] StringView           GetAppName() const;
+    [[nodiscard]] Flags<eAppInitFlags> GetInitFlags() const;
 
     [[nodiscard]] StringView GetWorkingDirectory() const;
     [[nodiscard]] StringView GetContentsDirectory() const;
@@ -87,7 +82,6 @@ private:
     String               m_appName      = {};
     bool                 m_bRunning     = false;
     bool                 m_bInited      = false;
-    bool                 m_bVsync       = false;
     CommandQueue         m_commandQueue = {};
     std::thread::id      m_mainThreadId = {};
     Flags<eAppInitFlags> m_flags        = {};
@@ -96,11 +90,9 @@ private:
     TickTimer m_timer = {};
 
     // project
-    String           m_workingDir       = {};
-    String           m_contentsDir      = {};
-    String           m_cacheDir         = {};
-    Scoped<FileLock> m_pContentsDirLock = nullptr;
-    Scoped<FileLock> m_pCacheDirLock    = nullptr;
+    String m_workingDir  = {};
+    String m_contentsDir = {};
+    String m_cacheDir    = {};
 
     // singletone
     inline static Application* s_pInstance = nullptr;

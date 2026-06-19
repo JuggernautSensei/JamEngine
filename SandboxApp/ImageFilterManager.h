@@ -36,7 +36,7 @@ struct CBImageFilterKernel
     float padding[3];
 };
 
-struct ImageFilterDesc
+struct ImageFilterInfo
 {
     // 필터 타입
     eImageFilter filter = eImageFilter::Blit;
@@ -56,9 +56,9 @@ struct ImageFilterDesc
 
     // 입력
     String input0Texture            = {};      // 입력 텍스처 0. 필터 불문 반드시 존재해야 함.
-    bool   bUseTexture2DArrayInput0 = false;   // true: input0이 Texture2DArray. 슬라이스 인덱스는 iparam.x.
+    bool   bUseTexture2DArrayInput0 = false;   // true: input0이 Texture2DArray. 인덱싱은 iparam.x 이용.
     String input1Texture            = {};      // 입력 텍스처 1. 필터에 따라 없을 수 있음.
-    bool   bUseTexture2DArrayInput1 = false;   // true: input1이 Texture2DArray. 슬라이스 인덱스는 iparam.y.
+    bool   bUseTexture2DArrayInput1 = false;   // true: input1이 Texture2DArray. 인덱싱은 iparam.y 이용.
 
     // 상수 버퍼
     // 빈 문자열: 패스마다 in-place 생성. UpdateParams/UpdateKernel에 패스 이름을 전달해 업데이트.
@@ -85,8 +85,8 @@ class ImageFilterManager
         String programName = {};
 
         // filesystem
-        String              path   = {};
-        Vector<ShaderMacro> macros = {};
+        String                      path   = {};
+        Vector<ShaderBinary::Macro> macros = {};
 
         // cbuffer
         bool bNeedParam  = false;
@@ -95,8 +95,6 @@ class ImageFilterManager
     };
 
 public:
-    using RenderPassBuilder = RenderGraph::RenderPassBuilder;
-
     ImageFilterManager(const ImageFilterManager&)                = delete;
     ImageFilterManager& operator=(const ImageFilterManager&)     = delete;
     ImageFilterManager(ImageFilterManager&&) noexcept            = delete;
@@ -106,7 +104,7 @@ public:
     static void                              CreateInstance();
     static void                              DestroyInstance();
 
-    RenderPassBuilder AddImageFilter(RenderGraph& _graph, StringView _name, const ImageFilterDesc& _desc);
+    RenderGraph::RenderPassBuilder AddImageFilter(RenderGraph& _graph, StringView _name, const ImageFilterInfo& _desc);
 
     void UpdateParams(const RenderGraph& _graph, StringView _passName, const CBImageFilterParam& _param) const;
     void UpdateKernel(const RenderGraph& _graph, StringView _passName, const CBImageFilterKernel& _kernel) const;

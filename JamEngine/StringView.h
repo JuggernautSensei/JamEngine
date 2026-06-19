@@ -374,8 +374,8 @@ public:
 
     [[nodiscard]] bool IsAbsolute() const
     {
-        return m_len > 2 && CharTraits::IsAlphabet(m_ptr[0]) && m_ptr[1] == CharTraits::kColon
-            || m_len > 0 && CharTraits::IsPathSeparator(m_ptr[0]);
+        return (m_len > 2 && m_ptr[1] == CharTraits::kColon && m_ptr[2] == CharTraits::kPreferredSeparator)
+            || (m_len > 0 && m_ptr[0] == CharTraits::kPreferredSeparator);
     }
 
     [[nodiscard]] bool IsRelative() const
@@ -385,12 +385,12 @@ public:
 
     [[nodiscard]] bool IsDirectory() const
     {
-        return !IsEmpty() && CharTraits::IsPathSeparator(Back());
+        return !IsEmpty() && Back() == CharTraits::kPreferredSeparator;
     }
 
     [[nodiscard]] bool IsFile() const
     {
-        return !IsEmpty() && !CharTraits::IsPathSeparator(Back());
+        return !IsEmpty() && Back() != CharTraits::kPreferredSeparator;
     }
 
     [[nodiscard]] bool MatchExtension(const BasicStringView _ext) const

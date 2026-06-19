@@ -18,10 +18,9 @@ enum class eFileEvent
 // full path is dir / path. dir / oldPath
 struct FileWatcherEvent
 {
-    StringView dir     = {};
-    StringView oldPath = {};
-    StringView path    = {};
     eFileEvent type    = {};
+    String     path    = {};
+    String     oldPath = {};
 };
 
 struct FileWatcherInfo

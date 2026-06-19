@@ -14,6 +14,9 @@ class Transform
     };
 
 public:
+    Transform() = default;
+    Transform(Vec3 _scale, Quat _rotation, Vec3 _translation);
+
     // axis
     [[nodiscard]] Vec3 GetRight() const;
     [[nodiscard]] Vec3 GetLeft() const;
@@ -38,14 +41,12 @@ public:
     [[nodiscard]] float GetScaleZ() const;
 
     void SetScale(Vec3 _xyz);
-    void SetScale(float _x, float _y, float _z);
     void SetScale(float _uniform);
     void SetScaleX(float _x);
     void SetScaleY(float _y);
     void SetScaleZ(float _z);
 
     void AddScale(Vec3 _xyz);
-    void AddScale(float _x, float _y, float _z);
     void AddScale(float _uniform);
     void AddScaleX(float _x);
     void AddScaleY(float _y);
@@ -58,15 +59,13 @@ public:
 
     void SetRotation(Quat _q);
     void SetRotation(Vec3 _axis, float _rad);
-    void SetRotation(Vec3 _eulerRad);
-    void SetRotation(float _pitchRad, float _yawRad, float _rollRad);
-    void SetLookAt(Vec3 _point, Vec3 _u);
+    void SetRotation(Vec3 _euler);
+    void SetLookAt(Vec3 _focusPoint, Vec3 _u);
     void SetLookTo(Vec3 _f, Vec3 _u);
 
     void AddRotation(Quat _q);
     void AddRotation(Vec3 _axis, float _rad);
-    void AddRotation(Vec3 _eulerRad);
-    void AddRotation(float _pitchRad, float _yawRad, float _rollRad);
+    void AddRotation(Vec3 _euler);
     void AddRotationPitch(float _rad);
     void AddRotationYaw(float _rad);
     void AddRotationRoll(float _rad);
@@ -77,13 +76,11 @@ public:
     [[nodiscard]] float GetTranslationZ() const;
 
     void SetTranslation(Vec3 _xyz);
-    void SetTranslation(float _x, float _y, float _z);
     void SetTranslationX(float _x);
     void SetTranslationY(float _y);
     void SetTranslationZ(float _z);
 
     void AddTranslation(Vec3 _xyz);
-    void AddTranslation(float _x, float _y, float _z);
     void AddTranslationX(float _x);
     void AddTranslationY(float _y);
     void AddTranslationZ(float _z);

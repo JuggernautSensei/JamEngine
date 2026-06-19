@@ -19,12 +19,12 @@ namespace Jam
 
 namespace
 {
-    constexpr UID kRootEntityUid { 0 };
+    constexpr UID kRootEntityUID { 0 };
 }
 
-TextureHandle Scene::GetDepthTexture() const
+TextureHandle Scene::GetSceneDepthTexture() const
 {
-    return kInvalidHandle;   // override in derived class if needed
+    return kInvalidHandle;
 }
 
 Entity Scene::CreateEntity(
@@ -40,23 +40,6 @@ Entity Scene::CreateEntity(
 {
     const UID uid = m_uidAllocator.Alloc(_uid);
     return CreateEntity_(uid, _nameOrEmpty);
-}
-
-UID Scene::CreateEntityDeferred(
-    const StringView _nameOrEmpty)
-{
-    const UID uid = m_uidAllocator.Alloc();
-    CreateEntityDeferred_(uid, _nameOrEmpty);
-    return uid;
-}
-
-UID Scene::CreateEntityDeferred(
-    const UID        _uid,
-    const StringView _nameOrEmpty)
-{
-    const UID uid = m_uidAllocator.Alloc(_uid);
-    CreateEntityDeferred_(uid, _nameOrEmpty);
-    return uid;
 }
 
 Entity Scene::CloneEntity(
@@ -66,25 +49,10 @@ Entity Scene::CloneEntity(
     return CloneEntity_(uid, _entity);
 }
 
-UID Scene::CloneEntityDeferred(
-    const Entity _entity)
-{
-    const UID uid = m_uidAllocator.Alloc();
-    CloneEntityDeferred_(uid, _entity);
-    return uid;
-}
-
 void Scene::DestroyEntity(
     const Entity _entity)
 {
     DestroyEntity_Recursive_(_entity);
-}
-
-void Scene::DestroyEntityDeferred(
-    const Entity _entity)
-{
-    Application& app = GetApp();
-    app.SubmitCommandToMainThread(Bind([this, _entity] { DestroyEntity_Recursive_(_entity); }));
 }
 
 void Scene::ClearEntities()
@@ -128,21 +96,12 @@ bool Scene::IsEntityValid(
     return m_registry.valid(_entity.GetHandle());
 }
 
-Entity Scene::CreateEntitiesByModel(
+Entity Scene::CreateEntitiesFromModel(
     const Ref<Model>& _pModel)
 {
     JAM_ASSERT(_pModel, "Model is null");
     const UID uid = m_uidAllocator.Alloc();
     return CreateEntitiesByModel_(uid, _pModel);
-}
-
-UID Scene::CreateEntitiesDeferredByModel(
-    const Ref<Model>& _pModel)
-{
-    JAM_ASSERT(_pModel, "Model is null");
-    const UID uid = m_uidAllocator.Alloc();
-    CreateEntitieDeferredByModel_(uid, _pModel);
-    return uid;
 }
 
 const entt::registry& Scene::GetRegistry() const
@@ -189,10 +148,10 @@ void Scene::Reset_()
 Entity Scene::CreateRootEntity_()
 {
     JAM_ASSERT(!m_root, "Root entity already exists");
-    JAM_ASSERT(!m_uidAllocator.IsAllocated(kRootEntityUid), "Root entity reserved UID is already allocated");
+    JAM_ASSERT(!m_uidAllocator.IsAllocated(kRootEntityUID), "Root entity reserved UID is already allocated");
 
     // create entt handle
-    const UID          uid    = m_uidAllocator.Alloc(kRootEntityUid);
+    const UID          uid    = m_uidAllocator.Alloc(kRootEntityUID);
     const entt::entity handle = m_registry.create();
     Entity             entity = { m_registry, handle, uid };
 
@@ -214,18 +173,18 @@ Entity Scene::CreateRootEntity_()
 }
 
 Entity Scene::CreateEntity_(
-    UID        _allocedUid,
+    UID        _allocedUID,
     StringView _nameOrEmpty)
 {
-    JAM_ASSERT(m_uidAllocator.IsAllocated(_allocedUid), "UID {} is not allocated", _allocedUid);
+    JAM_ASSERT(m_uidAllocator.IsAllocated(_allocedUID), "UID {} is not allocated", _allocedUID);
 
     // create entt handle
     const entt::entity handle = m_registry.create();
-    Entity             entity = { m_registry, handle, _allocedUid };
+    Entity             entity = { m_registry, handle, _allocedUID };
 
     // entity map
-    JAM_ASSERT(!m_entities.contains(_allocedUid), "Entity with same UID already exists");
-    m_entities.emplace(_allocedUid, entity);
+    JAM_ASSERT(!m_entities.contains(_allocedUID), "Entity with same UID already exists");
+    m_entities.emplace(_allocedUID, entity);
 
     // add transformHierarchy component (essential component)
     entity.CreateComponent<SceneComponent>(SceneNode { m_root, entity });
@@ -243,24 +202,12 @@ Entity Scene::CreateEntity_(
     return entity;
 }
 
-void Scene::CreateEntityDeferred_(
-    const UID        _allocedUid,
-    const StringView _nameOrEmpty)
-{
-    const String name = _nameOrEmpty;
-    Application& app  = GetApp();
-    app.SubmitCommandToMainThread(Bind(
-        [this, _allocedUid, name] {
-            CreateEntity_(_allocedUid, name);
-        }));
-}
-
 Entity Scene::CloneEntity_(
-    const UID    _allocedUid,
+    const UID    _allocedUID,
     const Entity _srcEntity)
 {
     // clone
-    Entity entity = CloneEntity_Recursive_(_allocedUid, _srcEntity);
+    Entity entity = CloneEntity_Recursive_(_allocedUID, _srcEntity);
 
     // set parent
     const SceneNode& node = entity.GetSceneNode();
@@ -273,14 +220,14 @@ Entity Scene::CloneEntity_(
 }
 
 Entity Scene::CloneEntity_Recursive_(
-    const UID _allocedUid,
+    const UID _allocedUID,
     Entity    _srcEntity)
 {
     JAM_ASSERT(_srcEntity, "Entity is not valid");
     JAM_ASSERT(_srcEntity != m_root, "Cannot clone root entity");
 
     // 새로운 엔티티 생성
-    Entity entity = CreateEntity_(_allocedUid, {});
+    Entity entity = CreateEntity_(_allocedUID, {});
 
     // 컴포넌트 카피
     const ComponentDatabase& db = GetComponentDatabase();
@@ -289,7 +236,7 @@ Entity Scene::CloneEntity_Recursive_(
         if (data.Has(_srcEntity))
         {
             // scene component do not trivial copy
-            if (data.typeHash == HashOf<SceneComponent>())
+            if (data.hash == HashOf<SceneComponent>())
             {
                 entity.ModifyWorld() = _srcEntity.GetWorld();
             }
@@ -316,25 +263,14 @@ Entity Scene::CloneEntity_Recursive_(
     return entity;
 }
 
-void Scene::CloneEntityDeferred_(
-    const UID    _allocedUid,
-    const Entity _srcEntity)
-{
-    Application& app = GetApp();
-    app.SubmitCommandToMainThread(Bind(
-        [this, _allocedUid, _srcEntity] {
-            CloneEntity_(_allocedUid, _srcEntity);
-        }));
-}
-
 Entity Scene::CreateEntitiesByModel_Recursive_(
-    const UID                    _allocedUid,
+    const UID                    _allocedUID,
     const ModelNode&             _node,
     const Vector<Ref<Mesh>>&     _meshes,
     const Vector<Ref<Material>>& _mats)
 {
     // create root
-    Entity entity = CreateEntity_(_allocedUid, _node.name);
+    Entity entity = CreateEntity_(_allocedUID, _node.name);
     entity.ModifyLocal().SetSRT(_node.localMtx);
 
     // create leaf
@@ -369,20 +305,20 @@ Entity Scene::CreateEntitiesByModel_Recursive_(
 }
 
 Entity Scene::CreateEntitiesByModel_(
-    const UID         _allocedUid,
+    const UID         _allocedUID,
     const Ref<Model>& _pModel)
 {
-    return CreateEntitiesByModel_Recursive_(_allocedUid, _pModel->GetRootNode(), _pModel->GetMeshes(), _pModel->GetMaterials());
+    return CreateEntitiesByModel_Recursive_(_allocedUID, _pModel->GetRootNode(), _pModel->GetMeshes(), _pModel->GetMaterials());
 }
 
-void Scene::CreateEntitieDeferredByModel_(
-    const UID         _allocedUid,
+void Scene::CreateEntitieDeferredFromModel_(
+    const UID         _allocedUID,
     const Ref<Model>& _pModel)
 {
     Application& app = GetApp();
     app.SubmitCommandToMainThread(Bind(
-        [this, _allocedUid, _pModel] {
-            CreateEntitiesByModel_(_allocedUid, _pModel);
+        [this, _allocedUID, _pModel] {
+            CreateEntitiesByModel_(_allocedUID, _pModel);
         }));
 }
 

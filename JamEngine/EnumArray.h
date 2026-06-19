@@ -74,8 +74,7 @@ public:
         }
     }
 
-    ////////// stl glue //////////
-
+public:   // for STL
     using value_type      = TValue;
     using size_type       = SizeT;
     using reference       = TValue&;
@@ -119,8 +118,6 @@ public:
         return kCap;
     }
 
-    TValue m_arr[kCap];
-
 private:
     [[nodiscard]] constexpr SizeT GetIndex_(TEnum _key) const
     {
@@ -135,6 +132,9 @@ private:
         JAM_ASSERT(seq < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
         return seq;
     }
+
+public:
+    TValue m_arr[kCap];
 };
 
 }   // namespace Jam

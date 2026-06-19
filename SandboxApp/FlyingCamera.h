@@ -5,6 +5,7 @@ struct FlyingCamera
 {
     void                      Update(float _dt);
     [[nodiscard]] Vec3        GetEyePos() const;
+    [[nodiscard]] Vec3        GetForward() const;
     [[nodiscard]] const Mtx4& GetProj() const;
     [[nodiscard]] const Mtx4& GetInvProj() const;
     [[nodiscard]] const Mtx4& GetView() const;

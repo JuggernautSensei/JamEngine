@@ -10,8 +10,6 @@
 #include "../JamEngine/EditorWidgets.h"
 #include "../JamEngine/FileDialog.h"
 #include "../JamEngine/Filter.h"
-#include "../JamEngine/ImageExporter.h"
-#include "../JamEngine/ImageImporter.h"
 #include "../JamEngine/ImGuiEngine.h"
 #include "../JamEngine/StaticString.h"
 
@@ -486,11 +484,11 @@ void ComputeScene::InitDemo5_Gradiate_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc blitDesc = {};
-    blitDesc.filter          = eImageFilter::Blit;
-    blitDesc.input0Texture   = "T_OutTexture";
-    blitDesc.output          = eImageFilterOutput::Final;
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    ImageFilterInfo blitInfo = {};
+    blitInfo.filter          = eImageFilter::Blit;
+    blitInfo.input0Texture   = "T_OutTexture";
+    blitInfo.output          = eImageFilterOutput::Final;
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
 
     m_rgba0 = RGBA::FromLinear(1.f, 0.f, 0.f, 1.f);
     m_rgba1 = RGBA::FromLinear(0.f, 1.f, 0.f, 1.f);
@@ -564,11 +562,11 @@ void ComputeScene::InitDemo6_GrayScale_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc blitDesc = {};
-    blitDesc.filter          = eImageFilter::Blit;
-    blitDesc.input0Texture   = "T_OutTexture";
-    blitDesc.output          = eImageFilterOutput::Final;
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    ImageFilterInfo blitInfo = {};
+    blitInfo.filter          = eImageFilter::Blit;
+    blitInfo.input0Texture   = "T_OutTexture";
+    blitInfo.output          = eImageFilterOutput::Final;
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
 
     m_bBool0 = true;
 }
@@ -612,11 +610,11 @@ void ComputeScene::InitDemo7_ThreadGroupVisualizeShader_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc blitDesc = {};
-    blitDesc.filter          = eImageFilter::Blit;
-    blitDesc.input0Texture   = "T_OutTexture";
-    blitDesc.output          = eImageFilterOutput::Final;
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    ImageFilterInfo blitInfo = {};
+    blitInfo.filter          = eImageFilter::Blit;
+    blitInfo.input0Texture   = "T_OutTexture";
+    blitInfo.output          = eImageFilterOutput::Final;
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
 }
 
 void ComputeScene::Demo7_Executor_() const
@@ -867,11 +865,11 @@ void ComputeScene::InitDemo11_Negative_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc blitDesc = {};
-    blitDesc.filter          = eImageFilter::Blit;
-    blitDesc.input0Texture   = "T_OutTexture";
-    blitDesc.output          = eImageFilterOutput::Final;
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    ImageFilterInfo blitInfo = {};
+    blitInfo.filter          = eImageFilter::Blit;
+    blitInfo.input0Texture   = "T_OutTexture";
+    blitInfo.output          = eImageFilterOutput::Final;
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
 
     m_bBool0 = true;
 }
@@ -935,11 +933,11 @@ void ComputeScene::InitDemo12_Thresholding_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc blitDesc = {};
-    blitDesc.filter          = eImageFilter::Blit;
-    blitDesc.input0Texture   = "T_OutTexture";
-    blitDesc.output          = eImageFilterOutput::Final;
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    ImageFilterInfo blitInfo = {};
+    blitInfo.filter          = eImageFilter::Blit;
+    blitInfo.input0Texture   = "T_OutTexture";
+    blitInfo.output          = eImageFilterOutput::Final;
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
 
     m_bBool0 = true;
     m_float0 = 0.5f;
@@ -1007,11 +1005,11 @@ void ComputeScene::InitDemo13_1DBoxBlur_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc blitDesc = {};
-    blitDesc.filter          = eImageFilter::Blit;
-    blitDesc.input0Texture   = "T_OutTexture";
-    blitDesc.output          = eImageFilterOutput::Final;
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    ImageFilterInfo blitInfo = {};
+    blitInfo.filter          = eImageFilter::Blit;
+    blitInfo.input0Texture   = "T_OutTexture";
+    blitInfo.output          = eImageFilterOutput::Final;
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
 
     m_bBool0 = true;
     m_int2   = 5;
@@ -1260,11 +1258,11 @@ void ComputeScene::InitDemo16_GaussianBlur_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc blitDesc = {};
-    blitDesc.filter          = eImageFilter::Blit;
-    blitDesc.input0Texture   = "T_OutTexture";
-    blitDesc.output          = eImageFilterOutput::Final;
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    ImageFilterInfo blitInfo = {};
+    blitInfo.filter          = eImageFilter::Blit;
+    blitInfo.input0Texture   = "T_OutTexture";
+    blitInfo.output          = eImageFilterOutput::Final;
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
 
     m_bBool0 = true;   // apply
     m_float0 = 2.f;    // sigma of gaussian filter

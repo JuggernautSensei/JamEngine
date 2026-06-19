@@ -18,9 +18,9 @@ class SceneDatabase
 public:
     struct Data
     {
-        StringView                typeName = {};
-        UInt64                    typeHash = 0;
-        Delegate<Scoped<Scene>()> Make     = nullptr;
+        StringView                name = {};
+        UInt64                    hash = 0;
+        Delegate<Scoped<Scene>()> Make = nullptr;
     };
 
     static SceneDatabase& GetInstance();
@@ -33,19 +33,20 @@ public:
     template<typename T>
     void Register()
     {
-        Data data     = {};
-        data.typeName = NameOf<T>();
-        data.typeHash = HashOf<T>();
-        data.Make     = Bind<&SceneDatabase::MakeScene_<T>>(this);
-        JAM_ASSERT(!IsSceneRegistered(data.typeHash), "Scene type '{}' is already reflected.", data.typeName);
-        JAM_ASSERT(data.typeName.Hash() == data.typeHash, "Scene type typeName '{}' hash does not match type hash {}. Please check the JAM_SCENE macro usage in the scene class definition.", data.typeName, data.typeHash);
-        m_sceneDataMap[data.typeHash] = data;
+        Data data = {};
+        data.name = NameOf<T>();
+        data.hash = HashOf<T>();
+        data.Make = Bind<&SceneDatabase::MakeScene_<T>>(this);
+        JAM_ASSERT(!m_dataMap.contains(data.hash), "Scene with typeName '{}' is already registered", data.name);
+        m_dataMap[data.hash] = data;
     }
 
-    [[nodiscard]] bool        IsSceneRegistered(UInt64 _typeHash) const;
-    [[nodiscard]] bool        IsSceneRegistered(StringView _name) const;
-    [[nodiscard]] const Data& GetSceneData(UInt64 _typeHash) const;
-    [[nodiscard]] const Data& GetSceneData(StringView _name) const;
+    [[nodiscard]] bool IsSceneRegistered(UInt64 _typeHash) const;
+    [[nodiscard]] bool IsSceneRegistered(StringView _name) const;
+
+    [[nodiscard]] const Data&                       GetSceneData(UInt64 _typeHash) const;
+    [[nodiscard]] const Data&                       GetSceneData(StringView _name) const;
+    [[nodiscard]] const PreHashedMap<UInt64, Data>& GetSceneDataMap() const;
 
 private:
     SceneDatabase()  = default;
@@ -53,8 +54,8 @@ private:
 
     static void DestroyInstance();
 
-    PreHashedMap<UInt64, Data>   m_sceneDataMap = {};
-    inline static SceneDatabase* s_pInstance    = nullptr;
+    PreHashedMap<UInt64, Data>   m_dataMap   = {};   // [hash, Data]
+    inline static SceneDatabase* s_pInstance = nullptr;
     friend class Application;
 };
 

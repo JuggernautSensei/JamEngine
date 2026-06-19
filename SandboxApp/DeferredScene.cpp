@@ -189,12 +189,12 @@ void DeferredScene::InitRenderGraph_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc multDesc = {};
-    multDesc.filter          = eImageFilter::Mult;
-    multDesc.output          = eImageFilterOutput::Final;
-    multDesc.input0Texture   = "T_GColor";
-    multDesc.input1Texture   = "T_Light";
-    ifm.AddImageFilter(m_graph, "Pass_Mult", multDesc);
+    ImageFilterInfo multInfo = {};
+    multInfo.filter          = eImageFilter::Mult;
+    multInfo.output          = eImageFilterOutput::Final;
+    multInfo.input0Texture   = "T_GColor";
+    multInfo.input1Texture   = "T_Light";
+    ifm.AddImageFilter(m_graph, "Pass_Mult", multInfo);
 }
 
 void DeferredScene::SubmitGBuffer_() const

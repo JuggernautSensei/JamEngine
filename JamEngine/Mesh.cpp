@@ -25,7 +25,7 @@ VertexLayout Mesh::s_posFloat2Layout = [] {
 
 namespace Dto
 {
-    struct VertexLayoutElement
+    struct VertexElement
     {
         eVertexAttribute attrib = eVertexAttribute::Position;
         eAttributeFormat format = eAttributeFormat::Float;
@@ -33,7 +33,7 @@ namespace Dto
 
     struct VertexLayout
     {
-        Array<VertexLayoutElement, CountOf<eVertexAttribute>()> elems    = {};
+        Array<VertexElement, CountOf<eVertexAttribute>()> elems    = {};
         Int32                                                   numElems = 0;
     };
 
@@ -285,7 +285,7 @@ Error Mesh::LoadFromFile_(
         VertexLayout layout = {};
         for (Int32 i = 0; i < mesh.attribLayout.numElems; ++i)
         {
-            const Dto::VertexLayoutElement& elem = mesh.attribLayout.elems[i];
+            const Dto::VertexElement& elem = mesh.attribLayout.elems[i];
             layout.Add(elem.attrib, elem.format);
         }
 
@@ -301,9 +301,9 @@ Error Mesh::LoadFromFile_(
 }
 
 Error Mesh::Save(
-    const StringView                 _path,
-    const bool                       _bReplaceExtension,
-    const eFileWriterCollisionPolicy _policy) const
+    const StringView _path,
+    const bool       _bReplaceExtension,
+    const eFileWrite _mode) const
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
     JAM_ASSERT(IsValid(), "Cannot save an invalid mesh");
@@ -314,7 +314,7 @@ Error Mesh::Save(
         path.ReplaceExtension(kExtension);
     }
 
-    Expect<MeshSaver> saver = MeshSaver::Open(path.ToStringView(), _policy);
+    Expect<MeshSaver> saver = MeshSaver::Open(path.ToStringView(), _mode);
     if (!saver)
     {
         return saver.GetError();
@@ -343,12 +343,12 @@ Error Mesh::Save(
         // vertex layout
         const VertexLayoutHandle vlh = gfx.GetVertexLayout(m_attribVbh);
         const VertexLayout       vl  = gfx.GetVertexLayout(vlh);
-        mesh.attribLayout.numElems   = vl.GetNumElems();
+        mesh.attribLayout.numElems   = vl.GetNumElements();
 
         Int32 index = 0;
-        for (const VertexLayoutElement& e: vl.GetElems())
+        for (const VertexElement& e: vl.GetElements())
         {
-            Dto::VertexLayoutElement& elem = mesh.attribLayout.elems[index++];
+            Dto::VertexElement& elem = mesh.attribLayout.elems[index++];
             elem.format                    = e.format;
             elem.attrib                    = e.attrib;
         }

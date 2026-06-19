@@ -25,7 +25,7 @@ public:
 
     [[nodiscard]] static Expect<Ref<Mesh>> LoadFromFile(StringView _path);
 
-    Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
+    Error Save(StringView _path, bool _bReplaceExtension = true, eFileWrite _mode = eFileWrite::Truncate) const override;
     void  SetName(StringView _name) override;
     void  Invalidate() override;
 

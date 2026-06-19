@@ -142,58 +142,49 @@ float3 CalcTextureArrayLocationFromDir(float3 _dir)
 
     if (absDir.x >= absDir.y && absDir.x >= absDir.z)
     {
-        maxAxis = absDir.
-x;
+        maxAxis = absDir.x;
         if (_dir.x > 0.0f)
         {
             layer = 0; // +X
-            u = -_dir.
-z;
+            u = -_dir.z;
             v = -_dir.y;
         }
         else
         {
             layer = 1; // -X
-            u = _dir.
-z;
+            u = _dir.z;
             v = -_dir.y;
         }
     }
     else if (absDir.y >= absDir.x && absDir.y >= absDir.z)
     {
-        maxAxis = absDir.
-y;
+        maxAxis = absDir.y;
         if (_dir.y > 0.0f)
         {
             layer = 2; // +Y
-            u = _dir.
-x;
+            u = _dir.x;
             v = _dir.z;
         }
         else
         {
             layer = 3; // -Y
-            u = _dir.
-x;
+            u = _dir.x;
             v = -_dir.z;
         }
     }
     else
     {
-        maxAxis = absDir.
-z;
+        maxAxis = absDir.z;
         if (_dir.z > 0.0f)
         {
             layer = 4; // +Z
-            u = _dir.
-x;
+            u = _dir.x;
             v = -_dir.y;
         }
         else
         {
             layer = 5; // -Z
-            u = -_dir.
-x;
+            u = -_dir.x;
             v = -_dir.y;
         }
     }

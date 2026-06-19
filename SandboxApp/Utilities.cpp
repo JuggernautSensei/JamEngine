@@ -21,7 +21,7 @@ ProgramHandle LoadProgram(
     ShaderHandle dsh = kInvalidHandle;
     ShaderHandle csh = kInvalidHandle;
 
-    ShaderCompilerInfo sci = {};
+    ShaderCompileInfo sci = {};
     sci.macros             = _macrosOrEmpty;
     sci.flags              = eShaderCompileFlags::Default;
 
@@ -29,7 +29,7 @@ ProgramHandle LoadProgram(
     {
         sci.stage                  = eShader::VertexShader;
         sci.entryPoint             = "VSMain";
-        Expect<ShaderCompiler> vsc = ShaderCompiler::CompileHLSLFile(_path, sci);
+        Expect<ShaderBinary> vsc = ShaderBinary::CompileHLSLFile(_path, sci);
         JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
         vsh = gfx.CreateShader(vsc->GetBytecode());
     }
@@ -38,7 +38,7 @@ ProgramHandle LoadProgram(
     {
         sci.stage          = eShader::PixelShader;
         sci.entryPoint     = "PSMain";
-        Expect<ShaderCompiler> psc = ShaderCompiler::CompileHLSLFile(_path, sci);
+        Expect<ShaderBinary> psc = ShaderBinary::CompileHLSLFile(_path, sci);
         JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
         psh = gfx.CreateShader(psc->GetBytecode());
     }
@@ -47,7 +47,7 @@ ProgramHandle LoadProgram(
     {
         sci.stage          = eShader::GeometryShader;
         sci.entryPoint     = "GSMain";
-        Expect<ShaderCompiler> gsc = ShaderCompiler::CompileHLSLFile(_path, sci);
+        Expect<ShaderBinary> gsc = ShaderBinary::CompileHLSLFile(_path, sci);
         JAM_ASSERT(gsc, "Geometry shader compilation failed: {}", gsc.GetError());
         gsh = gfx.CreateShader(gsc->GetBytecode());
     }
@@ -56,7 +56,7 @@ ProgramHandle LoadProgram(
     {
         sci.stage          = eShader::HullShader;
         sci.entryPoint     = "HSMain";
-        Expect<ShaderCompiler> hsc = ShaderCompiler::CompileHLSLFile(_path, sci);
+        Expect<ShaderBinary> hsc = ShaderBinary::CompileHLSLFile(_path, sci);
         JAM_ASSERT(hsc, "Hull shader compilation failed: {}", hsc.GetError());
         hsh = gfx.CreateShader(hsc->GetBytecode());
     }
@@ -65,7 +65,7 @@ ProgramHandle LoadProgram(
     {
         sci.stage          = eShader::DomainShader;
         sci.entryPoint     = "DSMain";
-        Expect<ShaderCompiler> dsc = ShaderCompiler::CompileHLSLFile(_path, sci);
+        Expect<ShaderBinary> dsc = ShaderBinary::CompileHLSLFile(_path, sci);
         JAM_ASSERT(dsc, "Domain shader compilation failed: {}", dsc.GetError());
         dsh = gfx.CreateShader(dsc->GetBytecode());
     }
@@ -74,7 +74,7 @@ ProgramHandle LoadProgram(
     {
         sci.stage          = eShader::ComputeShader;
         sci.entryPoint     = "CSMain";
-        Expect<ShaderCompiler> csc = ShaderCompiler::CompileHLSLFile(_path, sci);
+        Expect<ShaderBinary> csc = ShaderBinary::CompileHLSLFile(_path, sci);
         JAM_ASSERT(csc, "Compute shader compilation failed: {}", csc.GetError());
         csh = gfx.CreateShader(csc->GetBytecode());
     }

@@ -104,7 +104,7 @@ WString MakeWindowsLastErrorMessageW()
     return MakeWindowsErrorMessageW(GetLastError(), eWindowsErrorCode::Errno);
 }
 
-Error ErrorFromPlatformErrorCode(
+Error ErrorFromWindowsErrorCode(
     const UInt32 _err)
 {
     switch (_err)

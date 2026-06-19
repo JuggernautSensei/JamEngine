@@ -16,7 +16,7 @@ const Mtx4& Camera::GetProj() const
         else
         {
             const float ar = GetAspectRatio();
-            m_cachedProj   = Mtx4::MakePerspectiveFov(m_fovYRad, ar, m_nearZ, m_farZ);
+            m_cachedProj   = Mtx4::MakePerspective(m_fovYRad, ar, m_nearZ, m_farZ);
         }
         m_dirtyFlags.Disable(eMatrixDirtyFlags::Proj);
     }
@@ -34,7 +34,7 @@ const Mtx4& Camera::GetInvProj() const
         else
         {
             const float ar  = GetAspectRatio();
-            m_cachedInvProj = Mtx4::MakeInvPerspectiveFov(m_fovYRad, ar, m_nearZ, m_farZ);
+            m_cachedInvProj = Mtx4::MakeInvPerspective(m_fovYRad, ar, m_nearZ, m_farZ);
         }
         m_dirtyFlags.Disable(eMatrixDirtyFlags::InvProj);
     }

@@ -1,10 +1,9 @@
 #include "pch.h"
 
-#include "ShaderCompiler.h"
+#include "ShaderBlob.h"
+#include "WindowsUtilities.h"
 
 #include <d3dcompiler.h>
-
-#include "WindowsUtilities.h"
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace Jam
@@ -89,8 +88,8 @@ namespace
     }
 
     void BuildMacroArray_(
-        const ShaderCompilerInfo& _desc,
-        D3D_SHADER_MACRO*         _pBuffer)
+        const ShaderCompileInfo& _desc,
+        D3D_SHADER_MACRO*        _pBuffer)
     {
         if (_desc.macros.empty())
         {
@@ -113,65 +112,75 @@ namespace
 
 }   // namespace
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Expect<ShaderCompiler> ShaderCompiler::CompileHLSLFile(
-    const StringView          _path,
-    const ShaderCompilerInfo& _desc)
+Expect<ShaderBinary> ShaderBinary::CompileFromHLSLFile(
+    const StringView         _path,
+    const ShaderCompileInfo& _info)
 {
-    ShaderCompiler compiler = {};
-    if (const Error err = compiler.CompileFromHLSLFile_(_path, _desc))
+    ShaderBinary compiler = {};
+    if (const Error err = compiler.CompileFromHLSLFile_(_path, _info))
     {
         return err;
     }
     return compiler;
 }
 
-Expect<ShaderCompiler> ShaderCompiler::CompileHLSLSource(
-    const StringView          _source,
-    const ShaderCompilerInfo& _desc)
+Expect<ShaderBinary> ShaderBinary::CompileFromHLSLSource(
+    const StringView         _source,
+    const ShaderCompileInfo& _info)
 {
-    ShaderCompiler compiler = {};
-    if (const Error err = compiler.CompileHLSLSource_(_source, _desc))
+    ShaderBinary compiler = {};
+    if (const Error err = compiler.CompileFromHLSLSource_(_source, _info))
     {
         return err;
     }
     return compiler;
 }
 
-MemoryView ShaderCompiler::GetBytecode() const
+Expect<ShaderBinary> ShaderBinary::FromCSOFile(
+    const StringView _path)
+{
+}
+
+ShaderBinary::ShaderBinary(
+    const MemoryView _mem)
+{
+    JAM_CHECK_HRESULT(D3DCreateBlob(_mem.GetByteWidth(), m_pBlob.ReleaseAndGetAddressOf()));
+    std::memcpy(m_pBlob->GetBufferPointer(), _mem.GetPtr(), _mem.GetByteWidth());
+}
+
+MemoryView ShaderBinary::GetBytecode() const
 {
     JAM_ASSERT(m_pBlob, "Shader blob is null.");
     return { m_pBlob->GetBufferPointer(), static_cast<SizeT>(m_pBlob->GetBufferSize()) };
 }
 
-Error ShaderCompiler::CompileFromHLSLFile_(
-    const StringView          _path,
-    const ShaderCompilerInfo& _desc)
+Error ShaderBinary::CompileFromHLSLFile_(
+    const StringView         _path,
+    const ShaderCompileInfo& _info)
 {
     JAM_ASSERT(!_path.IsEmpty(), "File path must not be empty.");
     JAM_ASSERT(m_pBlob == nullptr, "ShaderCompiler instance is already used for compilation.");
 
     // macros
     D3D_SHADER_MACRO* pMacro = nullptr;
-    if (!_desc.macros.empty())
+    if (!_info.macros.empty())
     {
-        const Int32 byteWidth = CalcMacroArrayAllocSize_(_desc.macros);
+        const Int32 byteWidth = CalcMacroArrayAllocSize_(_info.macros);
         JAM_ASSERT(byteWidth > 0, "Number of macros must be greater than zero.");
         pMacro = static_cast<D3D_SHADER_MACRO*>(JAM_STACK_ALLOC(byteWidth));
-        BuildMacroArray_(_desc, pMacro);
+        BuildMacroArray_(_info, pMacro);
     }
 
     // compile
-    const WString    path       = WString::Encoded(_path);
+    const WString                    path       = WString::Encoded(_path);
     Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
-    const HRESULT    hr         = D3DCompileFromFile(
+    const HRESULT                    hr         = D3DCompileFromFile(
         path.GetPtr(),
         pMacro,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
-        _desc.entryPoint.GetPtr(),
-        ShaderModelNameFrom(_desc.stage).GetPtr(),
-        CompileFlagsFrom_(_desc.flags),
+        _info.entryPoint.GetPtr(),
+        ShaderModelNameFrom(_info.stage).GetPtr(),
+        CompileFlagsFrom_(_info.flags),
         0,
         m_pBlob.ReleaseAndGetAddressOf(),
         pErrorBlob.ReleaseAndGetAddressOf());
@@ -197,33 +206,33 @@ Error ShaderCompiler::CompileFromHLSLFile_(
     return Error::None;
 }
 
-Error ShaderCompiler::CompileHLSLSource_(
-    const StringView          _source,
-    const ShaderCompilerInfo& _desc)
+Error ShaderBinary::CompileFromHLSLSource_(
+    const StringView         _source,
+    const ShaderCompileInfo& _info)
 {
     JAM_ASSERT(!_source.IsEmpty(), "Shader source must not be empty.");
 
     // macros
     D3D_SHADER_MACRO* pMacro = nullptr;
-    if (!_desc.macros.empty())
+    if (!_info.macros.empty())
     {
-        const Int32 byteWidth = CalcMacroArrayAllocSize_(_desc.macros);
+        const Int32 byteWidth = CalcMacroArrayAllocSize_(_info.macros);
         JAM_ASSERT(byteWidth > 0, "Number of macros must be greater than zero.");
         pMacro = static_cast<D3D_SHADER_MACRO*>(JAM_STACK_ALLOC(byteWidth));
-        BuildMacroArray_(_desc, pMacro);
+        BuildMacroArray_(_info, pMacro);
     }
 
     // compile
     Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
-    const HRESULT    hr         = D3DCompile(
+    const HRESULT                    hr         = D3DCompile(
         _source.GetPtr(),
         _source.GetLength(),
         nullptr,
         pMacro,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
-        _desc.entryPoint.GetPtr(),
-        ShaderModelNameFrom(_desc.stage).GetPtr(),
-        CompileFlagsFrom_(_desc.flags),
+        _info.entryPoint.GetPtr(),
+        ShaderModelNameFrom(_info.stage).GetPtr(),
+        CompileFlagsFrom_(_info.flags),
         0,
         m_pBlob.ReleaseAndGetAddressOf(),
         pErrorBlob.ReleaseAndGetAddressOf());
@@ -243,6 +252,20 @@ Error ShaderCompiler::CompileHLSLSource_(
 
         JAM_LOG_ERROR(str);
         return Error::ShaderCompileFailed;
+    }
+
+    return Error::None;
+}
+
+Error ShaderBinary::LoadFromCSOFile_(
+    const StringView _path)
+{
+    const WString path = WString::Encoded(_path);
+    const HRESULT hr   = D3DReadFileToBlob(path.GetPtr(), m_pBlob.ReleaseAndGetAddressOf());
+    if (FAILED(hr))
+    {
+        JAM_LOG_ERROR(MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
+        return Error::NotFound;
     }
 
     return Error::None;

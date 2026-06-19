@@ -1,10 +1,20 @@
 #include "pch.h"
 
-#include "Math.h"
 #include "Transform.h"
 
 namespace Jam
 {
+
+Transform::Transform(
+    const Vec3 _scale,
+    const Quat _rotation,
+    const Vec3 _translation)
+    : m_scale(_scale)
+    , m_rotation(_rotation)
+    , m_translation(_translation)
+{
+    JAM_ASSERT(_rotation.IsNormalized(), "Transform rotation must be normalized.");
+}
 
 Vec3 Transform::GetRight() const
 {
@@ -56,7 +66,8 @@ const Mtx4& Transform::GetInvSRT() const
     return m_cachedInvSRT;
 }
 
-void Transform::SetSRT(const Mtx4& _srtMtx)
+void Transform::SetSRT(
+    const Mtx4& _srtMtx)
 {
     _srtMtx.DecomposeSRT(&m_scale, &m_rotation, &m_translation);
     m_dirtyFlags |= eMatrixDirtyFlags::All;
@@ -64,20 +75,19 @@ void Transform::SetSRT(const Mtx4& _srtMtx)
 
 Transform Transform::Inverse() const
 {
-    Transform ret     = {};
-    ret.m_scale       = m_scale.RcpSafe();
-    ret.m_rotation    = m_rotation.Conjugate();
-    ret.m_translation = ret.m_rotation.Rotate(-m_translation) * ret.m_scale;
-    return ret;
+    const Vec3 s = m_scale.RcpSafe();
+    const Quat r = m_rotation.Conjugate();
+    const Vec3 t = r.Rotate(-m_translation) * s;
+    return { s, r, t };
 }
 
-Transform Transform::Mult(const Transform& _trans) const
+Transform Transform::Mult(
+    const Transform& _trans) const
 {
-    Transform ret     = {};
-    ret.m_translation = _trans.m_rotation.Rotate(m_translation * _trans.m_scale) + _trans.m_translation;
-    ret.m_rotation    = m_rotation * _trans.m_rotation;
-    ret.m_scale       = m_scale * _trans.m_scale;
-    return ret;
+    const Vec3 s = m_scale * _trans.m_scale;
+    const Quat r = _trans.m_rotation * m_rotation;
+    const Vec3 t = _trans.m_rotation.Rotate(m_translation * _trans.m_scale) + _trans.m_translation;
+    return { s, r, t };
 }
 
 Vec3 Transform::GetScale() const
@@ -100,66 +110,66 @@ float Transform::GetScaleZ() const
     return m_scale.z;
 }
 
-void Transform::SetScale(const Vec3 _xyz)
+void Transform::SetScale(
+    const Vec3 _xyz)
 {
     m_scale = _xyz;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::SetScale(float _x, float _y, float _z)
+void Transform::SetScale(
+    const float _uniform)
 {
-    SetScale({ _x, _y, _z });
+    SetScale({ _uniform, _uniform, _uniform });
 }
 
-void Transform::SetScale(const float _uniform)
-{
-    SetScale(_uniform, _uniform, _uniform);
-}
-
-void Transform::SetScaleX(const float _x)
+void Transform::SetScaleX(
+    const float _x)
 {
     m_scale.x = _x;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::SetScaleY(const float _y)
+void Transform::SetScaleY(
+    const float _y)
 {
     m_scale.y = _y;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::SetScaleZ(const float _z)
+void Transform::SetScaleZ(
+    const float _z)
 {
     m_scale.z = _z;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddScale(const Vec3 _xyz)
+void Transform::AddScale(
+    const Vec3 _xyz)
 {
     SetScale(m_scale + _xyz);
 }
 
-void Transform::AddScale(float _x, float _y, float _z)
+void Transform::AddScale(
+    const float _uniform)
 {
-    AddScale({ _x, _y, _z });
+    AddScale(Vec3 { _uniform });
 }
 
-void Transform::AddScale(const float _uniform)
-{
-    AddScale(_uniform, _uniform, _uniform);
-}
-
-void Transform::AddScaleX(const float _x)
+void Transform::AddScaleX(
+    const float _x)
 {
     SetScaleX(m_scale.x + _x);
 }
 
-void Transform::AddScaleY(const float _y)
+void Transform::AddScaleY(
+    const float _y)
 {
     SetScaleY(m_scale.y + _y);
 }
 
-void Transform::AddScaleZ(const float _z)
+void Transform::AddScaleZ(
+    const float _z)
 {
     SetScaleZ(m_scale.z + _z);
 }
@@ -171,15 +181,7 @@ Quat Transform::GetRotation() const
 
 AxisAngle Transform::ToAxisAngle() const
 {
-    const float rad = 2.f * Acos(m_rotation.w);
-    const float s   = Sqrt(1.f - m_rotation.w * m_rotation.w);
-
-    if (Jam::IsZeroApprox(s))
-    {
-        return { Vec3::kUnitX, rad };
-    }
-
-    return { m_rotation.xyz / s, rad };
+    return m_rotation.ToAxisAngle();
 }
 
 Vec3 Transform::ToEuler() const
@@ -187,82 +189,86 @@ Vec3 Transform::ToEuler() const
     return m_rotation.ToEuler();
 }
 
-void Transform::SetRotation(const Quat _q)
+void Transform::SetRotation(
+    const Quat _q)
 {
-    m_rotation = _q.Normalized();
+    JAM_ASSERT(_q.IsNormalized(), "Transform rotation must be normalized.");
+
+    m_rotation = _q;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::SetRotation(const Vec3 _axis, const float _rad)
+void Transform::SetRotation(
+    const Vec3  _axis,
+    const float _rad)
 {
-    SetRotation(Quat::FromAxisAngle(_axis, _rad));
-}
-
-void Transform::SetRotation(const Vec3 _eulerRad)
-{
-    SetRotation(Quat::FromEuler(_eulerRad));
-}
-
-void Transform::SetRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
-{
-    SetRotation(Quat::FromEuler({ _pitchRad, _yawRad, _rollRad }));
-}
-
-void Transform::SetLookAt(const Vec3 _point, const Vec3 _u)
-{
-    SetLookTo((_point - m_translation).Normalized(), _u);
-}
-
-void Transform::SetLookTo(const Vec3 _f, const Vec3 _u)
-{
-    const Vec3 f = _f.Normalized();
-    const Vec3 r = _u.Cross(f).Normalized();
-    const Vec3 u = f.Cross(r).Normalized();
-
-    m_rotation = Quat::FromRotationMatrix({
-        { r, 0.f },
-        { u, 0.f },
-        { f, 0.f },
-        Vec4::kUnitW
-    });
-
+    m_rotation = Quat::FromAxisAngle(_axis, _rad);
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddRotation(const Quat _q)
+void Transform::SetRotation(
+    const Vec3 _euler)
 {
-    m_rotation = (m_rotation * _q).Normalized();
+    m_rotation = Quat::FromEuler(_euler);
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddRotation(const Vec3 _axis, const float _rad)
+void Transform::SetLookAt(
+    const Vec3 _focusPoint,
+    const Vec3 _u)
 {
-    AddRotation(Quat::FromAxisAngle(_axis, _rad));
+    const Vec3 f = (_focusPoint - m_translation).Normalized();
+    SetLookTo(f, _u);
 }
 
-void Transform::AddRotation(const Vec3 _eulerRad)
+void Transform::SetLookTo(
+    const Vec3 _f,
+    const Vec3 _u)
 {
-    AddRotation(Quat::FromEuler(_eulerRad));
+    m_rotation = Quat::FromLookTo(_f, _u);
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
+void Transform::AddRotation(
+    const Quat _q)
 {
-    AddRotation(Quat::FromEuler({ _pitchRad, _yawRad, _rollRad }));
+    JAM_ASSERT(_q.IsNormalized(), "Transform rotation must be normalized.");
+
+    m_rotation = (_q * m_rotation).Normalized();
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddRotationPitch(const float _rad)
+void Transform::AddRotation(
+    const Vec3  _axis,
+    const float _rad)
 {
-    AddRotation(_rad, 0.f, 0.f);
+    const Quat q = Quat::FromAxisAngle(_axis, _rad);
+    AddRotation(q);
 }
 
-void Transform::AddRotationYaw(const float _rad)
+void Transform::AddRotation(
+    const Vec3 _euler)
 {
-    AddRotation(0.f, _rad, 0.f);
+    const Quat q = Quat::FromEuler(_euler);
+    AddRotation(q);
 }
 
-void Transform::AddRotationRoll(const float _rad)
+void Transform::AddRotationPitch(
+    const float _rad)
 {
-    AddRotation(0.f, 0.f, _rad);
+    AddRotation({ _rad, 0.f, 0.f });
+}
+
+void Transform::AddRotationYaw(
+    const float _rad)
+{
+    AddRotation({ 0.f, _rad, 0.f });
+}
+
+void Transform::AddRotationRoll(
+    const float _rad)
+{
+    AddRotation({ 0.f, 0.f, _rad });
 }
 
 Vec3 Transform::GetTranslation() const
@@ -285,59 +291,57 @@ float Transform::GetTranslationZ() const
     return m_translation.z;
 }
 
-void Transform::SetTranslation(const Vec3 _xyz)
+void Transform::SetTranslation(
+    const Vec3 _xyz)
 {
     m_translation = _xyz;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::SetTranslation(float _x, float _y, float _z)
-{
-    SetTranslation({ _x, _y, _z });
-}
-
-void Transform::SetTranslationX(const float _x)
+void Transform::SetTranslationX(
+    const float _x)
 {
     m_translation.x = _x;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::SetTranslationY(const float _y)
+void Transform::SetTranslationY(
+    const float _y)
 {
     m_translation.y = _y;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::SetTranslationZ(const float _z)
+void Transform::SetTranslationZ(
+    const float _z)
 {
     m_translation.z = _z;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddTranslation(const Vec3 _xyz)
+void Transform::AddTranslation(
+    const Vec3 _xyz)
 {
     m_translation += _xyz;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddTranslation(float _x, float _y, float _z)
-{
-    AddTranslation({ _x, _y, _z });
-}
-
-void Transform::AddTranslationX(const float _x)
+void Transform::AddTranslationX(
+    const float _x)
 {
     m_translation.x += _x;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddTranslationY(const float _y)
+void Transform::AddTranslationY(
+    const float _y)
 {
     m_translation.y += _y;
     m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
-void Transform::AddTranslationZ(const float _z)
+void Transform::AddTranslationZ(
+    const float _z)
 {
     m_translation.z += _z;
     m_dirtyFlags |= eMatrixDirtyFlags::All;

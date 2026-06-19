@@ -135,6 +135,9 @@
     <ClCompile Include="ComputeScene.cpp">
       <Filter>Misc\ComputeShader</Filter>
     </ClCompile>
+    <ClCompile Include="StencilScene.cpp">
+      <Filter>08. Stencil</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SandboxApp.h">
@@ -190,6 +193,9 @@
     </ClInclude>
     <ClInclude Include="ComputeScene.h">
       <Filter>Misc\ComputeShader</Filter>
+    </ClInclude>
+    <ClInclude Include="StencilScene.h">
+      <Filter>08. Stencil</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

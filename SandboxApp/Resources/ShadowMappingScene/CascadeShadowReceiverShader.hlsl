@@ -77,10 +77,8 @@ float4 PSMain(PSInput input) : SV_TARGET
     float depth = t_sceneDepth.Sample(s_linearClamp, input.texcoord).r;
     float3 posW = CvtNdcToWorld(CvtTexToNdc(input.texcoord), depth, cb_invViewProj);
 
-    float3 L = -cb_lightDir;
-    float3 V = cb_eyePos - posW;
-    float vLen = length(V);
-    V /= vLen;
+    float3 L = normalize(-cb_lightDir);
+    float3 V = normalize(cb_eyePos - posW);
     float nDotL = max(dot(N, L), 0.f);
     float blinePhong = CalcBlinePhong(L, V, N, 16);
 
@@ -99,10 +97,12 @@ float4 PSMain(PSInput input) : SV_TARGET
         }
 
         // select layer
+        float3 look = normalize(cb_eyeDir);
+        float d = dot(shadowPosW - cb_eyePos, look);
         int index = cb_cascadeLevel - 1;
         for (int i = 0; i < cb_cascadeLevel - 1; ++i)
         {
-            if (vLen < cb_cascadeDistances[i])
+            if (d < cb_cascadeDistances[i])
             {
                 index = i;
                 break;

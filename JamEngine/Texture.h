@@ -18,7 +18,7 @@ public:
     Texture(Texture&& _other) noexcept;
     Texture& operator=(Texture&& _other) noexcept;
 
-    Error Save(StringView _path, bool _bReplaceExtension, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
+    Error Save(StringView _path, bool _bReplaceExtension, eFileWrite _mode = eFileWrite::Truncate) const override;
     void  SetName(StringView _name) override;
     void  Invalidate() override;
 

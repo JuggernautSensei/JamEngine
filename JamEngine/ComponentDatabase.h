@@ -14,23 +14,10 @@ class ComponentDatabase
     }
 
     template<typename T>
-    void CreateComponentDeferred_(Entity _entity) const
-    {
-        _entity.CreateComponentDeferred<T>();
-    }
-
-    template<typename T>
     void CreateComponentByCopy_(Entity _entity, const void* _pCmp)
     {
         const T& cmp = *static_cast<const T*>(_pCmp);
         _entity.CreateComponent<T>(cmp);
-    }
-
-    template<typename T>
-    void CreateComponentByCopyDeferred_(Entity _entity, const void* _pCmp)
-    {
-        const T& cmp = *static_cast<const T*>(_pCmp);
-        _entity.CreateComponentDeferred<T>(cmp);
     }
 
     template<typename T>
@@ -40,16 +27,10 @@ class ComponentDatabase
     }
 
     template<typename T>
-    void RemoveComponentDeferred_(Entity _entity) const
-    {
-        _entity.RemoveComponentsDeferred<T>();
-    }
-
-    template<typename T>
     void* GetComponent_(Entity _entity) const
     {
 
-        if constexpr (std::is_void_v<decltype(std::declval<Entity>().GetComponents<T>())>)
+        if constexpr (requires { { _entity.GetComponents<T>() } -> std::same_as<void>; })
         {
             return nullptr;
         }
@@ -87,7 +68,7 @@ class ComponentDatabase
     }
 
     template<typename T>
-    UInt32 ENTTHashOf_()
+    UInt32 RegistryHashOf_()
     {
         return entt::type_hash<T>::value();
     }
@@ -95,22 +76,19 @@ class ComponentDatabase
 public:
     struct Data
     {
-        StringView typeName          = {};
-        StringView editorDisplayName = {};
-        UInt64     typeHash          = 0;
-        UInt32     enttHash          = 0;
+        StringView name         = {};
+        StringView displayName  = {};
+        UInt64     hash         = 0;
+        UInt32     registryHash = 0;
 
-        Delegate<void(Entity)>                                      Create               = nullptr;
-        Delegate<void(Entity)>                                      CreateDeferred       = nullptr;
-        Delegate<void(Entity, const void*)>                         CreateByCopy         = nullptr;
-        Delegate<void(Entity, const void*)>                         CreateByCopyDeferred = nullptr;
-        Delegate<void(Entity)>                                      Remove               = nullptr;
-        Delegate<void(Entity)>                                      RemoveDeferred       = nullptr;
-        Delegate<void*(Entity)>                                     Get                  = nullptr;
-        Delegate<bool(Entity)>                                      Has                  = nullptr;
-        Delegate<void(const void*, ArchiveWriter&, Scene*, Entity)> Serialize            = nullptr;
-        Delegate<void(void*, ArchiveReader&, Scene*, Entity)>       Deserialize          = nullptr;
-        Delegate<void(void*, Scene*, Entity)>                       DrawEditPanel        = nullptr;
+        Delegate<void(Entity)>                                      Create        = nullptr;
+        Delegate<void(Entity, const void*)>                         CreateByCopy  = nullptr;
+        Delegate<void(Entity)>                                      Remove        = nullptr;
+        Delegate<void*(Entity)>                                     Get           = nullptr;
+        Delegate<bool(Entity)>                                      Has           = nullptr;
+        Delegate<void(const void*, ArchiveWriter&, Scene*, Entity)> Serialize     = nullptr;
+        Delegate<void(void*, ArchiveReader&, Scene*, Entity)>       Deserialize   = nullptr;
+        Delegate<void(void*, Scene*, Entity)>                       DrawEditPanel = nullptr;
 
         bool bNonRemoveable         = false;
         bool bNonCreateableOnEditor = false;
@@ -124,13 +102,10 @@ public:
         JAM_STATIC_ASSERT_CHECK_COMPONENT_PROPERTY_VALIDATIONS(T);
 
         Data data                   = {};
-        data.typeName               = NameOf<T>();
-        data.typeHash               = HashOf<T>();
-        data.editorDisplayName      = NameOf<T>();
+        data.name                   = NameOf<T>();
+        data.hash                   = HashOf<T>();
         data.Create                 = Bind<&ComponentDatabase::CreateComponent_<T>>(this);
-        data.CreateDeferred         = Bind<&ComponentDatabase::CreateComponentDeferred_<T>>(this);
         data.CreateByCopy           = Bind<&ComponentDatabase::CreateComponentByCopy_<T>>(this);
-        data.CreateByCopyDeferred   = Bind<&ComponentDatabase::CreateComponentByCopyDeferred_<T>>(this);
         data.Get                    = Bind<&ComponentDatabase::GetComponent_<T>>(this);
         data.Has                    = Bind<&ComponentDatabase::HasComponent_<T>>(this);
         data.bNonRemoveable         = HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>;
@@ -138,8 +113,7 @@ public:
 
         if constexpr (!HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>)
         {
-            data.Remove         = Bind<&ComponentDatabase::RemoveComponent_<T>>(this);
-            data.RemoveDeferred = Bind<&ComponentDatabase::RemoveComponentDeferred_<T>>(this);
+            data.Remove = Bind<&ComponentDatabase::RemoveComponent_<T>>(this);
         }
 
         if constexpr (HasComponentPropertyFlag<T, eComponentPropertyFlags::Editable>)
@@ -153,21 +127,21 @@ public:
             data.Deserialize = Bind<&ComponentDatabase::Deserialize_<T>>(this);
         }
 
-        if constexpr (HasComponentEditorDisplayName<T>)
+        if constexpr (HashComponenDisplayName<T>)
         {
-            data.editorDisplayName = GetComponentEditorDisplayName<T>();
+            data.displayName = ComponentDisplayNameOf<T>();
         }
         else
         {
-            data.editorDisplayName = NameOf<T>();   // fallback
+            data.displayName = NameOf<T>();
         }
 
-        const UInt64 typeHash = data.typeHash;
-        JAM_ASSERT(data.typeName.Hash() == typeHash, "Type typeName hash does not match type hash for component '{}'", data.typeName);
-        JAM_ASSERT(!m_componentDataMap.contains(typeHash), "Component with typeName '{}' is already registered", data.typeName);
+        const UInt64 typeHash = data.hash;
+        JAM_ASSERT(data.name.Hash() == typeHash, "Type typeName hash does not match type hash for component '{}'", data.name);
+        JAM_ASSERT(!m_componentDataMap.contains(typeHash), "Component with typeName '{}' is already registered", data.name);
         m_componentDataMap.emplace(typeHash, data);
 
-        const UInt32 enttHash = ENTTHashOf_<T>();
+        const UInt32 enttHash = RegistryHashOf_<T>();
         JAM_ASSERT(!m_enttHashToTypeHash.contains(enttHash), "Component with entt hash '{}' is already registered", enttHash);
         m_enttHashToTypeHash.emplace(enttHash, typeHash);   // for fast lookup by entt hash
     }

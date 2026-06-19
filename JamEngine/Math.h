@@ -260,14 +260,14 @@ template<typename T>
     return _x - _y * Floor(_x / _y);
 }
 
-[[nodiscard]] constexpr bool IsZeroApprox(const float _x, const float _epsilon = kEpsilon)
+[[nodiscard]] constexpr bool IsZeroApprox(const float _x)
 {
-    return Abs(_x) < _epsilon;
+    return Abs(_x) < kEpsilon;
 }
 
-[[nodiscard]] constexpr bool IsEqualApprox(const float _x, const float _y, const float _epsilon = kEpsilon)
+[[nodiscard]] constexpr bool IsEqualApprox(const float _x, const float _y)
 {
-    return Abs(_x - _y) < _epsilon;
+    return Abs(_x - _y) < kEpsilon;
 }
 
 [[nodiscard]] constexpr float Wrap(const float _x, const float _min, const float _max)

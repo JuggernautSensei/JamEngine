@@ -112,15 +112,15 @@ const Ref<Texture>& Environment::GetIblSpecularTex() const
     return m_pIblSpecularTex;
 }
 
-void Environment::SetIblBrdfLutTex(const Ref<Texture>& _pTexture)
+void Environment::SetIblBrdfLUTTex(const Ref<Texture>& _pTexture)
 {
-    m_pIblBrdfLutTex = _pTexture;
+    m_pIblBrdfLUTTex = _pTexture;
     m_bDirty         = true;
 }
 
-const Ref<Texture>& Environment::GetIblBrdfLutTex() const
+const Ref<Texture>& Environment::GetIblBrdfLUTTex() const
 {
-    return m_pIblBrdfLutTex;
+    return m_pIblBrdfLUTTex;
 }
 
 void Environment::SetIblIrradianceIntensity(const float _intensity)
@@ -409,7 +409,7 @@ void Environment::WriteToArchive(
     _writer.WriteField("directionalLightCascadeDistances", m_dirLightCascadeDistances);
     _writer.WriteField("iblIrradianceTex", m_pIblIrradianceTex);
     _writer.WriteField("iblSpecularTex", m_pIblSpecularTex);
-    _writer.WriteField("iblBrdfLutTex", m_pIblBrdfLutTex);
+    _writer.WriteField("iblBrdfLUTTex", m_pIblBrdfLUTTex);
     _writer.WriteField("iblIrradianceIntensity", m_iblIrradianceTexIntensity);
     _writer.WriteField("iblSpecularIntensity", m_iblSpecularTexIntensity);
     _writer.WriteField("skyboxType", m_skyboxType);
@@ -475,7 +475,7 @@ Error Environment::ReadFromArchive(
     {
         return err;
     }
-    if (const Error err = _reader.ReadField("iblBrdfLutTex", m_pIblBrdfLutTex))
+    if (const Error err = _reader.ReadField("iblBrdfLUTTex", m_pIblBrdfLUTTex))
     {
         return err;
     }

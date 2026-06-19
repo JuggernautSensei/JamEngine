@@ -1,7 +1,5 @@
 #include "pch.h"
 
-#include "AssimpImporter.h"
-
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -11,9 +9,9 @@
 #include "Texture.h"
 #include "Profile.h"
 #include "Graphics.h"
-#include "ImageBase.h"
-#include "ImageImporter.h"
+#include "ModelImporter.h"
 #include "GeometryReadWriter.h"
+#include "Image.h"
 
 namespace Jam
 {

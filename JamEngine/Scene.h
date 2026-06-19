@@ -16,17 +16,10 @@ struct ModelNode;
 
 struct RenderView
 {
-    FrameBufferHandle fbh              = kInvalidHandle;   // output
-    Viewport          viewport         = {};               // output vp
-    const Transform*  pTransformOrNull = nullptr;          // camera transform
-    const Camera*     pCameraOrNull    = nullptr;          // camera spec
-};
-
-enum class eSceneDeserializeFlags : UInt32
-{
-    None                         = 0,
-    SkipComponentDeserializeFail = 1 << 0,   // 역직렬화 실패한 컴포넌트를 제거하고 계속 진행. 기본은 역직렬화 중단
-    SkipSceneTypeMismatch        = 1 << 1,   // 씬 타입이 불일치해도 역직렬화 시도. 기본은 역직렬화 중단
+    FrameBufferHandle fbh              = kInvalidHandle;   // output framebuffer
+    Viewport          viewport         = {};               // output viewport
+    const Camera*     pCameraOrNull    = nullptr;          // output camera info (can be null)
+    const Transform*  pTransformOrNull = nullptr;          // output camera transform (can be null)
 };
 
 class Scene
@@ -54,40 +47,27 @@ public:
     virtual StringView GetTypeName() const = 0;
     virtual UInt64     GetTypeHash() const = 0;
 
-    // scene buffer... todo remove
-    [[nodiscard]] virtual TextureHandle GetDepthTexture() const;
-
-    // serialize
-    [[nodiscard]] static Expect<Scoped<Scene>> Load(StringView _json, Flags<eSceneDeserializeFlags> _flags = eSceneDeserializeFlags::None);
-    [[nodiscard]] static Expect<Scoped<Scene>> LoadFromFile(StringView _path, Flags<eSceneDeserializeFlags> _flags = eSceneDeserializeFlags::None);
-    virtual void                               Serialize(ArchiveWriter& _writer);
-    virtual Error                              Deserialize(ArchiveReader& _reader, Flags<eSceneDeserializeFlags> _flags = eSceneDeserializeFlags::None);
+    // scene buffers
+    [[nodiscard]] virtual TextureHandle GetSceneDepthTexture() const;
 
     // scene graph
     void                                UpdateSceneGraph();
-    [[nodiscard]] const Vector<Entity>& GetTransformModifiedEntities() const;   // 해당 배열은 Render 함수 호출 직전에 초기화됨
+    [[nodiscard]] const Vector<Entity>& GetTransformModifiedEntities() const;
 
     // entity management
     Entity CreateEntity(StringView _nameOrEmpty = {});
     Entity CreateEntity(UID _uid, StringView _nameOrEmpty = {});
-    UID    CreateEntityDeferred(StringView _nameOrEmpty = {});             // returns the UID of the created entity. UID is invalid this frame, valid next frame
-    UID    CreateEntityDeferred(UID _uid, StringView _nameOrEmpty = {});   // returns the UID of the created entity. UID is invalid this frame, valid next frame
-
+    Entity CreateEntitiesFromModel(const Ref<Model>& _pModel);
     Entity CloneEntity(Entity _entity);
-    UID    CloneEntityDeferred(Entity _entity);   // returns the UID of the cloned entity. UID is invalid this frame, valid next frame
 
     void DestroyEntity(Entity _entity);
-    void DestroyEntityDeferred(Entity _entity);
     void ClearEntities();
 
     [[nodiscard]] Entity GetEntity(UID _uid) const;
     [[nodiscard]] Entity FindEntityOrNull(UID _uid) const;
     [[nodiscard]] bool   IsEntityValid(Entity _entity) const;
 
-    Entity CreateEntitiesByModel(const Ref<Model>& _pModel);
-    UID    CreateEntitiesDeferredByModel(const Ref<Model>& _pModel);   // returns the UID of the root entity. UID is invalid this frame, valid next frame
-
-    // item iteration
+    // entity view
     template<typename... Args>
     [[nodiscard]] decltype(auto) View()
     {
@@ -129,20 +109,18 @@ protected:
 private:
     void Reset_();
 
-    // create entity. create entity must support create with uid. so param _allocedUid is required.
+    // create entity. create entity must support create with uid. so param _allocedUID is required.
     Entity CreateRootEntity_();
-    Entity CreateEntity_(UID _allocedUid, StringView _nameOrEmpty);
-    void   CreateEntityDeferred_(UID _allocedUid, StringView _nameOrEmpty);
+    Entity CreateEntity_(UID _allocedUID, StringView _nameOrEmpty);
 
     // clone entity
-    Entity CloneEntity_(UID _allocedUid, Entity _srcEntity);
-    Entity CloneEntity_Recursive_(UID _allocedUid, Entity _srcEntity);
-    void   CloneEntityDeferred_(UID _allocedUid, Entity _srcEntity);
+    Entity CloneEntity_(UID _allocedUID, Entity _srcEntity);
+    Entity CloneEntity_Recursive_(UID _allocedUID, Entity _srcEntity);
 
     // create from model
-    Entity CreateEntitiesByModel_Recursive_(UID _allocedUid, const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
-    Entity CreateEntitiesByModel_(UID _allocedUid, const Ref<Model>& _pModel);
-    void   CreateEntitieDeferredByModel_(UID _allocedUid, const Ref<Model>& _pModel);
+    Entity CreateEntitiesByModel_(UID _allocedUID, const Ref<Model>& _pModel);
+    Entity CreateEntitiesByModel_Recursive_(UID _allocedUID, const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
+    void   CreateEntitieDeferredFromModel_(UID _allocedUID, const Ref<Model>& _pModel);
 
     // destroy entity
     void DestroyEntity_Recursive_(Entity _entity);
@@ -152,8 +130,6 @@ private:
     UIDAllocator         m_uidAllocator              = {};
     Entity               m_root                      = Entity::kNull;
     Vector<Entity>       m_transformModifiedEntities = {};
-
-    friend class SceneManager;
 };
 
 }   // namespace Jam

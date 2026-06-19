@@ -27,12 +27,22 @@ enum class eRegion
 [[nodiscard]] bool    IsTop(eRegion _region);
 [[nodiscard]] bool    IsFar(eRegion _region);
 
-struct Ray;
 struct Hit
 {
     Vec3  normal = Vec3::kZero;
     Vec3  point  = Vec3::kZero;
     float dist   = 0;
+};
+
+struct Ray
+{
+    Ray() = default;
+    Ray(Vec3 _dir, Vec3 _origin);
+    Ray(float _ndcX, float _ndcY, const Mtx4& _invMtx);
+    Ray(Int32 _screenX, Int32 _screenY, Int32 _screenWidth, Int32 _screenHeight, const Mtx4& _invMtx);
+
+    Vec3 dir    = Vec3::kZero;
+    Vec3 pos = Vec3::kZero;
 };
 
 using Corners = EnumArray<eRegion, Vec3>;
@@ -44,9 +54,8 @@ struct Aabb
     [[nodiscard]] static Aabb FromMinMax(Vec3 _min, Vec3 _max);
 
     [[nodiscard]] Aabb Transform(const Mtx4& _mtx) const;
-
-    void Merge(const Aabb& _aabb);
-    void Merge(Vec3 _p);
+    void               Merge(const Aabb& _aabb);
+    void               Merge(Vec3 _p);
 
     [[nodiscard]] Vec3    GetMin() const;
     [[nodiscard]] Vec3    GetMax() const;
@@ -67,6 +76,7 @@ struct Aabb
 struct Obb
 {
     Obb() = default;
+    Obb(Vec3 _center, Vec3 _extents, Quat _rotation);
     explicit Obb(const Aabb& _aabb);
 
     [[nodiscard]] float   GetWidth() const;
@@ -100,6 +110,7 @@ struct Plane
 
     void                Normalize();
     [[nodiscard]] Plane Normalized() const;
+    [[nodiscard]] bool  IsNormalized() const;
 
     // point - plane operations
     [[nodiscard]] float DistanceTo(Vec3 _point) const;
@@ -144,7 +155,6 @@ struct Frustum
     explicit Frustum(const Mtx4& _mtx);
 
     [[nodiscard]] Frustum Transform(const Mtx4& _invTransMtx) const;
-
     void                  Normalize();
     [[nodiscard]] Frustum Normalized() const;
 
@@ -152,8 +162,7 @@ struct Frustum
     [[nodiscard]] static Corners CalcCorners(const Mtx4& _invMtx);
     [[nodiscard]] static Corners CalcCornersInViewSpace(float _fovRad, float _aspectRatio, float _nearZ, float _farZ);
 
-    [[nodiscard]] bool          Overlap(const Aabb& _box) const;
-    [[nodiscard]] Optional<Hit> RayCast(const Ray& _ray, bool _bDoubleSided) const;
+    [[nodiscard]] bool Overlap(const Aabb& _box) const;
 
     void CalcCascadeSplitsInViewSpace(Span<CascadeSplit> _outDs, float _weight = 0.75f) const;
 
@@ -170,20 +179,6 @@ struct Frustum
         };
         Array<Plane, 6> planes = {};
     };
-};
-
-struct Ray
-{
-    Ray() = default;
-    Ray(Vec3 _origin, Vec3 _direction);
-    Ray(float _x, float _y, const Mtx4& _invVP);   // NDC space -> world space
-
-    [[nodiscard]] Vec3 GetPoint(float _t) const;
-    void               Normalize();
-    [[nodiscard]] Ray  Normalized() const;
-
-    Vec3 pos = Vec3::kZero;
-    Vec3 dir = Vec3::kZero;
 };
 
 }   // namespace Jam

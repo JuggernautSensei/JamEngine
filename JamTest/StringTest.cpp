@@ -861,7 +861,7 @@ TEST(StringResize, Resize_Grow_DefaultFill)
 TEST(StringResize, Resize_Grow_WithChar)
 {
     String s("hi");
-    s.Resize(5, 'x');
+    s.Resize_(5, 'x');
     EXPECT_EQ(s, StringView("hixxx"));
 }
 

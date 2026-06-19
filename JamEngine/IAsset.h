@@ -22,9 +22,9 @@ public:
     IAsset& operator=(const IAsset&) = default;
     IAsset& operator=(IAsset&&)      = default;
 
-    virtual Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const = 0;
-    virtual void  Invalidate()                                                                                                                             = 0;
-    virtual void  SetName(StringView _name)                                                                                                                = 0;
+    virtual Error Save(StringView _path, bool _bReplaceExtension = true, eFileWrite _mode = eFileWrite::Truncate) const = 0;
+    virtual void  Invalidate()                                                                                       = 0;
+    virtual void  SetName(StringView _name)                                                                          = 0;
 
     [[nodiscard]] virtual bool       IsValid() const      = 0;
     [[nodiscard]] virtual eAsset     GetAssetType() const = 0;

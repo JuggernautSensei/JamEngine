@@ -8,7 +8,7 @@ namespace Jam
 struct SceneComponent
 {
     JAM_COMPONENT_BODY(SceneComponent);
-    JAM_COMPONENT_EDITOR_DISPLAY_NAME("scene component");
+    JAM_COMPONENT_DISPLAY_NAME("scene component");
     JAM_COMPONENT_PROPERTY_FLAGS(eComponentPropertyFlags::Serializable, eComponentPropertyFlags::Editable, eComponentPropertyFlags::NonRemoveable);
 
     void Serialize(ArchiveWriter& _writer, Scene* _pScene, Entity _owner) const;

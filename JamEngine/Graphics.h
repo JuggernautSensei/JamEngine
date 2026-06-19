@@ -1,16 +1,28 @@
 #pragma once
 #include "GraphicsBase.h"
-#include "ImageBase.h"
 #include "ResourcePool.h"
 #include "RingBufferIndex.h"
 
 namespace Jam
 {
 
-class ShaderCompiler;
+class Image;
+class Event;
 class WindowResizedEvent;
 class WindowMaximizedEvent;
-class Event;
+
+struct GraphicsInitInfo
+{
+    HWND platformHandle   = 0;
+    bool bConnectDebugger = false;
+
+    // back buffer
+    Int32          backBufferWidth   = 0;
+    Int32          backBufferHeight  = 0;
+    Int32          numBackBuffer     = 0;
+    eTextureFormat backBufferFormat  = eTextureFormat::Unknown;
+    Int32          backBufferSamples = 1;
+};
 
 /// @brief D3D11 기반 그래픽스 백엔드.
 class Graphics
@@ -235,9 +247,13 @@ public:
     void OnEvent(Event& _event);
 
     /// @brief 현재 프레임을 화면에 출력하고 다음 프레임을 준비합니다.
-    /// @param _bVSync 수직 동기화 사용 여부
     /// @note 프레임 버퍼 바인딩이 초기화됩니다. 다음 드로우 콜 전에 SetFrameBuffer를 다시 호출해야 합니다.
-    void Frame(bool _bVSync);
+    void Frame();
+
+    /// @brief 수직 동기화(VSync) 설정을 변경합니다.
+    /// @note VSync이 켜지면, 프레임 출력이 디스플레이의 수직 동기 신호에 맞춰 조절되어 화면 찢김을 방지합니다. 그러나, 입력 지연이 증가할 수 있습니다.
+    ///       bAllowTearing가 false인 경우 해당 옵션에 상관없이 VSync가 켜집니다.
+    void SetVSync(bool _bVSync);
 
     ///////////////////////////////////////
     ///        RESOURCE CREATION        ///
@@ -413,15 +429,14 @@ public:
 
     ////////// TEXTURE /////////
 
-    /// @brief ImageContainer로부터 텍스처를 생성합니다.
-    /// @param _container 원본 이미지 컨테이너 (2D, 3D, Cubemap 모두 지원)
+    /// @brief Image로부터 텍스처를 생성합니다.
+    /// @param _image 원본 이미지 컨테이너 (2D, 3D, Cubemap 모두 지원)
     /// @param _flags 텍스처 생성 플래그 (기본: None)
     /// @return 생성된 텍스처 핸들
-    /// @note 파일에서 읽어온 텍스처를 GPU에 올릴 때 사용합니다.
-    ///       미리 생성된 MIP 체인이 있으면 그대로 업로드합니다.
+    /// @note Image의 형식과 차원에 따라 적절한 텍스처 유형이 자동으로 선택됩니다.
     [[nodiscard]] TextureHandle CreateTexture(
-        const ImageContainer& _container,
-        Flags<eTextureFlags>  _flags = eTextureFlags::None);
+        const Image&         _image,
+        Flags<eTextureFlags> _flags = eTextureFlags::None);
 
     /// @brief 2D 텍스처를 생성합니다.
     /// @param _width 텍스처 너비 (픽셀 단위, 1 이상)
@@ -593,11 +608,11 @@ public:
         Int32             _srcLayer,
         MutableMemoryView _dst) const;
 
-    /// @brief 텍스처 전체를 ImageContainer로 캡처합니다.
+    /// @brief 텍스처 전체를 Image로 캡처합니다.
     /// @param _texh 캡처할 텍스처 핸들
-    /// @return 캡처된 이미지 컨테이너 (파일 저장 등에 활용 가능)
+    /// @return 캡처된 이미지 (파일 저장 등에 활용 가능)
     /// @note GPU-CPU 동기화가 발생합니다. 성능이 중요한 경로에서는 사용하지 마십시오.
-    [[nodiscard]] ImageContainer Capture(TextureHandle _texh);
+    [[nodiscard]] Image Capture(TextureHandle _texh);
 
     ////////// FRAME BUFFER /////////
 
@@ -622,13 +637,11 @@ public:
     ////////// / SHADER & PROGRAM /////////
 
     /// @brief 컴파일된 바이트코드로부터 셰이더를 생성합니다.
-    /// @param _shaderByteCode 셰이더 DXBC 바이트코드
+    /// @param _bytecode 셰이더 바이트코드
     /// @return 생성된 셰이더 핸들
-    /// @note 동일한 바이트코드로 셰이더를 중복 생성하면 기존 셰이더의 참조 카운트를 증가시켜 반환합니다.
-    ///       셰이더가 더 이상 필요없으면 DestroyShader로 파괴해야 합니다.
-    ///       쉐이더 파일의 컴파일은 ShaderCompiler 클래스를 사용하여 수행할 수 있습니다.
+    /// @note ShaderBinary 객체로 컴파일된 쉐이더 바이트코드를 얻을 수 있습니다.
     [[nodiscard]] ShaderHandle CreateShader(
-        MemoryView _shaderByteCode);
+        MemoryView _bytecode);
 
     /// @brief 여러 셰이더 스테이지를 묶어 프로그램을 생성합니다.
     /// @param _vsh 버텍스 셰이더 핸들 (kInvalidHandle 불가)
@@ -735,10 +748,10 @@ public:
 
     /// @brief 버텍스 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _vbh 이름을 설정할 버텍스 버퍼 핸들
-    /// @param _name 설정할 이름 (PIX, RenderDoc 등 GPU 디버거에서 표시됩니다)
+    /// @param _userName 설정할 이름 (PIX, RenderDoc 등 GPU 디버거에서 표시됩니다)
     void SetVertexBufferName(
         VertexBufferHandle _vbh,
-        StringView         _name);
+        StringView         _userName);
 
     /// @brief 인덱스 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _ibh 이름을 설정할 인덱스 버퍼 핸들
@@ -848,6 +861,9 @@ public:
 
     /// @brief 그래픽스 API의 현재 상태에 대한 통계를 반환합니다.
     [[nodiscard]] const GraphicsStats& GetStats() const;
+
+    /// @brief 그래픽스 API의 구성을 반환합니다.
+    [[nodiscard]] const GraphicsConfig& GetConfig() const;
 
     ///////////////////////////////////////
     ///      RENDER TARGET OPERATIONS   ///
@@ -1117,13 +1133,13 @@ public:
     void EndDebuggerCapture() const;
 
 private:
-    explicit Graphics(const GraphicsInit& _init);
+    explicit Graphics(const GraphicsInitInfo& _init);
     ~Graphics();
 
-    static void CreateInstance(const GraphicsInit& _init);
+    static void CreateInstance(const GraphicsInitInfo& _init);
     static void DestroyInstance();
 
-    void InitDebugger_() const;
+    bool InitDebugger_() const;
     void CleanUpDebugger_() const;
 
     void BindConstantBuffers_(eShader _stage);
@@ -1158,7 +1174,7 @@ private:
     void                             CopyTexture_(TextureHandle _dstTexh, Int32 _dstMip, Int32 _dstLayer, Int32 _dstOffsetX, Int32 _dstOffsetY, Int32 _dstOffsetZ, TextureHandle _srcTexh, Int32 _srcMip, Int32 _srcLayer, Int32 _srcOffsetX, Int32 _srcOffsetY, Int32 _srcOffsetZ, Int32 _srcWidthOrZero, Int32 _srcHeightOrZero, Int32 _srcDepthOrZero) const;
 
     // resource cache
-    [[nodiscard]] ShaderHandle             GetOrCreateShader_(MemoryView _byteCode);
+    [[nodiscard]] ShaderHandle             GetOrCreateShader_(MemoryView _bytecode);
     [[nodiscard]] VertexLayoutHandle       GetOrCreateVertexLayout_(const VertexLayout& _vl);
     [[nodiscard]] ID3D11SamplerState*      GetOrCreateD3D11SamplerState_(Flags<eSamplerFlags> _state, RGBA _rgba);
     [[nodiscard]] ID3D11InputLayout*       GetOrCreateD3D11InputLayoutFromCurrentBind_();
@@ -1181,7 +1197,6 @@ private:
     ID3D11DeviceContext* m_pd3d11DeviceContext = nullptr;
     IDXGIAdapter3*       m_pdxgiAdapter3       = nullptr;
     IDXGISwapChain1*     m_pdxgiSwapchain      = nullptr;
-    bool                 m_bAllowTearing       = false;
 
     // resource pools
     ResourcePool<VertexBuffer>       m_vertexBuffers  = {};
@@ -1248,7 +1263,8 @@ private:
     bool                              m_bBeginTimerQuery = false;
 
     // back buffer
-    BackBuffer m_backbuffer = {};
+    BackBuffer     m_backbuffer = {};
+    GraphicsConfig m_config     = {};
 
     // upload buffer cache
     ID3D11Buffer* m_pUploadBufferCache     = nullptr;

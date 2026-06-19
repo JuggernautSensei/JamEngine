@@ -19,17 +19,19 @@ struct alignas(16) Quat
 {
     Quat();
     Quat(float _x, float _y, float _z, float _w);
+    explicit Quat(Vec4 _xywz);
 
-    [[nodiscard]] static Quat FromAxisAngle(Vec3 _axis, float _angleRad);
-    [[nodiscard]] static Quat FromEuler(Vec3 _eulerRad);
+    [[nodiscard]] static Quat FromAxisAngle(Vec3 _axis, float _rad);
+    [[nodiscard]] static Quat FromEuler(Vec3 _euler);
     [[nodiscard]] static Quat FromRotationMatrix(const Mtx4& _mtx);
-    [[nodiscard]] static Quat FromLookAt(Vec3 _position, Vec3 _point, Vec3 _up);
+    [[nodiscard]] static Quat FromLookAt(Vec3 _position, Vec3 _focusPoint, Vec3 _up);
     [[nodiscard]] static Quat FromLookTo(Vec3 _forward, Vec3 _up);
     [[nodiscard]] static Quat FromToRotation(Vec3 _from, Vec3 _to);
 
-    void                    SetEuler(Vec3 _eulerRad);
+    [[nodiscard]] static Quat SquadSetup(Quat _q0, Quat _q1, Quat _q2);
+    [[nodiscard]] static Quat Squad(Quat _q1, Quat _q2, Quat _s1, Quat _s2, float _t);
+
     [[nodiscard]] Vec3      ToEuler() const;
-    void                    SetAxisAngle(Vec3 _axis, float _angle);
     [[nodiscard]] AxisAngle ToAxisAngle() const;
 
     [[nodiscard]] float Length() const;
@@ -37,26 +39,21 @@ struct alignas(16) Quat
 
     void               Normalize();
     [[nodiscard]] Quat Normalized() const;
-    [[nodiscard]] bool IsNormalized(float _epsilon = kEpsilon) const;
+    [[nodiscard]] bool IsNormalized() const;
 
     [[nodiscard]] Quat Conjugate() const;
     [[nodiscard]] Quat Inverse() const;
 
     [[nodiscard]] float Dot(Quat _other) const;
-    [[nodiscard]] Quat  Lerp(Quat _other, float _t) const;
-    [[nodiscard]] Quat  Slerp(Quat _other, float _t) const;
+    [[nodiscard]] Quat  Slerp(Quat _q, float _t) const;
     [[nodiscard]] Quat  Exp() const;
     [[nodiscard]] Quat  Log() const;
     [[nodiscard]] Quat  Pow(float _t) const;
     [[nodiscard]] Vec3  Rotate(Vec3 _v) const;
-
     [[nodiscard]] float Angle(Quat _other) const;
 
-    [[nodiscard]] static Quat SquadSetup(Quat _q0, Quat _q1, Quat _q2);
-    [[nodiscard]] static Quat Squad(Quat _q1, Quat _q2, Quat _s1, Quat _s2, float _t);
-
-    [[nodiscard]] bool IsZeroApprox(float _epsilon = kEpsilon) const;
-    [[nodiscard]] bool IsEqualApprox(Quat _other, float _epsilon = kEpsilon) const;
+    [[nodiscard]] bool IsZeroApprox() const;
+    [[nodiscard]] bool IsEqualApprox(Quat _other) const;
 
     [[nodiscard]] float*       GetPtr();
     [[nodiscard]] const float* GetPtr() const;

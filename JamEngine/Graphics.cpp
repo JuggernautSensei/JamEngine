@@ -12,7 +12,8 @@
 #include "ResourcePool.h"
 #include "WindowsPlatform.h"
 #include "GeometryReadWriter.h"
-#include "ShaderCompiler.h"
+#include "Image.h"
+#include "ShaderBinary.h"
 
 #include "Vendor/RenderDoc/renderdoc_app.h"
 
@@ -348,19 +349,17 @@ namespace
         }
     }
 
-    [[nodiscard]] String CreateName_(
+    [[nodiscard]] String MakeName_(
         const StringView _handleName,
         const UInt32     _handleIndex,
         const UInt32     _handleToken,
         const StringView _userName)
     {
-        String result = {};
-        result.Format("[{}] index: {}, token: {}", _handleName, _handleIndex, _handleToken);
+        String result = String::Formatted("[{}] index: {}, token: {}", _handleName, _handleIndex, _handleToken);
         if (!_userName.IsEmpty())
         {
             result.AppendFormat(", name: {}", _userName);
         }
-
         return result;
     }
 
@@ -390,7 +389,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.GetIndex();
         const UInt32 token = handle.GetToken();
-        JAM_LOG_WARN("VertexBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("VertexBuffer leak detected: Handle Index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -398,7 +397,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.GetIndex();
         const UInt32 token = handle.GetToken();
-        JAM_LOG_WARN("IndexBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("IndexBuffer leak detected: Handle Index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -406,7 +405,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.GetIndex();
         const UInt32 token = handle.GetToken();
-        JAM_LOG_WARN("Texture leak detected: Handle pos = {}, Token = {}, Name = '{}', RefCount = {}", index, token, value.name, value.refCount);
+        JAM_LOG_WARN("Texture leak detected: Handle Index = {}, Token = {}, Name = '{}', RefCount = {}", index, token, value.name, value.refCount);
         bLeakDetected = true;
     }
 
@@ -414,7 +413,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.GetIndex();
         const UInt32 token = handle.GetToken();
-        JAM_LOG_WARN("FrameBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("FrameBuffer leak detected: Handle Index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -427,7 +426,7 @@ bool Graphics::DetectLeak()
         const UInt32     index = handle.GetIndex();
         const UInt32     token = handle.GetToken();
         const StringView name  = kNames[value.stage];
-        JAM_LOG_WARN("Shader leak detected: Handle pos = {}, Token = {}, Stage = {}, RefCount = {}", index, token, name, value.refCount);
+        JAM_LOG_WARN("Shader leak detected: Handle Index = {}, Token = {}, Stage = {}, RefCount = {}", index, token, name, value.refCount);
         bLeakDetected = true;
     }
 
@@ -435,15 +434,16 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.GetIndex();
         const UInt32 token = handle.GetToken();
-        JAM_LOG_WARN("ConstantBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("ConstantBuffer leak detected: Handle Index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
-    for (const ProgramHandle handle: m_programs | std::views::keys)
+    // ReSharper disable once CppUseElementsView
+    for (const auto& [handle, value]: m_programs)
     {
         const UInt32 index = handle.GetIndex();
         const UInt32 token = handle.GetToken();
-        JAM_LOG_WARN("Program leak detected: Handle pos = {}, Token = {}", index, token);
+        JAM_LOG_WARN("Program leak detected: Handle Index = {}, Token = {}", index, token);
         bLeakDetected = true;
     }
 
@@ -451,7 +451,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.GetIndex();
         const UInt32 token = handle.GetToken();
-        JAM_LOG_WARN("StorageBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("StorageBuffer leak detected: Handle Index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -466,8 +466,10 @@ void Graphics::OnEvent(Event& _event)
     dispatcher.Dispatch<WindowMaximizedEvent>(this, &Graphics::OnWindowMaximizeEvent_);
 }
 
-void Graphics::Frame(const bool _bVSync)
+void Graphics::Frame()
 {
+    EndTimerQueries_();
+
     // query gpu memory usage
     DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
     JAM_CHECK_HRESULT(m_pdxgiAdapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info));
@@ -475,8 +477,8 @@ void Graphics::Frame(const bool _bVSync)
     m_stats.gpuMemoryUsageByte = static_cast<Int64>(info.CurrentUsage);
 
     // Present
-    const UInt32 interval = (m_bAllowTearing || !_bVSync) ? 0 : 1;
-    const UInt32 flags    = m_bAllowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0;
+    const UInt32 interval = m_config.bVSync ? 1 : 0;
+    const UInt32 flags    = (!m_config.bVSync && m_config.bAllowTearing) ? DXGI_PRESENT_ALLOW_TEARING : 0;
     if (FAILED(m_pdxgiSwapchain->Present(interval, flags)))
     {
         JAM_CHECK_HRESULT(m_pd3d11Device->GetDeviceRemovedReason());
@@ -488,6 +490,15 @@ void Graphics::Frame(const bool _bVSync)
     // stats
     m_lastStats = m_stats;
     m_stats.Clear();
+
+    // begin next frame timer queries
+    BeginTimerQueries_();
+}
+
+void Graphics::SetVSync(
+    const bool _bVSync)
+{
+    m_config.bVSync = _bVSync;
 }
 
 VertexBufferHandle Graphics::CreateVertexBuffer(
@@ -727,18 +738,20 @@ Int32 Graphics::ReadBuffer(
 }
 
 TextureHandle Graphics::CreateTexture(
-    const ImageContainer&      _container,
+    const Image&               _image,
     const Flags<eTextureFlags> _flags)
 {
-    const DirectX::TexMetadata& metadata  = _container.GetMetadata();
-    const Int32                 numImages = static_cast<Int32>(_container.GetImageCount());
-    const Int32                 w         = static_cast<Int32>(metadata.width);
-    const Int32                 h         = static_cast<Int32>(metadata.height);
-    const Int32                 d         = static_cast<Int32>(metadata.depth);
-    const Int32                 arrSize   = static_cast<Int32>(metadata.arraySize);
-    const Int32                 numMips   = static_cast<Int32>(metadata.mipLevels);
-    const bool                  bHasMips  = numMips > 1;
-    const eTextureFormat        format    = TextureFormatFrom(metadata.format);
+    const ImageContainer&       container = _image.GetImageContainer();
+    const DirectX::TexMetadata& metadata  = container.GetMetadata();
+
+    const Int32          numImages = static_cast<Int32>(container.GetImageCount());
+    const Int32          w         = static_cast<Int32>(metadata.width);
+    const Int32          h         = static_cast<Int32>(metadata.height);
+    const Int32          d         = static_cast<Int32>(metadata.depth);
+    const Int32          arrSize   = static_cast<Int32>(metadata.arraySize);
+    const Int32          numMips   = static_cast<Int32>(metadata.mipLevels);
+    const bool           bHasMips  = numMips > 1;
+    const eTextureFormat format    = TextureFormatFrom(metadata.format);
 
     if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE2D)
     {
@@ -748,7 +761,7 @@ TextureHandle Graphics::CreateTexture(
             for (Int32 mip = 0; mip < numMips; ++mip)
             {
                 const Int32           index  = arr * numMips + mip;
-                const DirectX::Image& pImage = _container.GetImages()[index];
+                const DirectX::Image& pImage = container.GetImages()[index];
                 initData[index]              = { pImage.pixels, static_cast<SizeT>(pImage.rowPitch * pImage.height) };
             }
         }
@@ -767,7 +780,7 @@ TextureHandle Graphics::CreateTexture(
         MemoryView* initData = static_cast<MemoryView*>(JAM_STACK_ALLOC(sizeof(MemoryView) * numImages));
         for (Int32 mip = 0; mip < numMips; ++mip)
         {
-            const DirectX::Image* pImage    = _container.GetImage(mip, 0, 0);
+            const DirectX::Image* pImage    = container.GetImage(mip, 0, 0);
             const Int32           numSlices = Max(1, d >> mip);
             initData[mip]                   = { pImage->pixels, static_cast<SizeT>(pImage->slicePitch * numSlices) };
         }
@@ -914,13 +927,13 @@ Int32 Graphics::ReadTexture(
     return ReadTexture_(_texh, _srcMip, _srcLayer, _dst);
 }
 
-ImageContainer Graphics::Capture(
+Image Graphics::Capture(
     const TextureHandle _texh)
 {
     const HardwareTextureRef& texture   = m_textures[_texh];
     ImageContainer            container = {};
     JAM_CHECK_HRESULT(DirectX::CaptureTexture(m_pd3d11Device, m_pd3d11DeviceContext, texture.pResource, container));
-    return container;
+    return Image { std::move(container) };
 }
 
 FrameBufferHandle Graphics::CreateFrameBuffer(
@@ -943,9 +956,9 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
 }
 
 ShaderHandle Graphics::CreateShader(
-    const MemoryView _shaderByteCode)
+    const MemoryView _bytecode)
 {
-    return GetOrCreateShader_(_shaderByteCode);
+    return GetOrCreateShader_(_bytecode);
 }
 
 ProgramHandle Graphics::CreateProgram(
@@ -1331,10 +1344,10 @@ void Graphics::DestroyProgram(
 
 void Graphics::SetVertexBufferName(
     const VertexBufferHandle _vbh,
-    const StringView         _name)
+    const StringView         _userName)
 {
     VertexBuffer& vb = m_vertexBuffers[_vbh];
-    vb.name          = CreateName_("VertexBuffer", _vbh.GetIndex(), _vbh.GetToken(), _name);
+    vb.name          = MakeName_("VertexBuffer", _vbh.GetIndex(), _vbh.GetToken(), _userName);
     SetD3DDebugName_(vb.pBuffer, vb.name);
 }
 
@@ -1343,7 +1356,7 @@ void Graphics::SetIndexBufferName(
     const StringView        _name)
 {
     IndexBuffer& ib = m_indexBuffers[_ibh];
-    ib.name         = CreateName_("IndexBuffer", _ibh.GetIndex(), _ibh.GetToken(), _name);
+    ib.name         = MakeName_("IndexBuffer", _ibh.GetIndex(), _ibh.GetToken(), _name);
     SetD3DDebugName_(ib.pBuffer, ib.name);
 }
 
@@ -1352,7 +1365,7 @@ void Graphics::SetConstantBufferName(
     const StringView           _name)
 {
     ConstantBuffer& cb = m_cbuffers[_cbh];
-    cb.name            = CreateName_("ConstantBuffer", _cbh.GetIndex(), _cbh.GetToken(), _name);
+    cb.name            = MakeName_("ConstantBuffer", _cbh.GetIndex(), _cbh.GetToken(), _name);
     SetD3DDebugName_(cb.pBuffer, cb.name);
 }
 
@@ -1361,17 +1374,17 @@ void Graphics::SetStorageBufferName(
     const StringView          _name)
 {
     StorageBuffer& sb = m_storageBuffers[_sbh];
-    sb.name           = CreateName_("StorageBuffer", _sbh.GetIndex(), _sbh.GetToken(), _name);
+    sb.name           = MakeName_("StorageBuffer", _sbh.GetIndex(), _sbh.GetToken(), _name);
     SetD3DDebugName_(sb.pBuffer, sb.name);
 
     if (sb.pSrv)
     {
-        SetD3DDebugName_(sb.pSrv, CreateName_("StorageBuffer_SRV", _sbh.GetIndex(), _sbh.GetToken(), _name));
+        SetD3DDebugName_(sb.pSrv, MakeName_("StorageBuffer_SRV", _sbh.GetIndex(), _sbh.GetToken(), _name));
     }
 
     if (sb.pUav)
     {
-        SetD3DDebugName_(sb.pUav, CreateName_("StorageBuffer_UAV", _sbh.GetIndex(), _sbh.GetToken(), _name));
+        SetD3DDebugName_(sb.pUav, MakeName_("StorageBuffer_UAV", _sbh.GetIndex(), _sbh.GetToken(), _name));
     }
 }
 
@@ -1388,19 +1401,19 @@ void Graphics::SetTextureName(
     // 리소스 이름 설정
     if (texture.pMsaaRtResource)
     {
-        texture.name = CreateName_(kTexMsNames[texture.type], _texh.GetIndex(), _texh.GetToken(), _name);
+        texture.name = MakeName_(kTexMsNames[texture.type], _texh.GetIndex(), _texh.GetToken(), _name);
         SetD3DDebugName_(texture.pMsaaRtResource, texture.name);
     }
     else
     {
-        texture.name = CreateName_(kTexNames[texture.type], _texh.GetIndex(), _texh.GetToken(), _name);
+        texture.name = MakeName_(kTexNames[texture.type], _texh.GetIndex(), _texh.GetToken(), _name);
         SetD3DDebugName_(texture.pResource, texture.name);
     }
 
     // SRV 이름 설정
     if (texture.pSrv)
     {
-        SetD3DDebugName_(texture.pSrv, CreateName_(kSrvNames[texture.type], _texh.GetIndex(), _texh.GetToken(), _name));
+        SetD3DDebugName_(texture.pSrv, MakeName_(kSrvNames[texture.type], _texh.GetIndex(), _texh.GetToken(), _name));
     }
 }
 
@@ -1427,13 +1440,13 @@ void Graphics::SetFrameBufferName(
     {
         if (fb.pRtvs[i])
         {
-            SetD3DDebugName_(fb.pRtvs[i], CreateName_(kNames[i], _fbh.GetIndex(), _fbh.GetToken(), _name));
+            SetD3DDebugName_(fb.pRtvs[i], MakeName_(kNames[i], _fbh.GetIndex(), _fbh.GetToken(), _name));
         }
     }
 
     if (fb.pDsv)
     {
-        SetD3DDebugName_(fb.pDsv, CreateName_("FrameBuffer_DSV", _fbh.GetIndex(), _fbh.GetToken(), _name));
+        SetD3DDebugName_(fb.pDsv, MakeName_("FrameBuffer_DSV", _fbh.GetIndex(), _fbh.GetToken(), _name));
     }
 }
 
@@ -1451,7 +1464,7 @@ void Graphics::SetShaderName(
     };
 
     ShaderRef& shader = m_shaders[_sh];
-    shader.name       = CreateName_(kNames[shader.stage], _sh.GetIndex(), _sh.GetToken(), _name);
+    shader.name       = MakeName_(kNames[shader.stage], _sh.GetIndex(), _sh.GetToken(), _name);
 
     switch (shader.stage)
     {
@@ -1628,6 +1641,11 @@ ProgramInfo Graphics::GetProgramInfo(const ProgramHandle _ph)
 const GraphicsStats& Graphics::GetStats() const
 {
     return m_lastStats;
+}
+
+const GraphicsConfig& Graphics::GetConfig() const
+{
+    return m_config;
 }
 
 void Graphics::ClearRenderTarget(
@@ -1917,25 +1935,25 @@ void Graphics::SetRenderFlags(
     if (m_renderFlagsBinding != _flags)
     {
         // depth stencil state
-        if (FilterDepthFlags(m_renderFlagsBinding) != FilterDepthFlags(_flags))
+        if ((m_renderFlagsBinding & Details::kRenderFlagsDepthFuncMask) != (_flags & Details::kRenderFlagsDepthFuncMask))
         {
             m_dirtyFlags |= ePipelineDirtyFlags::DepthStencilState;
         }
 
         // rasterizer state
-        if (FilterRasterizerFlags(m_renderFlagsBinding) != FilterRasterizerFlags(_flags))
+        if ((m_renderFlagsBinding & Details::kRenderFlagsRasterizerMask) != (_flags & Details::kRenderFlagsRasterizerMask))
         {
             m_dirtyFlags |= ePipelineDirtyFlags::RasterizerState;
         }
 
         // blend state
-        if (FilterBlendFlags(m_renderFlagsBinding) != FilterBlendFlags(_flags))
+        if ((m_renderFlagsBinding & Details::kRenderFlagsBlendMask) != (_flags & Details::kRenderFlagsBlendMask))
         {
             m_dirtyFlags |= ePipelineDirtyFlags::BlendState;
         }
 
         // primitive
-        if (FilterPrimitiveFlags(m_renderFlagsBinding) != FilterPrimitiveFlags(_flags))
+        if ((m_renderFlagsBinding & Details::kRenderFlagsPrimitiveTopologyMask) != (_flags & Details::kRenderFlagsPrimitiveTopologyMask))
         {
             m_dirtyFlags |= ePipelineDirtyFlags::PrimitiveTopology;
         }
@@ -2261,8 +2279,7 @@ void Graphics::EndDebuggerCapture() const
 }
 
 Graphics::Graphics(
-    const GraphicsInit& _init)
-    : m_bAllowTearing(_init.bAllowTearing)
+    const GraphicsInitInfo& _init)
 {
     // d3d11 device 초기화
     {
@@ -2297,17 +2314,21 @@ Graphics::Graphics(
 
     // 스왑체인 생성
     {
-        m_backbuffer.format  = _init.backBufferFormat;
-        m_backbuffer.samples = _init.backBufferSamples;
+        m_backbuffer.format     = _init.backBufferFormat;
+        m_backbuffer.samples    = _init.backBufferSamples;
+        m_backbuffer.numBuffers = _init.numBackBuffer;
 
-        Microsoft::WRL::ComPtr<IDXGIDevice2> dxgiDevice = nullptr;
-        JAM_CHECK_HRESULT(m_pd3d11Device->QueryInterface(IID_PPV_ARGS(dxgiDevice.ReleaseAndGetAddressOf())));
+        Microsoft::WRL::ComPtr<IDXGIDevice2> pdxgiDevice = nullptr;
+        JAM_CHECK_HRESULT(m_pd3d11Device->QueryInterface(IID_PPV_ARGS(pdxgiDevice.ReleaseAndGetAddressOf())));
 
-        Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgiAdapter = nullptr;
-        JAM_CHECK_HRESULT(dxgiDevice->GetParent(IID_PPV_ARGS(dxgiAdapter.ReleaseAndGetAddressOf())));
+        Microsoft::WRL::ComPtr<IDXGIAdapter1> pdxgiAdapter = nullptr;
+        JAM_CHECK_HRESULT(pdxgiDevice->GetParent(IID_PPV_ARGS(pdxgiAdapter.ReleaseAndGetAddressOf())));
 
-        Microsoft::WRL::ComPtr<IDXGIFactory2> dxgiFactory = nullptr;
-        JAM_CHECK_HRESULT(dxgiAdapter->GetParent(IID_PPV_ARGS(dxgiFactory.ReleaseAndGetAddressOf())));
+        Microsoft::WRL::ComPtr<IDXGIFactory2> pdxgiFactory = nullptr;
+        JAM_CHECK_HRESULT(pdxgiAdapter->GetParent(IID_PPV_ARGS(pdxgiFactory.ReleaseAndGetAddressOf())));
+
+        Microsoft::WRL::ComPtr<IDXGIFactory5> pdxgiFactory5 = nullptr;
+        JAM_CHECK_HRESULT(pdxgiFactory.As(&pdxgiFactory5));
 
         DXGI_SWAP_CHAIN_DESC1 scDesc = {};
         scDesc.Width                 = _init.backBufferWidth;
@@ -2317,17 +2338,22 @@ Graphics::Graphics(
         scDesc.SampleDesc.Count      = m_backbuffer.samples;
         scDesc.SampleDesc.Quality    = m_backbuffer.samples > 1 ? QueryMaxMsaaQualityLevel_(scDesc.Format, scDesc.SampleDesc.Count) : 0;
         scDesc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        scDesc.BufferCount           = _init.numBackBuffer;
+        scDesc.BufferCount           = m_backbuffer.numBuffers;
         scDesc.Scaling               = DXGI_SCALING_NONE;
         scDesc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         scDesc.AlphaMode             = DXGI_ALPHA_MODE_UNSPECIFIED;
         scDesc.Flags                 = 0;
-        if (m_bAllowTearing)
+
+        BOOL bAllowTearing = false;
+        JAM_CHECK_HRESULT(pdxgiFactory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &bAllowTearing, sizeof(bAllowTearing)));
+
+        if (bAllowTearing)
         {
             scDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+            m_config.bAllowTearing = true;
         }
 
-        JAM_CHECK_HRESULT(dxgiFactory->CreateSwapChainForHwnd(m_pd3d11Device, _init.platformHandle, &scDesc, nullptr, nullptr, &m_pdxgiSwapchain));
+        JAM_CHECK_HRESULT(pdxgiFactory->CreateSwapChainForHwnd(m_pd3d11Device, _init.platformHandle, &scDesc, nullptr, nullptr, &m_pdxgiSwapchain));
         OnResize_(_init.backBufferWidth, _init.backBufferHeight);
     }
 
@@ -2345,19 +2371,23 @@ Graphics::Graphics(
     }
 
     // 디버거 초기화.
-    if (_init.bAttachDebugger)
+    if (_init.bConnectDebugger)
     {
-        InitDebugger_();
+        m_config.bDebuggerConnected = InitDebugger_();
     }
 
     // 타이머 쿼리 초기화
     InitTimerQueries_();
+    BeginTimerQueries_();
 }
 
 Graphics::~Graphics()
 {
     // 디버거 삭제
-    CleanUpDebugger_();
+    if (m_config.bDebuggerConnected)
+    {
+        CleanUpDebugger_();
+    }
 
     // 타이머 쿼리 삭제
     CleanUpTimerQueries_();
@@ -2429,7 +2459,7 @@ Graphics::~Graphics()
 }
 
 void Graphics::CreateInstance(
-    const GraphicsInit& _init)
+    const GraphicsInitInfo& _init)
 {
     JAM_ASSERT(s_pInstance == nullptr, "Graphics instance already created");
     s_pInstance = new Graphics(_init);
@@ -2441,14 +2471,14 @@ void Graphics::DestroyInstance()
     s_pInstance = nullptr;
 }
 
-void Graphics::InitDebugger_() const
+bool Graphics::InitDebugger_() const
 {
     pRENDERDOC_GetAPI GetApi = nullptr;
     g_pRenderDocDll          = LoadLibraryA("renderdoc.dll");
     if (!g_pRenderDocDll)
     {
         JAM_LOG_WARN("RenderDoc DLL not found. Graphics debugging disabled.");
-        return;
+        return false;
     }
 
     // ReSharper disable once CppCStyleCast
@@ -2458,7 +2488,7 @@ void Graphics::InitDebugger_() const
         JAM_LOG_WARN("RENDERDOC_GetAPI not found. Graphics debugging disabled.");
         FreeLibrary(static_cast<HMODULE>(g_pRenderDocDll));
         g_pRenderDocDll = nullptr;
-        return;
+        return false;
     }
 
     if (GetApi(eRENDERDOC_API_Version_1_4_2, reinterpret_cast<void**>(&g_pRenderDocApi)) != 1)
@@ -2467,21 +2497,24 @@ void Graphics::InitDebugger_() const
         FreeLibrary(static_cast<HMODULE>(g_pRenderDocDll));
         g_pRenderDocDll = nullptr;
         g_pRenderDocApi = nullptr;
-        return;
+        return false;
     }
 
     JAM_LOG_INFO("RenderDoc DLL loaded successfully for graphics debugging.");
+    return true;
 }
 
 void Graphics::CleanUpDebugger_() const
 {
-    if (g_pRenderDocDll)
+    if (!g_pRenderDocDll)
     {
-        FreeLibrary(static_cast<HMODULE>(g_pRenderDocDll));
-        g_pRenderDocDll = nullptr;
-        g_pRenderDocApi = nullptr;
-        JAM_LOG_INFO("RenderDoc DLL unloaded and graphics debugging disabled.");
+        return;
     }
+
+    FreeLibrary(static_cast<HMODULE>(g_pRenderDocDll));
+    g_pRenderDocDll = nullptr;
+    g_pRenderDocApi = nullptr;
+    JAM_LOG_INFO("RenderDoc DLL unloaded and graphics debugging disabled.");
 }
 
 void Graphics::BindConstantBuffers_(
@@ -2623,8 +2656,8 @@ void Graphics::BindPipeline_()
     // topology
     if (m_dirtyFlags & ePipelineDirtyFlags::PrimitiveTopology)
     {
-        const UInt32 primitive = ResolvePrimitiveFlags(m_renderFlagsBinding);
-        m_pd3d11DeviceContext->IASetPrimitiveTopology(D3D11PrimitiveTopologyFrom_(primitive));
+        const Flags<eRenderFlags> prim = m_renderFlagsBinding & Details::kRenderFlagsPrimitiveTopologyMask;
+        m_pd3d11DeviceContext->IASetPrimitiveTopology(D3D11PrimitiveTopologyFrom_(prim.GetValue()));
     }
 
     // vertex buffer
@@ -3753,7 +3786,7 @@ HardwareTextureRef Graphics::CreateHardwareTexture_(
         return texture;
     }
 
-    const Flags<eTextureFlags> msaaFlags     = FilterMsaaFlags(_flags);
+    const Flags<eTextureFlags> msaaFlags     = _flags & Details::kTextureFlagsMsaaMask;
     const bool                 bIsMsaa       = (msaaFlags != eTextureFlags::None);
     const bool                 bRenderTarget = _flags.IsEnabled(eTextureFlags::RenderTarget);
     const bool                 bDepthStencil = _flags.IsEnabled(eTextureFlags::DepthStencil);
@@ -4312,10 +4345,10 @@ void Graphics::CopyTexture_(
 }
 
 ShaderHandle Graphics::GetOrCreateShader_(
-    const MemoryView _byteCode)
+    const MemoryView _bytecode)
 {
     Murmur3Hasher hasher {};
-    hasher.Mix(_byteCode);
+    hasher.Mix(_bytecode);
     const UInt64 key = hasher.Finish();
 
     const auto it = m_shaderCache.find(key);
@@ -4332,8 +4365,8 @@ ShaderHandle Graphics::GetOrCreateShader_(
     shader.hash      = key;
 
     // 리플렉션 생성
-    const Byte*  pByteCode = _byteCode.GetPtr();
-    const SIZE_T byteWidth = _byteCode.GetByteWidth();
+    const Byte*  pByteCode = _bytecode.GetPtr();
+    const SIZE_T byteWidth = _bytecode.GetByteWidth();
 
     D3D11_SHADER_DESC                              desc     = {};
     Microsoft::WRL::ComPtr<ID3D11ShaderReflection> pReflect = nullptr;
@@ -4435,24 +4468,29 @@ ID3D11SamplerState* Graphics::GetOrCreateD3D11SamplerState_(
         return it->second;
     }
 
-    const Flags<eSamplerFlags> compareFunc = FilterCompareFuncFlags(_state);
-    const Flags<eSamplerFlags> filter      = FilterFilterFlags(_state);
+    const Flags<eSamplerFlags> filter      = _state & Details::kSamplerFlagsFilterMask;
+    Flags<eSamplerFlags>       compareFunc = _state & Details::kSamplerFlagsCompareFuncMask;
 
-    const SamplerInfo& info            = SamplerInfoFrom_(ResolveFilterFlags(_state));
+    const SamplerInfo& info            = SamplerInfoFrom_(filter.GetValue());
     const bool         bIsComparison   = compareFunc != eSamplerFlags::CompareFunc_None;
     const Int32        anisotopicLevel = filter == eSamplerFlags::Filter_Anisotropic4  ? 4
                                        : filter == eSamplerFlags::Filter_Anisotropic8  ? 8
                                        : filter == eSamplerFlags::Filter_Anisotropic16 ? 16
                                                                                        : 1;
 
+    const Flags<eSamplerFlags> addressU = (_state & Details::kSamplerFlagsAddressUMask) << Details::kSamplerFlagsAddressUShift;
+    const Flags<eSamplerFlags> addressV = (_state & Details::kSamplerFlagsAddressVMask) << Details::kSamplerFlagsAddressVShift;
+    const Flags<eSamplerFlags> addressW = (_state & Details::kSamplerFlagsAddressWMask) << Details::kSamplerFlagsAddressWShift;
+    compareFunc <<= Details::kSamplerFlagsCompareFuncShift;
+
     D3D11_SAMPLER_DESC desc = {};
     desc.Filter             = bIsComparison ? info.comparisonFilter : info.filter;
-    desc.AddressU           = D3D11TextureAddressModeFrom_(ResolveAddressUFlags(_state));
-    desc.AddressV           = D3D11TextureAddressModeFrom_(ResolveAddressVFlags(_state));
-    desc.AddressW           = D3D11TextureAddressModeFrom_(ResolveAddressWFlags(_state));
+    desc.AddressU           = D3D11TextureAddressModeFrom_(addressU.GetValue());
+    desc.AddressV           = D3D11TextureAddressModeFrom_(addressV.GetValue());
+    desc.AddressW           = D3D11TextureAddressModeFrom_(addressW.GetValue());
     desc.MipLODBias         = 0.0f;
     desc.MaxAnisotropy      = anisotopicLevel;
-    desc.ComparisonFunc     = bIsComparison ? D3D11ComparisonFuncFrom_(ResolveCompareFuncFlags(compareFunc)) : D3D11_COMPARISON_ALWAYS;
+    desc.ComparisonFunc     = bIsComparison ? D3D11ComparisonFuncFrom_(compareFunc.GetValue()) : D3D11_COMPARISON_ALWAYS;
     desc.BorderColor[0]     = static_cast<float>(_rgba.r) / 255.0f;
     desc.BorderColor[1]     = static_cast<float>(_rgba.g) / 255.0f;
     desc.BorderColor[2]     = static_cast<float>(_rgba.b) / 255.0f;
@@ -4498,10 +4536,10 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
         const VertexBufferHandle vbh = m_vbBindings.vbhs[i];
         const VertexLayoutHandle vlh = m_vertexBuffers[vbh].vlh;
         const VertexLayoutRef&   vl  = m_vertexLayouts[vlh];
-        for (const VertexLayoutElement& vle: vl.vl.GetElems())
+        for (const VertexElement& ve: vl.vl.GetElements())
         {
-            const HLSLDataTypeInfo& dataType = HLSLDataTypeInfoFrom_(vle.format);
-            const HLSLSemanticInfo& semantic = HLSLSemanticInfoFrom_(vle.attrib);
+            const HLSLDataTypeInfo& dataType = HLSLDataTypeInfoFrom_(ve.format);
+            const HLSLSemanticInfo& semantic = HLSLSemanticInfoFrom_(ve.attrib);
             hlsl.AppendFormat("{} Element{} : {}{};", dataType.name, numDescs, semantic.name, semantic.index);
 
             D3D11_INPUT_ELEMENT_DESC& desc = descs[numDescs];
@@ -4547,8 +4585,8 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
     }
 
     // compilte dummy shader
-    constexpr ShaderCompilerInfo info     = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::ReleaseDefault };
-    const Expect<ShaderCompiler> compiler = ShaderCompiler::CompileHLSLSource(hlsl, info);
+    constexpr ShaderCompileInfo info     = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::ReleaseDefault };
+    const Expect<ShaderBinary>  compiler = ShaderBinary::CompileFromHLSLSource(hlsl, info);
     JAM_ASSERT(compiler, "Failed to compile shader for input layout creation. {}", compiler.GetError());
     const MemoryView bytecode = compiler->GetBytecode();
 
@@ -4567,7 +4605,7 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
 
 ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerStateFromCurrentBind_()
 {
-    const Flags<eRenderFlags> flags = FilterRasterizerFlags(m_renderFlagsBinding);
+    const Flags<eRenderFlags> flags = m_renderFlagsBinding & Details::kRenderFlagsRasterizerMask;
 
     Murmur3Hasher hasher {};
     hasher.Mix(AsMemoryView(flags));
@@ -4581,7 +4619,7 @@ ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerStateFromCurrentBind_
     D3D11_RASTERIZER_DESC desc = {};
     desc.FillMode              = flags & eRenderFlags::Wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 
-    const Flags<eRenderFlags> cull = FilterCullModeFlags(m_renderFlagsBinding);
+    const Flags<eRenderFlags> cull = m_renderFlagsBinding & Details::kRenderFlagsCullModeMask;
     desc.CullMode                  = cull == eRenderFlags::CullMode_Front ? D3D11_CULL_FRONT
                                    : cull == eRenderFlags::CullMode_Back  ? D3D11_CULL_BACK
                                                                           : D3D11_CULL_NONE;
@@ -4603,7 +4641,7 @@ ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerStateFromCurrentBind_
 
 ID3D11BlendState* Graphics::GetOrCreateD3D11BlendStateFromCurrentBind_()
 {
-    const Flags<eRenderFlags> flags = FilterBlendFlags(m_renderFlagsBinding);
+    const Flags<eRenderFlags> flags = m_renderFlagsBinding & Details::kRenderFlagsBlendMask;
 
     Murmur3Hasher hasher {};
     hasher.Mix(AsMemoryView(flags));
@@ -4624,13 +4662,20 @@ ID3D11BlendState* Graphics::GetOrCreateD3D11BlendStateFromCurrentBind_()
         Flags<eBlendFlags>              rtBlend = m_blendFlagsBindings[i];
         D3D11_RENDER_TARGET_BLEND_DESC& rtDesc  = desc.RenderTarget[i];
 
+        const Flags<eBlendFlags> srcBlend      = (rtBlend & Details::kBlendFlagsSrcBlendMask) << Details::kBlendFlagsSrcBlendShift;
+        const Flags<eBlendFlags> dstBlend      = (rtBlend & Details::kBlendFlagsDstBlendMask) << Details::kBlendFlagsDstBlendShift;
+        const Flags<eBlendFlags> blendOp       = (rtBlend & Details::kBlendFlagsBlendOpMask) << Details::kBlendFlagsBlendOpShift;
+        const Flags<eBlendFlags> srcBlendAlpha = (rtBlend & Details::kBlendFlagsSrcBlendAlphaMask) << Details::kBlendFlagsSrcBlendAlphaShift;
+        const Flags<eBlendFlags> dstBlendAlpha = (rtBlend & Details::kBlendFlagsDstBlendAlphaMask) << Details::kBlendFlagsDstBlendAlphaShift;
+        const Flags<eBlendFlags> blendOpAlpha  = (rtBlend & Details::kBlendFlagsBlendOpAlphaMask) << Details::kBlendFlagsBlendOpAlphaShift;
+
         rtDesc.BlendEnable    = rtBlend.IsEnabled(eBlendFlags::Enable);
-        rtDesc.SrcBlend       = D3D11BlendFrom_(ResolveSrcBlendFlags(rtBlend));
-        rtDesc.DestBlend      = D3D11BlendFrom_(ResolveDstBlendFlags(rtBlend));
-        rtDesc.BlendOp        = D3D11BlendOpFrom_(ResolveBlendOpFlags(rtBlend));
-        rtDesc.SrcBlendAlpha  = D3D11BlendFrom_(ResolveSrcBlendAlphaFlags(rtBlend));
-        rtDesc.DestBlendAlpha = D3D11BlendFrom_(ResolveDstBlendAlphaFlags(rtBlend));
-        rtDesc.BlendOpAlpha   = D3D11BlendOpFrom_(ResolveBlendOpAlphaFlags(rtBlend));
+        rtDesc.SrcBlend       = D3D11BlendFrom_(srcBlend.GetValue());
+        rtDesc.DestBlend      = D3D11BlendFrom_(dstBlend.GetValue());
+        rtDesc.BlendOp        = D3D11BlendOpFrom_(blendOp.GetValue());
+        rtDesc.SrcBlendAlpha  = D3D11BlendFrom_(srcBlendAlpha.GetValue());
+        rtDesc.DestBlendAlpha = D3D11BlendFrom_(dstBlendAlpha.GetValue());
+        rtDesc.BlendOpAlpha   = D3D11BlendOpFrom_(blendOpAlpha.GetValue());
 
         rtDesc.RenderTargetWriteMask = 0;
         if (rtBlend & eBlendFlags::WriteMask_R)
@@ -4662,7 +4707,7 @@ ID3D11BlendState* Graphics::GetOrCreateD3D11BlendStateFromCurrentBind_()
 
 ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilStateFromCurrentBind_()
 {
-    const Flags<eRenderFlags> flags = FilterDepthFlags(m_renderFlagsBinding);
+    const Flags<eRenderFlags> flags = m_renderFlagsBinding & Details::kRenderFlagsDepthMask;
 
     Murmur3Hasher hasher {};
     hasher.Mix(AsMemoryView(flags));
@@ -4675,26 +4720,35 @@ ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilStateFromCurrentB
         return it->second;
     }
 
-    D3D11_DEPTH_STENCIL_DESC  desc      = {};
-    const Flags<eRenderFlags> depthFunc = FilterDepthFuncFlags(m_renderFlagsBinding);
-    desc.DepthEnable                    = (depthFunc != eRenderFlags::None);
-    desc.DepthWriteMask                 = (flags & eRenderFlags::DepthWrite) ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-    desc.DepthFunc                      = D3D11ComparisonFuncFrom_(ResolveDepthFuncFlags(depthFunc));
-    desc.StencilEnable                  = (m_fstencilBinding != eStencilFlags::None || m_bstencilBinding != eStencilFlags::None);
-    desc.StencilReadMask                = 0xFF;
-    desc.StencilWriteMask               = 0xFF;
+    const Flags<eRenderFlags>  depthFunc           = (m_renderFlagsBinding & Details::kRenderFlagsDepthFuncMask) >> Details::kRenderFlagsDepthFuncShift;
+    const Flags<eStencilFlags> fstencilFailop      = (m_fstencilBinding & Details::kStencilFlagsStencilFailOpMask);
+    const Flags<eStencilFlags> fstencilDepthFailop = (m_fstencilBinding & Details::kStencilFlagsDepthFailOpMask);
+    const Flags<eStencilFlags> fstencilPassop      = (m_fstencilBinding & Details::kStencilFlagsPassOpMask);
+    const Flags<eStencilFlags> fstencilFunc        = (m_fstencilBinding & Details::kStencilFlagsCompareFuncMask);
+    const Flags<eStencilFlags> bstencilFailop      = (m_bstencilBinding & Details::kStencilFlagsStencilFailOpMask);
+    const Flags<eStencilFlags> bstencilDepthFailop = (m_bstencilBinding & Details::kStencilFlagsDepthFailOpMask);
+    const Flags<eStencilFlags> bstencilPassop      = (m_bstencilBinding & Details::kStencilFlagsPassOpMask);
+    const Flags<eStencilFlags> bstencilFunc        = (m_bstencilBinding & Details::kStencilFlagsCompareFuncMask);
+
+    D3D11_DEPTH_STENCIL_DESC desc = {};
+    desc.DepthEnable              = (depthFunc != eRenderFlags::None);
+    desc.DepthWriteMask           = (flags & eRenderFlags::DepthWrite) ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+    desc.DepthFunc                = D3D11ComparisonFuncFrom_(depthFunc.GetValue());
+    desc.StencilEnable            = (m_fstencilBinding != eStencilFlags::None || m_bstencilBinding != eStencilFlags::None);
+    desc.StencilReadMask          = 0xFF;
+    desc.StencilWriteMask         = 0xFF;
 
     // front
-    desc.FrontFace.StencilFailOp      = D3D11StencilOpFrom_(ResolveStencilFailOpFlags(m_fstencilBinding));
-    desc.FrontFace.StencilDepthFailOp = D3D11StencilOpFrom_(ResolveDepthFailOpFlags(m_fstencilBinding));
-    desc.FrontFace.StencilPassOp      = D3D11StencilOpFrom_(ResolvePassOpFlags(m_fstencilBinding));
-    desc.FrontFace.StencilFunc        = D3D11ComparisonFuncFrom_(ResolveCompareFuncFlags(m_fstencilBinding));
+    desc.FrontFace.StencilFailOp      = D3D11StencilOpFrom_(fstencilFailop.GetValue());
+    desc.FrontFace.StencilDepthFailOp = D3D11StencilOpFrom_(fstencilDepthFailop.GetValue());
+    desc.FrontFace.StencilPassOp      = D3D11StencilOpFrom_(fstencilPassop.GetValue());
+    desc.FrontFace.StencilFunc        = D3D11ComparisonFuncFrom_(fstencilFunc.GetValue());
 
     // back
-    desc.BackFace.StencilFailOp      = D3D11StencilOpFrom_(ResolveStencilFailOpFlags(m_bstencilBinding));
-    desc.BackFace.StencilDepthFailOp = D3D11StencilOpFrom_(ResolveDepthFailOpFlags(m_bstencilBinding));
-    desc.BackFace.StencilPassOp      = D3D11StencilOpFrom_(ResolvePassOpFlags(m_bstencilBinding));
-    desc.BackFace.StencilFunc        = D3D11ComparisonFuncFrom_(ResolveCompareFuncFlags(m_bstencilBinding));
+    desc.BackFace.StencilFailOp      = D3D11StencilOpFrom_(bstencilFailop.GetValue());
+    desc.BackFace.StencilDepthFailOp = D3D11StencilOpFrom_(bstencilDepthFailop.GetValue());
+    desc.BackFace.StencilPassOp      = D3D11StencilOpFrom_(bstencilPassop.GetValue());
+    desc.BackFace.StencilFunc        = D3D11ComparisonFuncFrom_(bstencilFunc.GetValue());
 
     ID3D11DepthStencilState* pDepthStencilState;
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateDepthStencilState(&desc, &pDepthStencilState));
@@ -4756,7 +4810,6 @@ void Graphics::EndTimerQueries_()
     }
 
     // consume available queries
-    Int32 consumed = 0;
     while (!m_timerQueriesRbi.IsEmpty())
     {
         const TimerQuery& query = m_timerQueries[m_timerQueriesRbi.GetReadIndex()];
@@ -4768,7 +4821,6 @@ void Graphics::EndTimerQueries_()
             break;
         }
         m_timerQueriesRbi.Consume();
-        ++consumed;
 
         if (disjoint.Disjoint == TRUE)
         {

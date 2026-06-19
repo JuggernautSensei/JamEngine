@@ -2,26 +2,25 @@
 #include "File.h"
 
 #include "FileSystem.h"
-#include "MemoryIO.h"
 #include "WindowsUtilities.h"
 
 namespace Jam
 {
 
-FileIO::~FileIO()
+FileBase::~FileBase()
 {
     Close();
 }
 
-FileIO::FileIO(
-    FileIO&& _other) noexcept
+FileBase::FileBase(
+    FileBase&& _other) noexcept
     : m_pFile(_other.m_pFile)
 {
     _other.m_pFile = nullptr;
 }
 
-FileIO& FileIO::operator=(
-    FileIO&& _other) noexcept
+FileBase& FileBase::operator=(
+    FileBase&& _other) noexcept
 {
     if (this != &_other)
     {
@@ -32,7 +31,7 @@ FileIO& FileIO::operator=(
     return *this;
 }
 
-SizeT FileIO::Seek(
+SizeT FileBase::Seek(
     const SizeT   _offset,
     const eSeekOp _op) const
 {
@@ -60,20 +59,20 @@ SizeT FileIO::Seek(
     return Tell();
 }
 
-SizeT FileIO::Skip(
+SizeT FileBase::Skip(
     const SizeT _numBytes) const
 {
     return Seek(_numBytes, eSeekOp::Current);
 }
 
-SizeT FileIO::Tell() const
+SizeT FileBase::Tell() const
 {
     const SizeT pos = ::_ftelli64(m_pFile);
     JAM_ASSERT(pos >= 0, "Failed to tell file position.");
     return pos;
 }
 
-SizeT FileIO::Remaining() const
+SizeT FileBase::Remaining() const
 {
     const SizeT cur = Tell();
     Seek(0, eSeekOp::End);
@@ -82,12 +81,12 @@ SizeT FileIO::Remaining() const
     return end - cur;
 }
 
-void FileIO::Rewind() const
+void FileBase::Rewind() const
 {
     Seek(0, eSeekOp::Set);
 }
 
-SizeT FileIO::CalcTotalSize() const
+SizeT FileBase::CalcTotalSize() const
 {
     const SizeT cur = Tell();
     Seek(0, eSeekOp::End);
@@ -96,7 +95,7 @@ SizeT FileIO::CalcTotalSize() const
     return end;
 }
 
-void FileIO::Close()
+void FileBase::Close()
 {
     if (m_pFile)
     {
@@ -105,43 +104,41 @@ void FileIO::Close()
     }
 }
 
-bool FileIO::IsClosed() const
+bool FileBase::IsClosed() const
 {
     return m_pFile == nullptr;
 }
 
-bool FileIO::IsError() const
+bool FileBase::IsError() const
 {
     return m_pFile ? (::ferror(m_pFile) != 0) : true;
 }
 
-FILE* FileIO::GetFilePtr() const
+FILE* FileBase::GetFilePtr() const
 {
     return m_pFile;
 }
 
-FileIO::FileIO(FILE* _pFile)
+FileBase::FileBase(FILE* _pFile)
     : m_pFile(_pFile)
 {
 }
 
 Expect<FileWriter> FileWriter::Open(
-    const StringView                 _path,
-    const eFileWriterCollisionPolicy _policy)
+    const StringView _path,
+    const eFileWrite _mode)
 {
     // Handle file name collision based on the specified policy.
-    if (_policy != eFileWriterCollisionPolicy::Overwrite && _policy != eFileWriterCollisionPolicy::Append && FileSystem::Exists(_path))
+    if (_mode == eFileWrite::Rename && _mode == eFileWrite::FailIfExists && FS::Exists(_path))
     {
-        switch (_policy)
+        switch (_mode)
         {
-            case eFileWriterCollisionPolicy::Rename:
-                return Open(FileSystem::GenerateUniquePath(_path), eFileWriterCollisionPolicy::Overwrite);
+            case eFileWrite::Rename:
+                return Open(FS::MakeUniquePath(_path), eFileWrite::Truncate);
 
-            case eFileWriterCollisionPolicy::Fail:
+            case eFileWrite::FailIfExists:
                 return Error::AlreadyExists;
 
-            case eFileWriterCollisionPolicy::Append:
-            case eFileWriterCollisionPolicy::Overwrite:
             default:
                 JAM_UNREACHABLE;
         }
@@ -151,13 +148,13 @@ Expect<FileWriter> FileWriter::Open(
     const StringView dir = _path.GetDirectory();
     if (!dir.IsEmpty())
     {
-        if (const Error err = FileSystem::MakeDirectory(dir))
+        if (const Error err = FS::MakeDirectory(dir))
         {
             return err;
         }
     }
 
-    const char* mode  = (_policy == eFileWriterCollisionPolicy::Append) ? "ab" : "wb";
+    const char* mode  = (_mode == eFileWrite::Append) ? "ab" : "wb";
     FILE*       pFile = nullptr;
     if (::fopen_s(&pFile, _path.GetPtr(), mode) != 0)
     {
@@ -167,35 +164,7 @@ Expect<FileWriter> FileWriter::Open(
     return FileWriter { pFile };
 }
 
-Error FileWriter::WriteFileAsBinary(
-    const MemoryView                 _data,
-    const StringView                 _path,
-    const eFileWriterCollisionPolicy _policy)
-{
-    Expect<FileWriter> writer = Open(_path, _policy);
-    if (!writer)
-    {
-        return writer.GetError();
-    }
-
-    const Expect<SizeT> ret = writer->WriteBinary(_data);
-    if (!ret)
-    {
-        return ret.GetError();
-    }
-
-    return Error::None;
-}
-
-Error FileWriter::WriteFileAsString(
-    const StringView                 _str,
-    const StringView                 _path,
-    const eFileWriterCollisionPolicy _policy)
-{
-    return WriteFileAsBinary(MemoryView { _str.GetPtr(), _str.GetLength() }, _path, _policy);
-}
-
-Expect<SizeT> FileWriter::WriteBinary(
+Expect<SizeT> FileWriter::Write(
     const MemoryView _data) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
@@ -208,12 +177,6 @@ Expect<SizeT> FileWriter::WriteBinary(
     return static_cast<SizeT>(written);
 }
 
-Expect<SizeT> FileWriter::WriteString(
-    const StringView _str) const
-{
-    return WriteBinary(MemoryView { _str.GetPtr(), _str.GetLength() });   // exclude null terminator
-}
-
 void FileWriter::Flush() const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
@@ -221,7 +184,7 @@ void FileWriter::Flush() const
 }
 
 FileWriter::FileWriter(FILE* _pFile)
-    : FileIO(_pFile)
+    : FileBase(_pFile)
 {
 }
 
@@ -238,53 +201,14 @@ Expect<FileReader> FileReader::Open(
     return FileReader { pFile };
 }
 
-Expect<Vector<Byte>> FileReader::ReadFileAsBinary(
-    const StringView _path)
-{
-    Expect<FileReader> reader = Open(_path);
-    if (!reader)
-    {
-        return reader.GetError();
-    }
-
-    const SizeT         totalSize = reader->CalcTotalSize();
-    Vector<Byte>        data(totalSize);
-    const Expect<SizeT> ret = reader->ReadBinary(data);
-    if (!ret)
-    {
-        return ret.GetError();
-    }
-
-    return data;
-}
-
-Expect<String> FileReader::ReadFileAsString(
-    const StringView _path)
-{
-    Expect<FileReader> reader = Open(_path);
-    if (!reader)
-    {
-        return reader.GetError();
-    }
-
-    const SizeT         totalSize = reader->CalcTotalSize();
-    String              str { totalSize, '\0' };
-    const Expect<SizeT> ret = reader->ReadBinary({ str.GetPtr(), totalSize });
-    if (!ret)
-    {
-        return ret.GetError();
-    }
-
-    return str;
-}
-
-Expect<SizeT> FileReader::ReadBinary(
+Expect<SizeT> FileReader::Read(
     const MutableMemoryView _dst,
     const SizeT             _count) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
     JAM_ASSERT(_dst.GetPtr(), "Destination buffer pointer is null.");
     JAM_ASSERT(_count <= _dst.GetByteWidth(), "Count exceeds destination buffer size.");
+
     const SizeT toRead = (_count == 0) ? _dst.GetByteWidth() : _count;
     const SizeT read   = static_cast<SizeT>(::fread(_dst.GetPtr(), 1, toRead, m_pFile));
     if (read < toRead && !IsEof())
@@ -295,26 +219,13 @@ Expect<SizeT> FileReader::ReadBinary(
     return static_cast<SizeT>(read);
 }
 
-Expect<String> FileReader::ReadString(
-    const SizeT _count) const
-{
-    const SizeT         toRead = (_count == 0) ? Remaining() : _count;
-    String              str { toRead, '\0' };
-    const Expect<SizeT> ret = ReadBinary({ str.GetPtr(), toRead });
-    if (!ret)
-    {
-        return ret.GetError();
-    }
-    return str;
-}
-
 bool FileReader::IsEof() const
 {
     return m_pFile ? (::feof(m_pFile) != 0) : true;
 }
 
 FileReader::FileReader(FILE* _pFile)
-    : FileIO(_pFile)
+    : FileBase(_pFile)
 {
 }
 

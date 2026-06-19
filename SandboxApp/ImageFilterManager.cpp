@@ -113,10 +113,10 @@ String ImageFilterManager::MakeKernelBufferName_(String _passName) const
     return String::Formatted("{}_CB_Kernel", _passName);
 }
 
-ImageFilterManager::RenderPassBuilder ImageFilterManager::AddImageFilter(
+RenderGraph::RenderPassBuilder ImageFilterManager::AddImageFilter(
     RenderGraph&           _graph,
     const StringView       _name,
-    const ImageFilterDesc& _desc)
+    const ImageFilterInfo& _desc)
 {
     JAM_ASSERT(!_desc.input0Texture.IsEmpty(), "Input0 texture name cannot be empty for Tone Mapping filter.");
 
@@ -124,7 +124,7 @@ ImageFilterManager::RenderPassBuilder ImageFilterManager::AddImageFilter(
     _graph.InsertProgram(spec.programName, GetOrLoadProgram_(_desc.filter, _desc.bUseTexture2DArrayInput0, _desc.bUseTexture2DArrayInput1), false);
 
     // add pass
-    RenderPassBuilder builder =
+    RenderGraph::RenderPassBuilder builder =
         _graph.AddRenderPass(_name)
             .SetProgram(spec.programName)
             .SetTexture(_desc.input0Texture, eShader::PixelShader, kTInput0Slot);
@@ -256,15 +256,15 @@ ProgramHandle ImageFilterManager::GetOrLoadProgram_(
         macros.push_back({ "TEXTURE2DARRAY_INPUT1", "" });
     }
 
-    ShaderCompilerInfo pscInfo = {};
-    pscInfo.stage              = eShader::PixelShader;
-    pscInfo.macros             = macros;
-    pscInfo.entryPoint         = "PSMain";
-    pscInfo.flags              = eShaderCompileFlags::Default;
+    ShaderCompileInfo pscInfo = {};
+    pscInfo.stage             = eShader::PixelShader;
+    pscInfo.macros            = macros;
+    pscInfo.entryPoint        = "PSMain";
+    pscInfo.flags             = eShaderCompileFlags::Default;
 
-    constexpr ShaderCompilerInfo kVscInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    const Expect<ShaderCompiler> vsc      = ShaderCompiler::CompileHLSLFile(pci.path, kVscInfo);
-    const Expect<ShaderCompiler> psc      = ShaderCompiler::CompileHLSLFile(pci.path, pscInfo);
+    constexpr ShaderCompileInfo kVscInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    const Expect<ShaderBinary>  vsc      = ShaderBinary::CompileHLSLFile(pci.path, kVscInfo);
+    const Expect<ShaderBinary>  psc      = ShaderBinary::CompileHLSLFile(pci.path, pscInfo);
     JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
     JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
 

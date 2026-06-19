@@ -13,27 +13,27 @@ struct alignas(16) Mtx4
     Mtx4(Vec4 _r0, Vec4 _r1, Vec4 _r2, Vec4 _r3);
     Mtx4(float _m00, float _m01, float _m02, float _m03, float _m10, float _m11, float _m12, float _m13, float _m20, float _m21, float _m22, float _m23, float _m30, float _m31, float _m32, float _m33);
 
-    [[nodiscard]] static Mtx4 MakeOrtho(float left, float right, float top, float bottom, float nearZ, float farZ);
+    [[nodiscard]] static Mtx4 MakeOrtho(float left, float right, float bottom, float top, float nearZ, float farZ);
     [[nodiscard]] static Mtx4 MakeOrtho(float _width, float _height, float _nearZ, float _farZ);
-    [[nodiscard]] static Mtx4 MakeInvOrtho(float left, float right, float top, float bottom, float nearZ, float farZ);
+    [[nodiscard]] static Mtx4 MakeInvOrtho(float left, float right, float bottom, float top, float nearZ, float farZ);
     [[nodiscard]] static Mtx4 MakeInvOrtho(float _width, float _height, float _nearZ, float _farZ);
-    [[nodiscard]] static Mtx4 MakePerspectiveFov(float _fovYRad, float _aspect, float _nearZ, float _farZ);
-    [[nodiscard]] static Mtx4 MakeInvPerspectiveFov(float _fovYRad, float _aspect, float _nearZ, float _farZ);
+    [[nodiscard]] static Mtx4 MakePerspective(float _fovYRad, float _aspect, float _nearZ, float _farZ);
+    [[nodiscard]] static Mtx4 MakeInvPerspective(float _fovYRad, float _aspect, float _nearZ, float _farZ);
 
     [[nodiscard]] static Mtx4 MakeTranslation(Vec3 _translation);
     [[nodiscard]] static Mtx4 MakeScale(Vec3 _scale);
-    [[nodiscard]] static Mtx4 MakeRotationX(float _angleRad);
-    [[nodiscard]] static Mtx4 MakeRotationY(float _angleRad);
-    [[nodiscard]] static Mtx4 MakeRotationZ(float _angleRad);
-    [[nodiscard]] static Mtx4 FromAxisAngle(Vec3 _axis, float _angleRad);
+    [[nodiscard]] static Mtx4 MakeRotationX(float _rad);
+    [[nodiscard]] static Mtx4 MakeRotationY(float _rad);
+    [[nodiscard]] static Mtx4 MakeRotationZ(float _rad);
+    [[nodiscard]] static Mtx4 FromAxisAngle(Vec3 _axis, float _rad);
     [[nodiscard]] static Mtx4 FromEuler(Vec3 _euler);
-    [[nodiscard]] static Mtx4 FromQuaternion(Quat _quat);
+    [[nodiscard]] static Mtx4 FromQuaternion(Quat _q);
     [[nodiscard]] static Mtx4 MakeLookAt(Vec3 _eyePos, Vec3 _focusPoint, Vec3 _up);
     [[nodiscard]] static Mtx4 MakeLookTo(Vec3 _eyePos, Vec3 _forward, Vec3 _up);
-    [[nodiscard]] static Mtx4 MakeSRT(Vec3 _scale, Quat _rotation, Vec3 _translation);
+    [[nodiscard]] static Mtx4 MakeSRT(Vec3 _scale, Quat _quat, Vec3 _translation);
     [[nodiscard]] static Mtx4 MakeSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation);
     [[nodiscard]] static Mtx4 MakeSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation);
-    [[nodiscard]] static Mtx4 MakeInvSRT(Vec3 _scale, Quat _rotation, Vec3 _translation);
+    [[nodiscard]] static Mtx4 MakeInvSRT(Vec3 _scale, Quat _quat, Vec3 _translation);
     [[nodiscard]] static Mtx4 MakeInvSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation);
     [[nodiscard]] static Mtx4 MakeInvSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation);
 

@@ -157,11 +157,11 @@ void MultiVertexStreamScene::InitRenderGraph_()
         .SetExecutor(Bind<&MultiVertexStreamScene::Submit_>(this));
 
     ImageFilterManager& ifm      = GetImageFilterManager();
-    ImageFilterDesc     blitDesc = {};
-    blitDesc.filter              = eImageFilter::Blit;
-    blitDesc.output              = eImageFilterOutput::Final;
-    blitDesc.input0Texture       = "T_SceneColor";
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    ImageFilterInfo     blitInfo = {};
+    blitInfo.filter              = eImageFilter::Blit;
+    blitInfo.output              = eImageFilterOutput::Final;
+    blitInfo.input0Texture       = "T_SceneColor";
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
 }
 
 void MultiVertexStreamScene::Submit_() const

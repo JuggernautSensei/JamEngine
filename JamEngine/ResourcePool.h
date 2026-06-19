@@ -1,4 +1,5 @@
 #pragma once
+#include "Graphics.h"
 #include "HandleAllocator.h"
 
 namespace Jam
@@ -11,89 +12,63 @@ class ResourcePool
 public:
     using HandleT = Handle<T>;
 
-    template<bool IsConst>
-    class IteratorBase
+public:
+    class ConstIterator
     {
     public:
-        using PoolT          = std::conditional_t<IsConst, const ResourcePool, ResourcePool>;
-        using HandleT        = Handle<T>;
-        using ResourceT      = std::conditional_t<IsConst, const T, T>;
-        using HandleIterator = std::conditional_t<IsConst, typename HandleAllocator<T>::ConstIterator, typename HandleAllocator<T>::Iterator>;
+        using HandleIteratorT = HandleAllocator<T>::Iterator;
 
-        using iterator_category = std::forward_iterator_tag;
-        using value_type        = std::pair<HandleT, ResourceT&>;
-        using difference_type   = std::ptrdiff_t;
-        using pointer           = const value_type*;
-        using reference         = const value_type&;
+        ConstIterator() = default;
 
-        IteratorBase() = default;
-
-        explicit IteratorBase(PoolT* _pPool) noexcept
-            : IteratorBase(_pPool, _pPool->m_handleAlloc.begin())
-        {
-        }
-
-        explicit IteratorBase(PoolT* _pPool, HandleIterator _handleIter) noexcept
+        explicit ConstIterator(ResourcePool* _pPool, HandleIteratorT _handleIter) noexcept
             : m_pPool(_pPool)
             , m_handleIter(_handleIter)
         {
         }
 
-        IteratorBase& operator++() noexcept
+        ConstIterator& operator++() noexcept
         {
             ++m_handleIter;
             return *this;
         }
 
-        IteratorBase operator++(int) noexcept
+        [[nodiscard]] std::pair<HandleT, const T&> operator*() const noexcept
         {
-            IteratorBase temp = *this;
-            ++(*this);
-            return temp;
-        }
+            JAM_ASSERT(m_pPool, "Iterator not initialized");
 
-        [[nodiscard]] value_type operator*() const noexcept
-        {
-            JAM_ASSERT(IsValid_(), "IteratorBase not initialized or out of bounds");
-            HandleT handle = *m_handleIter;
+            const HandleT handle = *m_handleIter;
             return { handle, m_pPool->GetResource(handle) };
         }
 
-        [[nodiscard]] HandleT GetHandle() const noexcept
-        {
-            JAM_ASSERT(IsValid_(), "IteratorBase not initialized or out of bounds");
-            return *m_handleIter;
-        }
-
-        [[nodiscard]] ResourceT& GetResource() const noexcept
-        {
-            JAM_ASSERT(IsValid_(), "IteratorBase not initialized or out of bounds");
-            return m_pPool->GetResource(*m_handleIter);
-        }
-
-        [[nodiscard]] bool operator==(const IteratorBase& other) const noexcept
+        [[nodiscard]] bool operator==(const ConstIterator& other) const noexcept
         {
             return m_pPool == other.m_pPool && m_handleIter == other.m_handleIter;
         }
 
-        [[nodiscard]] bool operator!=(const IteratorBase& other) const noexcept
+        [[nodiscard]] bool operator!=(const ConstIterator& other) const noexcept
         {
             return !(*this == other);
         }
 
-    private:
-        [[nodiscard]] bool IsValid_() const noexcept
-        {
-            return m_pPool && m_handleIter != m_pPool->m_handleAlloc.end();
-        }
-
-        PoolT*         m_pPool      = nullptr;
-        HandleIterator m_handleIter = {};
+    protected:
+        ResourcePool*   m_pPool      = nullptr;
+        HandleIteratorT m_handleIter = {};
     };
 
-    using Iterator      = IteratorBase<false>;
-    using ConstIterator = IteratorBase<true>;
+    class Iterator : public ConstIterator
+    {
+        using Base = ConstIterator;
 
+    public:
+        [[nodiscard]] std::pair<HandleT, T&> operator*() noexcept
+        {
+            JAM_ASSERT(this->m_pPool, "Iterator not initialized");
+            const HandleT handle = Base::m_handleIter;
+            return { handle, Base::m_pPool->GetResource(handle) };
+        }
+    };
+
+public:
     ResourcePool()  = default;
     ~ResourcePool() = default;
 
@@ -109,7 +84,7 @@ public:
         {
             m_resources.resize(handle.GetIndex() + 1);
         }
-        ++m_numItems;
+        ++m_numResources;
         return handle;
     }
 
@@ -121,7 +96,7 @@ public:
         std::destroy_at(&resource);
         std::construct_at(&resource);
         m_handleAlloc.Free(handle);
-        --m_numItems;
+        --m_numResources;
     }
 
     [[nodiscard]] T& GetResource(const HandleT handle) noexcept
@@ -155,50 +130,61 @@ public:
 
     [[nodiscard]] UInt32 GetCount() const noexcept
     {
-        return m_numItems;
+        return m_numResources;
     }
 
     void Clear()
     {
         m_resources.clear();
         m_handleAlloc.Clear();
-        m_numItems = 0;
+        m_numResources = 0;
     }
 
+    [[nodiscard]] Iterator Begin() noexcept
+    {
+        return { this, m_handleAlloc.Begin() };
+    }
+
+    [[nodiscard]] Iterator End() noexcept
+    {
+        return { this, m_handleAlloc.End() };
+    }
+
+    [[nodiscard]] ConstIterator Begin() const noexcept
+    {
+        return ConstIterator { this, m_handleAlloc.Begin() };
+    }
+
+    [[nodiscard]] ConstIterator End() const noexcept
+    {
+        return ConstIterator { this, m_handleAlloc.End() };
+    }
+
+public:   // for STL
     [[nodiscard]] Iterator begin() noexcept
     {
-        return Iterator(this);
+        return Begin();
     }
 
     [[nodiscard]] Iterator end() noexcept
     {
-        return Iterator(this, m_handleAlloc.end());
+        return End();
     }
 
     [[nodiscard]] ConstIterator begin() const noexcept
     {
-        return ConstIterator(this);
+        return Begin();
     }
 
     [[nodiscard]] ConstIterator end() const noexcept
     {
-        return ConstIterator(this, m_handleAlloc.end());
-    }
-
-    [[nodiscard]] ConstIterator cbegin() const noexcept
-    {
-        return ConstIterator(this);
-    }
-
-    [[nodiscard]] ConstIterator cend() const noexcept
-    {
-        return ConstIterator(this, m_handleAlloc.end());
+        return End();
     }
 
 private:
-    HandleAllocator<T> m_handleAlloc = {};
-    Vector<T>          m_resources   = {};
-    UInt32             m_numItems    = 0;
+    HandleAllocator<T> m_handleAlloc  = {};
+    Vector<T>          m_resources    = {};
+    Int32              m_numResources = 0;
 };
 
 }   // namespace Jam

@@ -18,28 +18,26 @@ class AssetSaver
 {
 public:
     static Expect<AssetSaver> Open(
-        const StringView                 _path,
-        const eFileWriterCollisionPolicy _policy)
+        const StringView      _path,
+        const eFileWrite _mode)
     {
-        JAM_ASSERT(_policy != eFileWriterCollisionPolicy::Append, "WriteElement mode is not supported for AssetSaver.");
+        JAM_ASSERT(_mode != eFileWrite::Append, "WriteElement mode is not supported for AssetSaver.");
 
-        if (_policy != eFileWriterCollisionPolicy::Overwrite && FileSystem::Exists(_path))
+        if ((_mode == eFileWrite::Rename || _mode == eFileWrite::FailIfExists) && FS::Exists(_path))
         {
-            switch (_policy)
+            switch (_mode)
             {
-                case eFileWriterCollisionPolicy::Rename:
+                case eFileWrite::Rename:
                 {
-                    return Open(FileSystem::GenerateUniquePath(_path), eFileWriterCollisionPolicy::Overwrite);
+                    return Open(FS::MakeUniquePath(_path), eFileWrite::FailIfExists);
                 }
 
-                case eFileWriterCollisionPolicy::Fail:
+                case eFileWrite::FailIfExists:
                 {
                     JAM_LOG_ERROR("File '{}' already exists. Open failed due to collision policy.", _path);
                     return Error::AlreadyExists;
                 }
 
-                case eFileWriterCollisionPolicy::Overwrite:
-                case eFileWriterCollisionPolicy::Append:
                 default:
                     JAM_UNREACHABLE;
             }

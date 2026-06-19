@@ -100,7 +100,7 @@ class RenderGraph
         Int32 slot  = 0;
     };
 
-    struct PassDesc
+    struct PassInfo
     {
         String name = {};
         ePass  type = ePass::Utility;
@@ -164,7 +164,7 @@ class RenderGraph
 
     struct Pass
     {
-        PassDesc* pDesc = nullptr;
+        PassInfo* pDesc = nullptr;
 
         // 언바인드 목록
         Vector<Slot> readUnbindSlots      = {};
@@ -214,20 +214,20 @@ public:
     class UtilityPassBuilder
     {
     public:
-        UtilityPassBuilder(RenderGraph* _pGraph, PassDesc* _pDesc);
+        UtilityPassBuilder(RenderGraph* _pGraph, PassInfo* _pDesc);
 
         UtilityPassBuilder& Enable(bool _bEnable = true);
         UtilityPassBuilder& SetExecutor(const Delegate<void()>& _executor);
 
     private:
         RenderGraph* m_pGraph = nullptr;
-        PassDesc*    m_pDesc  = nullptr;
+        PassInfo*    m_pInfo  = nullptr;
     };
 
     class RenderPassBuilder
     {
     public:
-        RenderPassBuilder(RenderGraph* _pGraph, PassDesc* _pDesc);
+        RenderPassBuilder(RenderGraph* _pGraph, PassInfo* _pDesc);
 
         RenderPassBuilder& Enable(bool _bEnable = true);
         RenderPassBuilder& AsFinalPass(bool _bEnable = true);
@@ -258,13 +258,13 @@ public:
 
     private:
         RenderGraph* m_pGraph = nullptr;
-        PassDesc*    m_pDesc  = nullptr;
+        PassInfo*    m_pInfo  = nullptr;
     };
 
     class ComputePassBuilder
     {
     public:
-        ComputePassBuilder(RenderGraph* _pGraph, PassDesc* _pDesc);
+        ComputePassBuilder(RenderGraph* _pGraph, PassInfo* _pDesc);
 
         ComputePassBuilder& Enable(bool _bEnable = true);
         ComputePassBuilder& AsFinalPass(bool _bEnable = true);
@@ -281,7 +281,7 @@ public:
 
     private:
         RenderGraph* m_pGraph = nullptr;
-        PassDesc*    m_pDesc  = nullptr;
+        PassInfo*    m_pInfo  = nullptr;
     };
 
     RenderGraph() = default;
@@ -603,11 +603,11 @@ public:
 private:
     void CompileIfNeed_(Int32 _width, Int32 _height);
 
-    [[nodiscard]] PassDesc&       GetPassDesc_(StringView name);
-    [[nodiscard]] const PassDesc& GetPassDesc_(StringView name) const;
+    [[nodiscard]] PassInfo&       GetPassDesc_(StringView name);
+    [[nodiscard]] const PassInfo& GetPassDesc_(StringView name) const;
     [[nodiscard]] bool            HasPass_(StringView name) const;
 
-    Vector<PassDesc> m_descs         = {};
+    Vector<PassInfo> m_infos         = {};
     Vector<Pass>     m_runtimePasses = {};
 
     StringHashMap<TextureResource>        m_textures       = {};

@@ -32,19 +32,19 @@ void SceneComponent::Deserialize(
     node.ModifyLocal().SetSRT(localMtx);
 
     // parent
-    UID parentUid = UID::kNull;
-    if (_reader.ReadField("parent", parentUid))
+    UID parentUID = UID::kNull;
+    if (_reader.ReadField("parent", parentUID))
     {
         return;
     }
 
     // set parent if null uid -> root node
-    if (parentUid)
+    if (parentUID)
     {
-        const Entity parent = _pScene->FindEntityOrNull(parentUid);
+        const Entity parent = _pScene->FindEntityOrNull(parentUID);
         if (!parent)
         {
-            JAM_LOG_ERROR("SceneComponent::Deserialize: Parent entity with UID '{}' not found for entity with UID '{}'.", parentUid.GetValue(), _owner.GetUID());
+            JAM_LOG_ERROR("SceneComponent::Deserialize: Parent entity with UID '{}' not found for entity with UID '{}'.", parentUID.GetValue(), _owner.GetUID());
             _reader.MarkError(Error::InvalidData);
             return;
         }

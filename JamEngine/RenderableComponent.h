@@ -10,7 +10,7 @@ class Material;
 struct RenderableComponent
 {
     JAM_COMPONENT_BODY(RenderableComponent);
-    JAM_COMPONENT_EDITOR_DISPLAY_NAME("renderable component");
+    JAM_COMPONENT_DISPLAY_NAME("renderable component");
     JAM_COMPONENT_PROPERTY_FLAGS(eComponentPropertyFlags::Serializable, eComponentPropertyFlags::Editable);
 
     void Serialize(ArchiveWriter& _writer, Scene* _pScene, Entity _uid) const;

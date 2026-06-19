@@ -47,17 +47,14 @@ Int32 Application::Run(
             m_timer.Tick();
             const float dtSec = m_timer.GetDeltaFloat(eSIPrefix::Sec);
             Update(dtSec);
-
-            gfx.BeginTimerQueries_();
             Render();
 
             imgui.BeginFrame();
             ImGuiRender();
             imgui.EndFrame();
-            gfx.EndTimerQueries_();
 
-            gfx.Frame(m_bVsync);   // present
-            input.Update();        // update input
+            gfx.Frame();      // present
+            input.Update();   // update input
         }
     }
 
@@ -118,30 +115,19 @@ void Application::SubmitCommandToMainThread(
     m_commandQueue.Submit(_command);
 }
 
-void Application::SetVsync(const bool _bVsync)
-{
-    m_bVsync = _bVsync;
-}
-
-bool Application::IsVsyncEnabled() const
-{
-    return m_bVsync;
-}
-
 StringView Application::GetAppName() const
 {
     return m_appName;
 }
 
+Flags<eAppInitFlags> Application::GetInitFlags() const
+{
+    return m_flags;
+}
+
 const TickTimer& Application::GetTimer() const
 {
     return m_timer;
-}
-
-bool Application::IsAppInitFlagsEnabled(
-    const eAppInitFlags _flags) const
-{
-    return m_flags.IsEnabled(_flags);
 }
 
 StringView Application::GetWorkingDirectory() const
@@ -164,7 +150,7 @@ Application::Application(
     const Flags<eAppInitFlags> _flags)
     : m_appName(_appName)
     , m_flags(_flags)
-    , m_workingDir(FileSystem::Current())
+    , m_workingDir(FS::Current())
 {
     s_pInstance = this;
 
@@ -270,31 +256,29 @@ void Application::CoreInit()
 
     // init graphics
     {
-        WindowsPlatform& win = GetWindowsPlatform();
-        const Vec2i      res = win.GetClientResolution();
+        const Vec2i res = win.GetClientResolution();
 
-        GraphicsInit init     = {};
-        init.platformHandle   = win.GetPlatformHandle();
-        init.bAllowTearing    = m_flags.IsEnabled(eAppInitFlags::Graphics_AllowTearing);
-        init.bAttachDebugger  = m_flags.IsEnabled(eAppInitFlags::Graphics_GraphicsDebugger);
-        init.backBufferWidth  = res.x;
-        init.backBufferHeight = res.y;
-        init.numBackBuffer    = m_flags & eAppInitFlags::Graphics_QuadrupleBuffering ? 4
+        GraphicsInitInfo info = {};
+        info.platformHandle   = win.GetPlatformHandle();
+        info.bConnectDebugger = m_flags.IsEnabled(eAppInitFlags::Graphics_ConnectDebugger);
+        info.backBufferWidth  = res.x;
+        info.backBufferHeight = res.y;
+        info.numBackBuffer    = m_flags & eAppInitFlags::Graphics_QuadrupleBuffering ? 4
                               : m_flags & eAppInitFlags::Graphics_TripleBuffering    ? 3
                                                                                      : 2;
 
         Flags<eAppInitFlags> hdrFlags = m_flags.WithFilter(eAppInitFlags::Graphics_BackBufferHDR10, eAppInitFlags::Graphics_BackBufferHDR16);
-        init.backBufferFormat         = hdrFlags == eAppInitFlags::Graphics_BackBufferHDR10 ? eTextureFormat::RGB10A2_UNorm
+        info.backBufferFormat         = hdrFlags == eAppInitFlags::Graphics_BackBufferHDR10 ? eTextureFormat::RGB10A2_UNorm
                                       : hdrFlags == eAppInitFlags::Graphics_BackBufferHDR16 ? eTextureFormat::RGBA16_Float
                                                                                             : eTextureFormat::RGBA8_UNorm;
 
         Flags<eAppInitFlags> msaaFlags = m_flags.WithFilter(eAppInitFlags::Graphics_BackBufferMSAAx4, eAppInitFlags::Graphics_BackBufferMSAAx16);
-        init.backBufferSamples         = msaaFlags == eAppInitFlags::Graphics_BackBufferMSAAx4  ? 4
+        info.backBufferSamples         = msaaFlags == eAppInitFlags::Graphics_BackBufferMSAAx4  ? 4
                                        : msaaFlags == eAppInitFlags::Graphics_BackBufferMSAAx8  ? 8
                                        : msaaFlags == eAppInitFlags::Graphics_BackBufferMSAAx16 ? 16
                                                                                                 : 1;
 
-        Graphics::CreateInstance(init);
+        Graphics::CreateInstance(info);
     }
 
     // init input
@@ -303,22 +287,6 @@ void Application::CoreInit()
     // init asset manager
     if (m_flags & eAppInitFlags::Subsystem_AssetManager)
     {
-        FileSystem::MakeDirectory(m_contentsDir);
-        Expect<Scoped<FileLock>> pContentsDirLock = FileLock::Create(m_contentsDir, eFileLockMode::ReadWrite);
-        if (!pContentsDirLock)
-        {
-            JAM_CRASH("Failed to lock contents directory '{}'. {}", m_contentsDir, pContentsDirLock.GetError());
-        }
-        m_pContentsDirLock = pContentsDirLock.Take();
-
-        FileSystem::MakeDirectory(m_cacheDir);
-        Expect<Scoped<FileLock>> pCacheDirLock = FileLock::Create(m_cacheDir, eFileLockMode::ReadWrite);
-        if (!pCacheDirLock)
-        {
-            JAM_CRASH("Failed to lock cache directory '{}'. {}", m_cacheDir, pCacheDirLock.GetError());
-        }
-        m_pCacheDirLock = pCacheDirLock.Take();
-
         AssetManager::CreateInstance();
     }
 
@@ -331,7 +299,6 @@ void Application::CoreInit()
     // init imgui glue
     if (m_flags & eAppInitFlags::Subsystem_ImGuiEngine)
     {
-        WindowsPlatform& win = GetWindowsPlatform();
         ImGuiEngine::CreateInstance(win.GetPlatformHandle());
     }
 

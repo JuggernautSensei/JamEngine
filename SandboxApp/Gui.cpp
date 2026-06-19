@@ -66,17 +66,49 @@ bool BeginSceneDemoWindow(const char* _title)
             ImGui::Text(
                 "CPU Time:         %6.3f ms\n"
                 "GPU Time:         %6.3f ms\n"
-                "GPU Memory Usage: %6.3f GB / %6.3f GB",
+                "GPU Memory Usage: %6.3f GB / %6.3f GB (%.2f%%)",
                 deltaTimeMs,
                 gpuTimeMs,
                 gpuMemoryUsageGb,
-                gpuMemoryMaxGb);
+                gpuMemoryMaxGb,
+                (gpuMemoryUsageGb / gpuMemoryMaxGb) * 100.f);
         }
 
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Graphics Debug"))
+    if (ImGui::TreeNode("Graphics Config"))
+    {
+        Graphics&      gfx    = GetGraphics();
+        GraphicsConfig config = gfx.GetConfig();
+
+        if (ImGui::BeginTable("GraphicsConfigTable", 2))
+        {
+            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("VSync");
+            ImGui::TableNextColumn();
+            if (ImGui::Button(config.bVSync ? "On" : "Off"))
+            {
+                gfx.SetVSync(!config.bVSync);
+            }
+            ImGui::TableNextColumn();
+            ImGui::Text("Allow Tearing");
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", config.bAllowTearing ? "On" : "Off");
+            ImGui::TableNextColumn();
+            ImGui::Text("Debugger Connected");
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", config.bDebuggerConnected ? "Yes" : "No");
+            ImGui::EndTable();
+        }
+
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Graphics Stats"))
     {
         Graphics&            gfx   = GetGraphics();
         const GraphicsStats& stats = gfx.GetStats();

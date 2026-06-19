@@ -94,12 +94,12 @@ TEST_F(FileRWTest, FileWriter_Open_CollisionPolicy_Overwrite)
 {
     String path = GetTestFilePath("collision_overwrite.txt");
 
-    auto writer1 = FileWriter::Open(path, eFileWriterCollisionPolicy::Overwrite);
+    auto writer1 = FileWriter::Open(path, eFileWrite::Truncate);
     ASSERT_TRUE(writer1.HasValue());
     writer1->WriteString("initial");
     writer1->Close();
 
-    auto writer2 = FileWriter::Open(path, eFileWriterCollisionPolicy::Overwrite);
+    auto writer2 = FileWriter::Open(path, eFileWrite::Truncate);
     ASSERT_TRUE(writer2.HasValue());
     writer2->WriteString("new");
     writer2->Close();
@@ -111,12 +111,12 @@ TEST_F(FileRWTest, FileWriter_Open_CollisionPolicy_Rename)
 {
     String path = GetTestFilePath("collision_rename.txt");
 
-    auto writer1 = FileWriter::Open(path, eFileWriterCollisionPolicy::Overwrite);
+    auto writer1 = FileWriter::Open(path, eFileWrite::Truncate);
     ASSERT_TRUE(writer1.HasValue());
     writer1->WriteString("first");
     writer1->Close();
 
-    auto writer2 = FileWriter::Open(path, eFileWriterCollisionPolicy::Rename);
+    auto writer2 = FileWriter::Open(path, eFileWrite::Rename);
     ASSERT_TRUE(writer2.HasValue());
     writer2->WriteString("second");
     writer2->Close();
@@ -132,11 +132,11 @@ TEST_F(FileRWTest, FileWriter_Open_CollisionPolicy_Fail)
 {
     String path = GetTestFilePath("collision_fail.txt");
 
-    auto writer1 = FileWriter::Open(path, eFileWriterCollisionPolicy::Overwrite);
+    auto writer1 = FileWriter::Open(path, eFileWrite::Truncate);
     ASSERT_TRUE(writer1.HasValue());
     writer1->Close();
 
-    auto writer2 = FileWriter::Open(path, eFileWriterCollisionPolicy::Fail);
+    auto writer2 = FileWriter::Open(path, eFileWrite::Fail);
     EXPECT_FALSE(writer2.HasValue());
     EXPECT_EQ(writer2.GetError(), Error::AlreadyExists);
 }
@@ -145,12 +145,12 @@ TEST_F(FileRWTest, FileWriter_Open_CollisionPolicy_Append)
 {
     String path = GetTestFilePath("collision_append.txt");
 
-    auto writer1 = FileWriter::Open(path, eFileWriterCollisionPolicy::Overwrite);
+    auto writer1 = FileWriter::Open(path, eFileWrite::Truncate);
     ASSERT_TRUE(writer1.HasValue());
     writer1->WriteString("Hello");
     writer1->Close();
 
-    auto writer2 = FileWriter::Open(path, eFileWriterCollisionPolicy::Append);
+    auto writer2 = FileWriter::Open(path, eFileWrite::Append);
     ASSERT_TRUE(writer2.HasValue());
     writer2->WriteString("World");
     writer2->Close();
@@ -291,8 +291,8 @@ TEST_F(FileRWTest, FileWriter_WriteFileAsString_WithPolicy)
 {
     String path = GetTestFilePath("write_string_policy.txt");
 
-    FileWriter::WriteFileAsString("First", path, eFileWriterCollisionPolicy::Overwrite);
-    Error err = FileWriter::WriteFileAsString("Second", path, eFileWriterCollisionPolicy::Append);
+    FileWriter::WriteFileAsString("First", path, eFileWrite::Truncate);
+    Error err = FileWriter::WriteFileAsString("Second", path, eFileWrite::Append);
 
     EXPECT_EQ(err, Error::None);
     EXPECT_TRUE(VerifyFileContentString(path, "FirstSecond"));
@@ -1134,7 +1134,7 @@ TEST_F(FileRWTest, Integration_SequentialOperations)
         String content = "Iteration ";
         content += std::to_string(i).c_str();
 
-        FileWriter::WriteFileAsString(content, path, eFileWriterCollisionPolicy::Overwrite);
+        FileWriter::WriteFileAsString(content, path, eFileWrite::Truncate);
 
         String readBack = FileReader::ReadFileAsString(path).GetValue();
         EXPECT_EQ(readBack, content);
@@ -1353,10 +1353,10 @@ TEST_F(FileRWTest, EdgeCase_MultipleAppends)
 {
     String path = GetTestFilePath("multiple_appends.txt");
 
-    FileWriter::WriteFileAsString("1", path, eFileWriterCollisionPolicy::Overwrite);
-    FileWriter::WriteFileAsString("2", path, eFileWriterCollisionPolicy::Append);
-    FileWriter::WriteFileAsString("3", path, eFileWriterCollisionPolicy::Append);
-    FileWriter::WriteFileAsString("4", path, eFileWriterCollisionPolicy::Append);
+    FileWriter::WriteFileAsString("1", path, eFileWrite::Truncate);
+    FileWriter::WriteFileAsString("2", path, eFileWrite::Append);
+    FileWriter::WriteFileAsString("3", path, eFileWrite::Append);
+    FileWriter::WriteFileAsString("4", path, eFileWrite::Append);
 
     EXPECT_TRUE(VerifyFileContentString(path, "1234"));
 }
@@ -1505,7 +1505,7 @@ TEST_F(FileRWTest, Comprehensive_AlternatingWriteRead)
         String content = "Data";
         content += std::to_string(iteration).c_str();
 
-        FileWriter::WriteFileAsString(content, path, eFileWriterCollisionPolicy::Overwrite);
+        FileWriter::WriteFileAsString(content, path, eFileWrite::Truncate);
 
         String readBack = FileReader::ReadFileAsString(path).GetValue();
         EXPECT_EQ(readBack, content);
@@ -1608,7 +1608,7 @@ TEST_F(FileRWTest, Robustness_MultipleRenameCollisions)
 
     for (int i = 0; i < 5; ++i)
     {
-        auto writer = FileWriter::Open(path, eFileWriterCollisionPolicy::Rename);
+        auto writer = FileWriter::Open(path, eFileWrite::Rename);
         ASSERT_TRUE(writer.HasValue());
         writer->WriteString("Version ");
         writer->WriteString(std::to_string(i).c_str());
@@ -1893,9 +1893,9 @@ TEST_F(FileRWTest, Advanced_PartialOverwrite)
 {
     String path = GetTestFilePath("partial_overwrite.txt");
 
-    FileWriter::WriteFileAsString("AAAAAAAAAA", path, eFileWriterCollisionPolicy::Overwrite);
+    FileWriter::WriteFileAsString("AAAAAAAAAA", path, eFileWrite::Truncate);
 
-    auto writer = FileWriter::Open(path, eFileWriterCollisionPolicy::Overwrite);
+    auto writer = FileWriter::Open(path, eFileWrite::Truncate);
     writer->WriteString("BBB");
     writer->Close();
 
@@ -1911,7 +1911,7 @@ TEST_F(FileRWTest, Advanced_ReadWriteReadPattern)
     String read1 = FileReader::ReadFileAsString(path).GetValue();
     EXPECT_EQ(read1, "Initial");
 
-    FileWriter::WriteFileAsString("Modified", path, eFileWriterCollisionPolicy::Overwrite);
+    FileWriter::WriteFileAsString("Modified", path, eFileWrite::Truncate);
 
     String read2 = FileReader::ReadFileAsString(path).GetValue();
     EXPECT_EQ(read2, "Modified");

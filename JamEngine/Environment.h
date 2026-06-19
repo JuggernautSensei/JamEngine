@@ -61,8 +61,8 @@ public:
     [[nodiscard]] const Ref<Texture>& GetIblIrradianceTex() const;
     void                              SetIblSpecularTex(const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetIblSpecularTex() const;
-    void                              SetIblBrdfLutTex(const Ref<Texture>& _pTexture);
-    [[nodiscard]] const Ref<Texture>& GetIblBrdfLutTex() const;
+    void                              SetIblBrdfLUTTex(const Ref<Texture>& _pTexture);
+    [[nodiscard]] const Ref<Texture>& GetIblBrdfLUTTex() const;
     void                              SetIblIrradianceIntensity(float _intensity);
     [[nodiscard]] float               GetIblIrradianceIntensity() const;
     void                              SetIblSpecularIntensity(float _intensity);
@@ -148,7 +148,7 @@ private:
     // image based lighting
     Ref<Texture> m_pIblIrradianceTex         = nullptr;
     Ref<Texture> m_pIblSpecularTex           = nullptr;
-    Ref<Texture> m_pIblBrdfLutTex            = nullptr;
+    Ref<Texture> m_pIblBrdfLUTTex            = nullptr;
     float        m_iblIrradianceTexIntensity = 1.f;
     float        m_iblSpecularTexIntensity   = 1.f;
 

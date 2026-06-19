@@ -7,7 +7,7 @@
 #include "GeometryReadWriter.h"
 #include "Graphics.h"
 #include "Texture.h"
-#include "ShaderCompiler.h"
+#include "ShaderBinary.h"
 
 namespace Jam
 {
@@ -119,11 +119,11 @@ namespace
         const eShader    _stage,
         const StringView _entryPoint)
     {
-        ShaderCompilerInfo desc = {};
+        ShaderCompileInfo desc = {};
         desc.entryPoint         = _entryPoint;
         desc.stage              = _stage;
 
-        Expect<ShaderCompiler> complier = ShaderCompiler::CompileHLSLSource(_source, desc);
+        Expect<ShaderBinary> complier = ShaderBinary::CompileFromHLSLSource(_source, desc);
         JAM_ASSERT(complier, "Failed to compile ImGui shader. {}", complier.GetError());
 
         Graphics& gfx = GetGraphics();

@@ -1,11 +1,11 @@
 #include "pch.h"
-#include "FileSystem.h"
 
+#include "FileSystem.h"
 #include "DirIter.h"
-#include "PathIter.h"
+#include "StringSpliter.h"
 #include "WindowsUtilities.h"
 
-namespace Jam::FileSystem
+namespace Jam::FS
 {
 
 namespace
@@ -25,30 +25,29 @@ namespace
 
 }   // namespace
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 namespace Utf16
 {
 
     Error MakeDirectory(
-        const WStringView                       _dir,
-        const FileSystem::eMkdirCollisionPolicy _policy)
+        const WStringView _dir,
+        const eOnExists   _onExists)
     {
         JAM_ASSERT(_dir.IsDirectory(), "directory name is must end path seperator");
+        JAM_ASSERT(_onExists == eOnExists::Overwrite, "eOnExists::Overwrite is not supported for directory creation");
 
-        if (FileSystem::Utf16::Exists(_dir))
+        if (Exists(_dir))
         {
-            switch (_policy)
+            switch (_onExists)
             {
-                case FileSystem::eMkdirCollisionPolicy::Fail:
+                case eOnExists::Fail:
                     JAM_LOG_ERROR(L"Failed to create directory '{}': directory already exists.", _dir);
                     return Error::AlreadyExists;
 
-                case FileSystem::eMkdirCollisionPolicy::Rename:
-                    return MakeDirectory(FileSystem::Utf16::GenerateUniquePath(_dir), FileSystem::eMkdirCollisionPolicy::Fail);
+                case eOnExists::Rename:
+                    return MakeDirectory(MakeUniquePath(_dir), eOnExists::Fail);
 
-                case FileSystem::eMkdirCollisionPolicy::Skip:
-                    return Error::None;   // skip creation, treat as success
+                case eOnExists::Skip:
+                    return Error::None;   // skip creation, treat as successs
 
                 default:
                     JAM_UNREACHABLE;
@@ -56,16 +55,16 @@ namespace Utf16
         }
 
         // create parent directories
-        WString path;
-        for (const WStringView slice: PathIterW { _dir })
+        WString path = {};
+        for (const WStringView slice: WStringSpliter { _dir, WString::CharTraits::kPreferredSeparator })
         {
             path.Join(slice);
-            if (!FileSystem::Utf16::Exists(path))
+            if (!Exists(path))
             {
                 if (::CreateDirectoryW(path.GetPtr(), NULL) == FALSE)
                 {
                     JAM_LOG_ERROR(L"Failed to create directory '{}': {}", slice, MakeWindowsLastErrorMessageW());
-                    return ErrorFromPlatformErrorCode(::GetLastError());
+                    return ErrorFromWindowsErrorCode(::GetLastError());
                 }
             }
         }
@@ -83,19 +82,19 @@ namespace Utf16
     bool IsDirectory(
         const WStringView _path)
     {
-        return FileSystem::Utf16::QueryFileAttribute(_path).type == FileSystem::eFile::Directory;
+        return QueryFileAttribute(_path).type == eFile::Directory;
     }
 
     bool IsFile(
         const WStringView _path)
     {
-        return FileSystem::Utf16::QueryFileAttribute(_path).type == FileSystem::eFile::File;
+        return QueryFileAttribute(_path).type == eFile::File;
     }
 
     bool IsSymbolicLink(
         const WStringView _path)
     {
-        return FileSystem::Utf16::QueryFileAttribute(_path).type == FileSystem::eFile::SymbolicLink;
+        return QueryFileAttribute(_path).type == eFile::SymbolicLink;
     }
 
     Error Remove(
@@ -123,7 +122,7 @@ namespace Utf16
             if (::RemoveDirectoryW(path.GetPtr()) == FALSE)
             {
                 JAM_LOG_ERROR(L"Failed to remove directory '{}': {}", _path, MakeWindowsLastErrorMessageW());
-                return ErrorFromPlatformErrorCode(::GetLastError());
+                return ErrorFromWindowsErrorCode(::GetLastError());
             }
         }
         else
@@ -132,7 +131,7 @@ namespace Utf16
             if (::DeleteFileW(path.GetPtr()) == FALSE)
             {
                 JAM_LOG_ERROR(L"Failed to delete file '{}': {}", _path, MakeWindowsLastErrorMessageW());
-                return ErrorFromPlatformErrorCode(::GetLastError());
+                return ErrorFromWindowsErrorCode(::GetLastError());
             }
         }
 
@@ -140,25 +139,25 @@ namespace Utf16
     }
 
     Error Copy(
-        const WStringView                      _srcPath,
-        const WStringView                      _dstPath,
-        const FileSystem::eFileCollisionPolicy _policy)
+        const WStringView _srcPath,
+        const WStringView _dstPath,
+        const eOnExists   _onExists)
     {
-        if (_policy != FileSystem::eFileCollisionPolicy::Overwrite && FileSystem::Utf16::Exists(_dstPath))
+        if (_onExists != eOnExists::Overwrite && Exists(_dstPath))
         {
-            switch (_policy)
+            switch (_onExists)
             {
-                case FileSystem::eFileCollisionPolicy::Fail:
+                case eOnExists::Fail:
                     JAM_LOG_ERROR(L"Failed to copy from '{}' to '{}': destination already exists.", _srcPath, _dstPath);
                     return Error::AlreadyExists;   // fail if destination already exists, treat as error
 
-                case FileSystem::eFileCollisionPolicy::Skip:
+                case eOnExists::Skip:
                     return Error::None;   // skip copying, treat as success
 
-                case FileSystem::eFileCollisionPolicy::Rename:
-                    return Copy(_srcPath, FileSystem::Utf16::GenerateUniquePath(_dstPath), _policy);
+                case eOnExists::Rename:
+                    return Copy(_srcPath, MakeUniquePath(_dstPath), _onExists);
 
-                case FileSystem::eFileCollisionPolicy::Overwrite:
+                case eOnExists::Overwrite:
                     break;
 
                 default:
@@ -169,7 +168,7 @@ namespace Utf16
         if (_dstPath.IsDirectory())
         {
             // create destination directory first
-            if (const Error err = MakeDirectory(_dstPath, FileSystem::eMkdirCollisionPolicy::Fail))
+            if (const Error err = MakeDirectory(_dstPath, eOnExists::Fail))
             {
                 return err;   // failed to create destination directory
             }
@@ -185,7 +184,7 @@ namespace Utf16
             {
                 WString childDst = _dstPath;
                 childDst.Join(childSrc.GetFileName(), childSrc.IsDirectory() ? eJoin::Directory : eJoin::File);
-                if (const Error err = Copy(childSrc, childDst, _policy))
+                if (const Error err = Copy(childSrc, childDst, _onExists))
                 {
                     return err;   // failed to copy an entry in the directory
                 }
@@ -198,7 +197,7 @@ namespace Utf16
             if (::CopyFileW(srcPath.GetPtr(), dstPath.GetPtr(), FALSE) == FALSE)
             {
                 JAM_LOG_ERROR(L"Failed to copy file from '{}' to '{}': {}", _srcPath, _dstPath, MakeWindowsLastErrorMessageW());
-                return ErrorFromPlatformErrorCode(::GetLastError());
+                return ErrorFromWindowsErrorCode(::GetLastError());
             }
         }
 
@@ -206,32 +205,32 @@ namespace Utf16
     }
 
     Error Rename(
-        const WStringView                      _srcPath,
-        const WStringView                      _dstPath,
-        const FileSystem::eFileCollisionPolicy _policy)
+        const WStringView _srcPath,
+        const WStringView _dstPath,
+        const eOnExists   _onExists)
     {
-        if (_policy != FileSystem::eFileCollisionPolicy::Overwrite && FileSystem::Utf16::Exists(_dstPath))
+        if (_onExists != eOnExists::Overwrite && Exists(_dstPath))
         {
-            switch (_policy)
+            switch (_onExists)
             {
-                case FileSystem::eFileCollisionPolicy::Fail:
+                case eOnExists::Fail:
                     JAM_LOG_ERROR(L"Failed to rename from '{}' to '{}': destination already exists.", _srcPath, _dstPath);
                     return Error::AlreadyExists;   // fail if destination already exists, treat as error
 
-                case FileSystem::eFileCollisionPolicy::Skip:
+                case eOnExists::Skip:
                     return Error::None;   // skip renaming, treat as success
 
-                case FileSystem::eFileCollisionPolicy::Rename:
-                    return Rename(_srcPath, FileSystem::Utf16::GenerateUniquePath(_dstPath), _policy);
+                case eOnExists::Rename:
+                    return Rename(_srcPath, MakeUniquePath(_dstPath), _onExists);
 
-                case FileSystem::eFileCollisionPolicy::Overwrite:
+                case eOnExists::Overwrite:
                 default:
                     JAM_UNREACHABLE;
             }
         }
 
         DWORD flags = MOVEFILE_COPY_ALLOWED;
-        if (_policy == FileSystem::eFileCollisionPolicy::Overwrite)
+        if (_onExists == eOnExists::Overwrite)
         {
             flags |= MOVEFILE_REPLACE_EXISTING;
         }
@@ -241,7 +240,7 @@ namespace Utf16
         if (::MoveFileExW(srcPath.GetPtr(), dstPath.GetPtr(), flags) == FALSE)
         {
             JAM_LOG_ERROR(L"Failed to rename from '{}' to '{}': {}", _srcPath, _dstPath, MakeWindowsLastErrorMessageW());
-            return ErrorFromPlatformErrorCode(::GetLastError());
+            return ErrorFromWindowsErrorCode(::GetLastError());
         }
 
         return Error::None;
@@ -250,16 +249,16 @@ namespace Utf16
     UInt64 QueryFileSize(
         const WStringView _path)
     {
-        return FileSystem::Utf16::QueryFileAttribute(_path).fileSize;
+        return QueryFileAttribute(_path).fileSize;
     }
 
     UInt64 QueryLastWriteTime(
         const WStringView _path)
     {
-        return FileSystem::Utf16::QueryFileAttribute(_path).lastWriteTime;
+        return QueryFileAttribute(_path).lastWriteTime;
     }
 
-    FileSystem::FileAttribute QueryFileAttribute(
+    FileAttribute QueryFileAttribute(
         const WStringView _path)
     {
         const WString             path = _path;
@@ -269,10 +268,10 @@ namespace Utf16
             JAM_ASSERT(0, "Failed to query file attributes");
         }
 
-        FileSystem::FileAttribute attrib = {};
-        attrib.type                      = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY     ? FileSystem::eFile::Directory
-                                         : data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT ? FileSystem::eFile::SymbolicLink
-                                                                                                : FileSystem::eFile::File;
+        FileAttribute attrib = {};
+        attrib.type          = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY     ? eFile::Directory
+                             : data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT ? eFile::SymbolicLink
+                                                                                    : eFile::File;
 
         attrib.creationTime   = FileTimeToUInt64_(data.ftCreationTime);
         attrib.lastAccessTime = FileTimeToUInt64_(data.ftLastAccessTime);
@@ -303,30 +302,26 @@ namespace Utf16
         const WStringView _from,
         const WStringView _to)
     {
-        const WString fromAbs = FileSystem::Utf16::Absolute(_from);
-        const WString toAbs   = FileSystem::Utf16::Absolute(_to);
+        const WString fromAbs = Absolute(_from);
+        const WString toAbs   = Absolute(_to);
 
-        PathIterW fromIt { fromAbs };
-        PathIterW toIt { toAbs };
-        while (fromIt != PathIterW {} && toIt != PathIterW {} && *fromIt == *toIt)
+        WStringSpliter fromSpliter { fromAbs, WString::CharTraits::kPreferredSeparator };
+        WStringSpliter toSpliter { toAbs, WString::CharTraits::kPreferredSeparator };
+
+        while (!fromSpliter.IsDone() && !toSpliter.IsDone() && fromSpliter.Get() == toSpliter.Get())
         {
-            ++fromIt;
-            ++toIt;
+            fromSpliter.Next();
+            toSpliter.Next();
         }
 
-        if (fromIt == PathIterW {} && toIt == PathIterW {})
+        if (fromSpliter.IsDone() && toSpliter.IsDone())
         {
             return L".";   // both paths are the same
         }
 
         Int32 upLevels = 0;
-        for (const WStringView slice: fromIt)
+        for (const WStringView slice: fromSpliter)
         {
-            if (slice.IsFile())
-            {
-                break;
-            }
-
             if (!slice.IsEmpty() && slice != L"." && slice != L"..")
             {
                 ++upLevels;
@@ -337,24 +332,29 @@ namespace Utf16
             }
         }
 
+        if (fromAbs.IsFile() && upLevels > 0)
+        {
+            --upLevels;   // the last segment of a file path is not a directory level
+        }
+
         if (upLevels < 0)
         {
             return {};
         }
 
         WString result = {};
-        result.Reserve(upLevels * 2 + toAbs.GetLength());   // reserve enough capacity for the result
+        result.Reserve(upLevels * 3 + toAbs.GetLength());   // reserve enough capacity for the result
         for (Int32 i = 0; i < upLevels; ++i)
         {
             result.Join(L"..", eJoin::Directory);
         }
 
-        for (const WStringView slice: toIt)
+        for (const WStringView slice: toSpliter)
         {
             result.Join(slice);
         }
 
-        result.Simplify();
+        // result.Simplify(); maybe not necessary since both fromAbs and toAbs are already simplified by Absolute()
         return result;
     }
 
@@ -368,71 +368,55 @@ namespace Utf16
             return path;
         }
 
-        const bool    bIsDir = _path.IsDirectory();
-        const WString path   = _path;
+        const WString path = _path;
+        SizeT         len  = ::GetFullPathNameW(path.GetPtr(), 0, nullptr, nullptr);
 
-        wchar_t     absolute[FileSystem::kMaxPath];
-        const DWORD len = ::GetFullPathNameW(path.GetPtr(), static_cast<DWORD>(FileSystem::kMaxPath), absolute, nullptr);
-        if (len == 0)
+        WString absolute = {};
+        absolute.ResizeUninitialized(len);
+        ::GetFullPathNameW(path.GetPtr(), static_cast<DWORD>(absolute.GetLength()), absolute.GetPtr(), nullptr);
+
+        if (path.IsDirectory())
         {
-            return {};
+            absolute.Append(WString::CharTraits::kPreferredSeparator);
         }
 
-        absolute[len] = CharTraits<wchar_t>::kNullChar;   // null-terminate the absolute path
-        if (bIsDir)
-        {
-            absolute[len + 1] = CharTraits<wchar_t>::kPathPreferredSeparator;   // append path separator for directory
-        }
-
-        WString result = absolute;
-        result.Simplify();
-        return result;
+        absolute.Simplify();
+        return absolute;
     }
 
     WString Current()
     {
-        wchar_t     current[FileSystem::kMaxPath];
-        const DWORD len = ::GetCurrentDirectoryW(static_cast<DWORD>(FileSystem::kMaxPath), current);
-        if (len == 0)
-        {
-            JAM_LOG_ERROR("Failed to get current directory: {}", MakeWindowsLastErrorMessage());
-            return {};
-        }
+        const SizeT len = ::GetCurrentDirectoryW(0, nullptr);   // + separator for directory
 
-        current[len]     = CharTraits<wchar_t>::kNullChar;                 // null-terminate the current directory path
-        current[len + 1] = CharTraits<wchar_t>::kPathPreferredSeparator;   // append path separator for directory
+        WString current = {};
+        current.ResizeUninitialized(len);
+        ::GetCurrentDirectoryW(static_cast<DWORD>(current.GetLength()), current.GetPtr());
+        current.Append(WString::CharTraits::kPreferredSeparator);
 
-        WString result = current;
-        result.Simplify();
-        return result;
+        current.Simplify();
+        return current;
     }
 
     WString Executable()
     {
-        wchar_t     executable[FileSystem::kMaxPath];
-        const DWORD len = ::GetModuleFileNameW(NULL, executable, static_cast<DWORD>(FileSystem::kMaxPath));
-        if (len == 0)
-        {
-            JAM_LOG_ERROR("Failed to get executable path: {}", MakeWindowsLastErrorMessage());
-            return {};
-        }
+        const SizeT len = ::GetModuleFileNameW(NULL, nullptr, 0);
 
-        executable[len] = CharTraits<wchar_t>::kNullChar;   // null-terminate the executable path
+        WString executable = {};
+        executable.ResizeUninitialized(len);
+        ::GetModuleFileNameW(NULL, executable.GetPtr(), static_cast<DWORD>(executable.GetLength()));
 
-        WString result = executable;
-        result.Simplify();
-        return result;
+        executable.Simplify();
+        return executable;
     }
 
-    WString GenerateUniquePath(
+    WString MakeUniquePath(
         const WStringView _basePath)
     {
-        if (!Utf16::Exists(_basePath))
+        if (!Exists(_basePath))
         {
             return _basePath;   // base path does not exist, treat as unique
         }
 
-        const bool  bIsDir = _basePath.IsDirectory();
         WStringView dir = {}, base = {}, ext = {};
         _basePath.Decompose(&dir, nullptr, &base, &ext);
 
@@ -440,14 +424,10 @@ namespace Utf16
         result.Reserve(_basePath.GetLength() + 10);   // reserve enough capacity for the result
         for (Int32 counter = 1;; ++counter)
         {
-            result = dir;
-            result.AppendFormat(L"{} ({}){}", base, counter, ext);
-            if (bIsDir)
-            {
-                result.Append(CharTraits<wchar_t>::kPathPreferredSeparator);   // append path separator for directory
-            }
+            const wchar_t dirSep = base.IsDirectory() ? WString::CharTraits::kPreferredSeparator : L' ';
+            result.Format(L"{}{} ({}){}{}", dir, base, counter, ext, dirSep);
 
-            if (!Utf16::Exists(result))
+            if (!Exists(result))
             {
                 break;   // found a unique path
             }
@@ -468,11 +448,11 @@ namespace Utf8
 {
 
     Error MakeDirectory(
-        const StringView                        _dir,
-        const FileSystem::eMkdirCollisionPolicy _policy)
+        const StringView _dir,
+        const eOnExists  _onExists)
     {
         const WString path = WString::Encoded(_dir);
-        return Utf16::MakeDirectory(path, _policy);
+        return Utf16::MakeDirectory(path, _onExists);
     }
 
     bool Exists(
@@ -485,19 +465,19 @@ namespace Utf8
     bool IsDirectory(
         const StringView _path)
     {
-        return FileSystem::QueryFileAttribute(_path).type == FileSystem::eFile::Directory;
+        return QueryFileAttribute(_path).type == eFile::Directory;
     }
 
     bool IsFile(
         const StringView _path)
     {
-        return FileSystem::QueryFileAttribute(_path).type == FileSystem::eFile::File;
+        return QueryFileAttribute(_path).type == eFile::File;
     }
 
     bool IsSymbolicLink(
         const StringView _path)
     {
-        return FileSystem::QueryFileAttribute(_path).type == FileSystem::eFile::SymbolicLink;
+        return QueryFileAttribute(_path).type == eFile::SymbolicLink;
     }
 
     Error Remove(
@@ -508,19 +488,19 @@ namespace Utf8
     }
 
     Error Copy(
-        const StringView                       _srcPath,
-        const StringView                       _dstPath,
-        const FileSystem::eFileCollisionPolicy _policy)
+        const StringView _srcPath,
+        const StringView _dstPath,
+        const eOnExists  _onExists)
     {
         const WString srcPath = WString::Encoded(_srcPath);
         const WString dstPath = WString::Encoded(_dstPath);
-        return Utf16::Copy(srcPath, dstPath, _policy);
+        return Utf16::Copy(srcPath, dstPath, _onExists);
     }
 
     Error Rename(
-        const StringView                       _srcPath,
-        const StringView                       _dstPath,
-        const FileSystem::eFileCollisionPolicy _policy)
+        const StringView _srcPath,
+        const StringView _dstPath,
+        const eOnExists  _onExists)
     {
         WString srcPath;
         srcPath.Encode(_srcPath);
@@ -528,22 +508,22 @@ namespace Utf8
         WString dstPath;
         dstPath.Encode(_dstPath);
 
-        return Utf16::Rename(srcPath, dstPath, _policy);
+        return Utf16::Rename(srcPath, dstPath, _onExists);
     }
 
     UInt64 QueryFileSize(
         const StringView _path)
     {
-        return FileSystem::QueryFileAttribute(_path).fileSize;
+        return QueryFileAttribute(_path).fileSize;
     }
 
     UInt64 QueryLastWriteTime(
         const StringView _path)
     {
-        return FileSystem::QueryFileAttribute(_path).lastWriteTime;
+        return QueryFileAttribute(_path).lastWriteTime;
     }
 
-    FileSystem::FileAttribute QueryFileAttribute(
+    FileAttribute QueryFileAttribute(
         const StringView _path)
     {
         const WString path = WString::Encoded(_path);
@@ -605,11 +585,11 @@ namespace Utf8
         return String::Encoded(executable.ToStringView());
     }
 
-    String GenerateUniquePath(
+    String MakeUniquePath(
         const StringView _basePath)
     {
         const WString basePath   = WString::Encoded(_basePath);
-        const WString uniquePath = Utf16::GenerateUniquePath(basePath);
+        const WString uniquePath = Utf16::MakeUniquePath(basePath);
         return String::Encoded(uniquePath.ToStringView());
     }
 
@@ -624,4 +604,4 @@ namespace Utf8
 
 }   // namespace Utf8
 
-}   // namespace Jam::FileSystem
+}   // namespace Jam::FS

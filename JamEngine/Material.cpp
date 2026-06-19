@@ -68,7 +68,7 @@ Expect<Ref<Material>> Material::LoadFromFile(
 Error Material::Save(
     const StringView                 _path,
     const bool                       _bReplaceExtension,
-    const eFileWriterCollisionPolicy _policy) const
+    const eFileWrite _mode) const
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
     JAM_ASSERT(IsValid(), "Cannot save an invalid material");
@@ -79,7 +79,7 @@ Error Material::Save(
         path.ReplaceExtension(kExtension);
     }
 
-    Expect<MaterialSaver> saver = MaterialSaver::Open(path, _policy);
+    Expect<MaterialSaver> saver = MaterialSaver::Open(path, _mode);
     if (!saver)
     {
         return saver.GetError();

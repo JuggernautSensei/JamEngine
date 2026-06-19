@@ -27,14 +27,14 @@ private:
     static constexpr Byte  kHeapEnabledBit = 0xFF;
     static constexpr SizeT kGrowthFactor   = 2;
     static constexpr SizeT kLayoutSize     = 32;
-    static constexpr SizeT kSsoBufSize     = (kLayoutSize - 1) / sizeof(TChar);
-    static constexpr SizeT kSsoCap         = kSsoBufSize - 1;
+    static constexpr SizeT kSSOBufSize     = (kLayoutSize - 1) / sizeof(TChar);
+    static constexpr SizeT kSSOCap         = kSSOBufSize - 1;
 
     union RawData
     {
         struct
         {
-            TChar sso[kSsoBufSize];
+            TChar sso[kSSOBufSize];
         };
 
         struct
@@ -95,6 +95,13 @@ public:
         Resize(_count, _c);
     }
 
+    /* implicit */ BasicString(
+        const std::initializer_list<TChar> _list)
+    {
+        ResizeSSO_(0);
+        Set({ _list.begin(), static_cast<SizeT>(_list.size()) });
+    }
+
     BasicString(
         const BasicString& _other)
         : BasicString(_other.ToStringView())
@@ -151,6 +158,13 @@ public:
         return *this;
     }
 
+    BasicString& operator=(
+        const std::initializer_list<TChar> _list)
+    {
+        Set({ _list.begin(), static_cast<SizeT>(_list.size()) });
+        return *this;
+    }
+
     void Set(
         const StringViewT _str)
     {
@@ -161,7 +175,7 @@ public:
             GrowHeapIfNeed_(len);
             SetToHeap_(_str);
         }
-        else if (len > kSsoCap)   // change to heap
+        else if (len > kSSOCap)   // change to heap
         {
             InitHeap_(len * kGrowthFactor);
             SetToHeap_(_str);
@@ -252,7 +266,7 @@ public:
         }
         else
         {
-            if (_newCap > kSsoCap)
+            if (_newCap > kSSOCap)
             {
                 SSOToHeap_(_newCap);
             }
@@ -263,33 +277,13 @@ public:
         const SizeT _newLen,
         const CharT _c = CharTraits::kNullChar)
     {
-        const SizeT len = GetLength();
+        Resize_<true>(_newLen, _c);
+    }
 
-        // resize
-        if (IsHeap_())
-        {
-            GrowHeapIfNeed_(_newLen);
-            ResizeHeap_(_newLen);
-        }
-        else
-        {
-            if (_newLen > kSsoCap)
-            {
-                SSOToHeap_(_newLen * kGrowthFactor);
-                ResizeHeap_(_newLen);
-            }
-            else
-            {
-                ResizeSSO_(_newLen);
-            }
-        }
-
-        // fill
-        if (len < _newLen)
-        {
-            CharT* ptr = GetPtr();
-            std::fill(ptr + len, ptr + _newLen, _c);
-        }
+    void ResizeUninitialized(
+        const SizeT _newLen)
+    {
+        Resize_<false>(_newLen, CharTraits::kNullChar);
     }
 
     [[nodiscard]] bool IsEmpty() const
@@ -299,12 +293,12 @@ public:
 
     [[nodiscard]] SizeT GetLength() const
     {
-        return IsHeap_() ? m_str.heapLen : kSsoCap - m_str.bit;
+        return IsHeap_() ? m_str.heapLen : kSSOCap - m_str.bit;
     }
 
     [[nodiscard]] SizeT GetCapacity() const
     {
-        return IsHeap_() ? m_str.heapCap : kSsoCap;
+        return IsHeap_() ? m_str.heapCap : kSSOCap;
     }
 
     [[nodiscard]] const CharT* GetPtr() const
@@ -318,6 +312,43 @@ public:
     }
 
 private:
+    template<bool kbInitialize>
+    void Resize_(
+        const SizeT _newLen,
+        const CharT _c)
+    {
+        const SizeT len = GetLength();
+
+        // resize
+        if (IsHeap_())
+        {
+            GrowHeapIfNeed_(_newLen);
+            ResizeHeap_(_newLen);
+        }
+        else
+        {
+            if (_newLen > kSSOCap)
+            {
+                SSOToHeap_(_newLen * kGrowthFactor);
+                ResizeHeap_(_newLen);
+            }
+            else
+            {
+                ResizeSSO_(_newLen);
+            }
+        }
+
+        // initialize new chars if needed
+        if constexpr (kbInitialize)
+        {
+            if (len < _newLen)
+            {
+                CharT* ptr = GetPtr();
+                std::fill(ptr + len, ptr + _newLen, _c);
+            }
+        }
+    }
+
     void Free_() const
     {
         if (IsHeap_())
@@ -420,14 +451,14 @@ private:
     [[nodiscard]] SizeT GetLengthSSO_() const
     {
         JAM_ASSERT(IsSSO_(), "LengthOfSSO_: must be in stack mode to get stack data length.");
-        return kSsoCap - m_str.bit;
+        return kSSOCap - m_str.bit;
     }
 
     void SetToSSO_(
         const StringViewT _str)
     {
         JAM_ASSERT(IsSSO_(), "SetToStack: must be in stack mode to set stack data.");
-        JAM_ASSERT(_str.GetLength() <= kSsoCap, "SetToStack: _str length exceeds stack capacity.");
+        JAM_ASSERT(_str.GetLength() <= kSSOCap, "SetToStack: _str length exceeds stack capacity.");
 
         const SizeT len = _str.GetLength();
         ::memcpy(m_str.sso, _str.GetPtr(), len * sizeof(TChar));
@@ -437,9 +468,9 @@ private:
     void ResizeSSO_(
         const SizeT _len)
     {
-        JAM_ASSERT(_len <= kSsoCap, "ResizeSSO_: _len exceeds sso capacity.");
+        JAM_ASSERT(_len <= kSSOCap, "ResizeSSO_: _len exceeds sso capacity.");
         m_str.sso[_len] = CharTraits::kNullChar;
-        m_str.bit       = static_cast<Byte>(kSsoCap - _len);
+        m_str.bit       = static_cast<Byte>(kSSOCap - _len);
     }
 
     void AppendToSSO_(
@@ -448,7 +479,7 @@ private:
         const SizeT len = GetLengthSSO_();
 
         JAM_ASSERT(IsSSO_(), "AppendToSSO_: must be in stack mode to append to stack.");
-        JAM_ASSERT(_str.GetLength() + len <= kSsoCap, "AppendToSSO_: combined length exceeds stack capacity.");
+        JAM_ASSERT(_str.GetLength() + len <= kSSOCap, "AppendToSSO_: combined length exceeds stack capacity.");
 
         ::memcpy(m_str.sso + len, _str.GetPtr(), _str.GetLength() * sizeof(TChar));
         ResizeSSO_(len + _str.GetLength());
@@ -461,7 +492,7 @@ private:
         const SizeT len = GetLengthSSO_();
         JAM_ASSERT(IsSSO_(), "InsertToSSO_: must be in stack mode to insert to stack.");
         JAM_ASSERT(_pos <= len, "InsertToSSO_: _pos exceeds string length.");
-        JAM_ASSERT(_str.GetLength() + len <= kSsoCap, "InsertToSSO_: combined length exceeds stack capacity.");
+        JAM_ASSERT(_str.GetLength() + len <= kSSOCap, "InsertToSSO_: combined length exceeds stack capacity.");
 
         ::memmove(m_str.sso + _pos + _str.GetLength(), m_str.sso + _pos, (len - _pos) * sizeof(TChar));
         ::memcpy(m_str.sso + _pos, _str.GetPtr(), _str.GetLength() * sizeof(TChar));
@@ -472,7 +503,7 @@ private:
         const SizeT _newCap)
     {
         JAM_ASSERT(IsSSO_(), "SSOToHeap_: must be in stack mode to convert to heap.");
-        JAM_ASSERT(_newCap > kSsoCap, "SSOToHeap_: _newCap must be greater than stack capacity.");
+        JAM_ASSERT(_newCap > kSSOCap, "SSOToHeap_: _newCap must be greater than stack capacity.");
 
         TChar*      pHeap  = static_cast<TChar*>(Malloc((_newCap + 1) * sizeof(TChar)));
         const SizeT ssoLen = GetLengthSSO_();
@@ -497,7 +528,7 @@ private:
         ResizeSSO_(len - _count);
     }
 
-    RawData m_str;
+    RawData m_str;   // do not zero-initialize for performance.
 };
 
 using String  = BasicString<char>;

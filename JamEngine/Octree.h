@@ -6,19 +6,6 @@
 namespace Jam
 {
 
-struct OctreeDesc
-{
-    Vec3 minBaseExtents  = Vec3(4.f);      // 가장 작은 베이스 aabb extents. 이것보다 작게 분할하지 않음
-    Vec3 initBaseExtents = Vec3(1024.f);   // 초기 베이스 aabb extents
-
-    Int32 maxDepth                  = 8;
-    bool  bUseMaxDepthPolicy        = true;   // true: 분할 시 maxDepth 강제; false: minBaseExtents 도달 시까지 분할
-    bool  bIncreaseMaxDepthOnExpand = true;   // true: 확장 시 maxDepth 증가; false: maxDepth 유지 (확장 후 초과 노드 병합)
-
-    Int32 subdivisionThreshold = 16;    // 노드당 아이템 수가 이 값을 초과하면 분할
-    float looseFactor          = 2.f;   // loose factor (>= 1.f). 1.f = tight octree
-};
-
 template<typename TBoundingVolume, typename TIntersectFunc>
 concept IsOctreeIntersectFunc = requires(TBoundingVolume _bv, const Aabb& _aabb, TIntersectFunc&& _func) { { _func(_bv, _aabb) } -> std::convertible_to<bool>; };
 
@@ -27,6 +14,17 @@ concept IsOctreeCollectFunc = requires(Entity _entity, const TUserData& _userdat
 
 template<typename TUserData, typename TTraverseFunc>
 concept IsOctreeTraverseFunc = requires(Entity _entity, const Aabb& _aabb, const TUserData& _userdata, TTraverseFunc&& _func) { { _func(_entity, _aabb, _userdata) }; };
+
+struct OctreeInfo
+{
+    Vec3  minBaseExtents            = Vec3 { 4.f };      // 가장 작은 베이스 aabb extents. 이것보다 작게 분할하지 않음.
+    Vec3  initBaseExtents           = Vec3 { 1024.f };   // 초기 베이스 aabb extents.
+    Int32 maxDepth                  = 8;                 // 최대 깊이. 루트 노드의 깊이는 0. 이 값에 도달하면 더 이상 분할하지 않음.
+    bool  bUseMaxDepthPolicy        = true;              // true. 분할 시 maxDepth 강제, false. minBaseExtents 도달 시까지 분할
+    bool  bIncreaseMaxDepthOnExpand = true;              // true. 확장 시 maxDepth 증가, false. maxDepth 유지, 확장 후 깊이 초과 노드 병합
+    Int32 subdivisionThreshold      = 16;                // 노드당 아이템 수가 이 값을 초과하면 분할
+    float looseFactor               = 2.f;               // loose factor (>= 1.f). 1.f = tight octree
+};
 
 template<typename T>
 class Octree
@@ -115,18 +113,18 @@ class Octree
     };
 
 public:
-    explicit Octree(const OctreeDesc& _desc = {})
+    explicit Octree(const OctreeInfo& _info = {})
         : m_itemPool(2048)
         , m_nodePool(512)
-        , m_desc(_desc)
+        , m_info(_info)
     {
-        JAM_ASSERT(_desc.looseFactor >= 1.f, "looseFactor must be >= 1.f");
-        JAM_ASSERT(_desc.maxDepth >= 2, "maxDepth must be >= 2");
-        JAM_ASSERT(_desc.subdivisionThreshold > 0, "subdivisionThreshold must be > 0");
-        JAM_ASSERT(_desc.minBaseExtents.x > 1.f && _desc.minBaseExtents.y > 1.f && _desc.minBaseExtents.z > 1.f, "minBaseExtents must be > 1.f");
-        JAM_ASSERT(_desc.initBaseExtents.x >= _desc.minBaseExtents.x && _desc.initBaseExtents.y >= _desc.minBaseExtents.y && _desc.initBaseExtents.z >= _desc.minBaseExtents.z, "initBaseExtents must be >= minBaseExtents");
+        JAM_ASSERT(_info.looseFactor >= 1.f, "looseFactor must be >= 1.f");
+        JAM_ASSERT(_info.maxDepth >= 2, "maxDepth must be >= 2");
+        JAM_ASSERT(_info.subdivisionThreshold > 0, "subdivisionThreshold must be > 0");
+        JAM_ASSERT(_info.minBaseExtents.x > 1.f && _info.minBaseExtents.y > 1.f && _info.minBaseExtents.z > 1.f, "minBaseExtents must be > 1.f");
+        JAM_ASSERT(_info.initBaseExtents.x >= _info.minBaseExtents.x && _info.initBaseExtents.y >= _info.minBaseExtents.y && _info.initBaseExtents.z >= _info.minBaseExtents.z, "initBaseExtents must be >= minBaseExtents");
 
-        const Vec3 ext  = m_desc.initBaseExtents * m_desc.looseFactor;
+        const Vec3 ext  = m_info.initBaseExtents * m_info.looseFactor;
         const Aabb aabb = { Vec3::kZero, ext };
         m_pRoot         = MakeNode_(aabb);
         m_pRoot->depth  = 0;
@@ -234,7 +232,7 @@ public:
     {
         // 모든 아이템을 포함하는 서브트리를 탐색하고 새 루트로 승격
         // 옥트리는 initBaseExtents 보다 작아질 수 없음
-        const Vec3 minLooseExt = m_desc.initBaseExtents * m_desc.looseFactor;
+        const Vec3 minLooseExt = m_info.initBaseExtents * m_info.looseFactor;
         if (m_pRoot->items.empty() && m_pRoot->numItemsInTree > 0)
         {
             OcNode* pRootNode    = m_pRoot.GetPtr();
@@ -397,7 +395,7 @@ private:
 
         const Vec3 center        = _pNode->GetCenter();
         const Vec3 childLooseExt = _pNode->GetExtents() * 0.5f;
-        const Vec3 childBaseExt  = childLooseExt / m_desc.looseFactor;
+        const Vec3 childBaseExt  = childLooseExt / m_info.looseFactor;
 
         for (const eRegion region: RangesOf<eRegion>())
         {
@@ -421,18 +419,18 @@ private:
             return;
         }
 
-        if (static_cast<Int32>(_pNode->items.size()) <= m_desc.subdivisionThreshold)
+        if (static_cast<Int32>(_pNode->items.size()) <= m_info.subdivisionThreshold)
         {
             return;
         }
 
-        if (m_desc.bUseMaxDepthPolicy && _pNode->depth >= m_desc.maxDepth)
+        if (m_info.bUseMaxDepthPolicy && _pNode->depth >= m_info.maxDepth)
         {
             return;
         }
 
-        const Vec3 childBaseExt = (_pNode->GetExtents() * 0.5f) / m_desc.looseFactor;
-        if (childBaseExt.x < m_desc.minBaseExtents.x || childBaseExt.y < m_desc.minBaseExtents.y || childBaseExt.z < m_desc.minBaseExtents.z)
+        const Vec3 childBaseExt = (_pNode->GetExtents() * 0.5f) / m_info.looseFactor;
+        if (childBaseExt.x < m_info.minBaseExtents.x || childBaseExt.y < m_info.minBaseExtents.y || childBaseExt.z < m_info.minBaseExtents.z)
         {
             return;
         }
@@ -519,7 +517,7 @@ private:
 
         JAM_ASSERT(!m_pRoot->Contains(_aabb), "Root already contains the target AABB");
         const Vec3 center      = m_pRoot->GetCenter();
-        const Vec3 oldBaseExt  = m_pRoot->GetExtents() / m_desc.looseFactor;
+        const Vec3 oldBaseExt  = m_pRoot->GetExtents() / m_info.looseFactor;
         const Vec3 newLooseExt = m_pRoot->GetExtents() * 2.f;
 
         // _aabb 의 반대 방향 슬롯에 기존 루트를 배치.
@@ -579,11 +577,11 @@ private:
         m_pRoot                    = std::move(pNewRoot);
 
         // maxDepth 정책 처리
-        if (m_desc.bIncreaseMaxDepthOnExpand)
+        if (m_info.bIncreaseMaxDepthOnExpand)
         {
-            ++m_desc.maxDepth;
+            ++m_info.maxDepth;
         }
-        else if (m_desc.bUseMaxDepthPolicy)
+        else if (m_info.bUseMaxDepthPolicy)
         {
             MergeTooDeepChildren_Recursive_(m_pRoot.GetPtr());
         }
@@ -637,7 +635,7 @@ private:
             MergeTooDeepChildren_Recursive_(pChild.GetPtr());
         }
 
-        if (_pNode->depth >= m_desc.maxDepth)
+        if (_pNode->depth >= m_info.maxDepth)
         {
             for (const OcNodeScoped& pChild: _pNode->children)
             {
@@ -687,7 +685,7 @@ private:
 
     ObjectPool<OcItem>    m_itemPool;
     ObjectPool<OcNode>    m_nodePool;
-    OctreeDesc            m_desc      = {};
+    OctreeInfo            m_info      = {};
     OcNodeScoped          m_pRoot     = nullptr;
     HashMap<UID, OcItem*> m_itemCache = {};
 };

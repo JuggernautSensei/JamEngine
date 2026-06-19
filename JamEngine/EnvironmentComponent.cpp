@@ -202,15 +202,15 @@ void EnvironmentComponent::DrawEditPanel(
 
     //    // row: BRDF LUT texture
     //    {
-    //        Ref<Texture> pTexture = environment.GetIblBrdfLutTex();
+    //        Ref<Texture> pTexture = environment.GetIblBrdfLUTTex();
 
     //        ImGui::TableNextColumn();
-    //        Widget_Text("Brdf Lut texture", true);
+    //        Widget_Text("Brdf LUT texture", true);
     //        ImGui::TableNextColumn();
     //        SetNextItemToAvailWidth();
     //        if (Widget_TexturePicker("##IBLBrdfLUTTexture", pTexture))
     //        {
-    //            environment.SetIblBrdfLutTex(pTexture);
+    //            environment.SetIblBrdfLUTTex(pTexture);
     //        }
     //    }
 

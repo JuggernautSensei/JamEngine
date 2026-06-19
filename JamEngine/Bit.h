@@ -61,4 +61,20 @@ namespace Jam
     return (_value & 0x0000'0000'FFFF'FFFF) ? UInt32CountRZero(static_cast<UInt32>(_value)) : UInt32CountRZero(static_cast<UInt32>(_value >> 32)) + 32;
 }
 
+
+template<typename T>
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr T MakeMask(const T low, const T high)
+{
+    JAM_ASSERT(low <= high, "Low must be less than or equal to high");
+    JAM_ASSERT(high < static_cast<T>(sizeof(T) * 8), "High must be less than the number of bits in T");
+
+    // 1 << low 부터 1 << high 사이의 비트만 남기고 나머지는 제거합니다.
+    // ex) MakeMaskFromShift(4, 7) => 0b0000'0000'0000'0000'0000'0000'1111'0000
+
+    T lowMask  = (1 << low) - 1;
+    T highMask = (1 << (high + 1)) - 1;
+    return static_cast<T>(highMask & ~lowMask);
+}
+
 }   // namespace Jam

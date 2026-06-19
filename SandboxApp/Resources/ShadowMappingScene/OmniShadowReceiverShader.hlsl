@@ -11,22 +11,22 @@ struct PSInput
     float4 posC : TEXCOORD0; // for gbuffer sampling
 };
 
-float CalcHardShadow(float3 _sampleDir, float _normedDist, float _bias, float2 _offset = float2(0.f, 0.f))
+float CalcHardShadow(float3 _sampleDir, float _linearDist, float _bias, float2 _offset = float2(0.f, 0.f))
 {
     float3 uvl = CalcTextureArrayLocationFromDir(_sampleDir);
     uvl.xy += _offset;
     float closestDist = t_shadowMapArray.Sample(s_linearClamp, uvl).r;
-    return step(_normedDist - _bias, closestDist);
+    return step(_linearDist - _bias, closestDist);
 }
 
-float CalcSoftShadow(float3 _sampleDir, float _normedDist, float _bias, float2 _offset = float2(0.f, 0.f))
+float CalcSoftShadow(float3 _sampleDir, float _linearDist, float _bias, float2 _offset = float2(0.f, 0.f))
 {
     float3 uvl = CalcTextureArrayLocationFromDir(_sampleDir);
     uvl.xy += _offset;
-    return t_shadowMapArray.SampleCmpLevelZero(s_shadowComparison, uvl, _normedDist - _bias).r;
+    return t_shadowMapArray.SampleCmpLevelZero(s_shadowComparison, uvl, _linearDist - _bias).r;
 }
 
-float CalcPCF(int _filterSize, float3 _sampleDir, float _normedDist, float _bias)
+float CalcPCF(int _filterSize, float3 _sampleDir, float _linearDist, float _bias)
 {
     uint w, h, e;
     t_shadowMapArray.GetDimensions(w, h, e);
@@ -42,11 +42,11 @@ float CalcPCF(int _filterSize, float3 _sampleDir, float _normedDist, float _bias
             float2 offset = float2(i / (float) w, j / (float) h);
             if (cb_bUseComparisonSampler)
             {
-                shadow += CalcSoftShadow(_sampleDir, _normedDist, _bias, offset);
+                shadow += CalcSoftShadow(_sampleDir, _linearDist, _bias, offset);
             }
             else
             {
-                shadow += CalcHardShadow(_sampleDir, _normedDist, _bias, offset);
+                shadow += CalcHardShadow(_sampleDir, _linearDist, _bias, offset);
             }
         }
     }
@@ -109,38 +109,38 @@ float4 PSMain(PSInput input) : SV_TARGET
             shadowPosW += L * cb_shadowNormalOffset;
         }
 
-        float3 toLight = shadowPosW - cb_lightPos;
-        float lightDist = length(toLight);
-        float normedDist = lightDist / cb_lightFallOffEnd;
-        toLight /= lightDist;
+        float3 sampleDir = shadowPosW - cb_lightPos;
+        float lightDist = length(sampleDir);
+        float linearDist = lightDist / cb_lightFallOffEnd;
+        sampleDir /= lightDist;
 
         float shadow = 0.f;
         if (cb_shadowType == SHADOW_TYPE_HARD)
         {
-            shadow = CalcHardShadow(toLight, normedDist, cb_shadowBias);
+            shadow = CalcHardShadow(sampleDir, linearDist, cb_shadowBias);
         }
         else if (cb_shadowType == SHADOW_TYPE_PCF3)
         {
-            shadow = CalcPCF(3, toLight, normedDist, cb_shadowBias);
+            shadow = CalcPCF(3, sampleDir, linearDist, cb_shadowBias);
         }
         else if (cb_shadowType == SHADOW_TYPE_PCF5)
         {
-            shadow = CalcPCF(5, toLight, normedDist, cb_shadowBias);
+            shadow = CalcPCF(5, sampleDir, linearDist, cb_shadowBias);
         }
         else if (cb_shadowType == SHADOW_TYPE_PCF7)
         {
-            shadow = CalcPCF(7, toLight, normedDist, cb_shadowBias);
+            shadow = CalcPCF(7, sampleDir, linearDist, cb_shadowBias);
         }
         else if (cb_shadowType == SHADOW_TYPE_VSM)
         {
-            shadow = CalcVSM(toLight, lightDist);
+            shadow = CalcVSM(sampleDir, lightDist);
         }
 
         color *= shadow;
 
         if (cb_bRenderLightRegion)
         {
-            float3 uvl = CalcTextureArrayLocationFromDir(toLight);
+            float3 uvl = CalcTextureArrayLocationFromDir(sampleDir);
             uint l = uvl.z;
             if (l == 0)
             {

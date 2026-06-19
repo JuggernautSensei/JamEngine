@@ -8,7 +8,7 @@
 
 // rendering
 #include "RenderGraph.h"
-#include "ShaderCompiler.h"
+#include "ShaderBinary.h"
 #include "Camera.h"
 
 // scene

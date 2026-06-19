@@ -251,326 +251,331 @@ namespace
         return point;
     }
 
+    LoopSubdivisionResult LoopSubdivide_(
+        const Span<const Vec3> _positions,
+        const Span<const Vec2> _texcoordsOrEmpty,
+        const MemoryView       _indexData,
+        const bool             _bUseU32,
+        const Int32            _level)
+    {
+        JAM_ASSERT(!_positions.empty(), "position data is empty.");
+        JAM_ASSERT(!_indexData.IsEmpty(), "index data is empty.");
+        JAM_ASSERT(_level > 0, "Subdivision level must be greater than 0.");
+
+        MemoryArena arena { 1024 };
+
+        const IndexReader indexReader { _indexData, _bUseU32 };
+        const SizeT       numIdxes     = _indexData.GetByteWidth() / (_bUseU32 ? sizeof(UInt32) : sizeof(UInt16));
+        const SizeT       numFaces     = numIdxes / 3;
+        const bool        bHasTexCoord = !_texcoordsOrEmpty.empty();
+        JAM_ASSERT(!bHasTexCoord || _texcoordsOrEmpty.size() == _positions.size(), "Texture coordinate data size does not match position data size.");
+
+        // 버텍스 및 페이스
+        Vector<SDVertex*> verts = {};
+        verts.reserve(_positions.size());
+
+        Vector<SDFace*> faces = {};
+        faces.reserve(numFaces);
+
+        // 초기 데이터 삽입
+        for (SizeT i = 0; i < _positions.size(); ++i)
+        {
+            SDVertex* pVert = arena.New<SDVertex>();
+
+            pVert->point.position = _positions[i];
+            if (bHasTexCoord)
+            {
+                pVert->point.texcoord = _texcoordsOrEmpty[i];
+            }
+
+            verts.emplace_back(pVert);
+        }
+
+        // 초기 데이터 삽입
+        for (SizeT i = 0; i < numFaces; ++i)
+        {
+            faces.emplace_back(arena.New<SDFace>());
+        }
+
+        // 페이스의 버텍스 정보 설정
+        for (SizeT i = 0; i < numFaces; ++i)
+        {
+            SDFace* pFace = faces[i];
+            for (SizeT j = 0; j < 3; ++j)
+            {
+                const UInt32 index = indexReader.ReadAt<UInt32>(i * 3 + j);
+                SDVertex*    pVert = verts[index];
+                pFace->pVerts[j]   = pVert;
+                pVert->pStartFace  = pFace;   // 임의의 면 설정
+            }
+        }
+
+        // 엣지 정보 설정
+        HashSet<SDEdge, SDEdgeHash, SDEdgeEqual> edgeSet = {};
+        for (SizeT i = 0; i < numFaces; ++i)
+        {
+            SDFace* pFace = faces[i];
+            for (SizeT j = 0; j < 3; ++j)
+            {
+                const SizeT v0 = j;
+                const SizeT v1 = (j + 1) % 3;
+
+                SDEdge edge    = {};
+                edge.pVerts[0] = Min(pFace->pVerts[v0], pFace->pVerts[v1]);
+                edge.pVerts[1] = Max(pFace->pVerts[v0], pFace->pVerts[v1]);
+
+                const auto it = edgeSet.find(edge);
+                if (it == edgeSet.end())
+                {
+                    // 새로운 엣지
+                    edge.pFaces[0]    = pFace;
+                    edge.face0EdgeNum = static_cast<Int32>(j);
+                    edgeSet.insert(edge);
+                }
+                else
+                {
+                    // 중복 엣지
+                    edge                                      = *it;
+                    edge.pFaces[0]->pFaces[edge.face0EdgeNum] = pFace;            // 양쪽 면 연결
+                    pFace->pFaces[j]                          = edge.pFaces[0];   // 양쪽 면 연결
+                    edgeSet.erase(edge);
+                }
+            }
+        }
+
+        // 버텍스의 경계 및 regular 정보 설정
+        for (SizeT i = 0; i < _positions.size(); ++i)
+        {
+            SDVertex* pVert = verts[i];
+            SDFace*   pFace = pVert->pStartFace;
+            do
+            {
+                pFace = pFace->GetNextFace(pVert);
+            } while (pFace && pFace != pVert->pStartFace);
+
+            pVert->bBoundary = (pFace == nullptr);
+            pVert->bRegular  = (!pVert->bBoundary && pVert->CalcValence() == 6) || (pVert->bBoundary && pVert->CalcValence() == 4);
+        }
+
+        // 세분화 수행
+        for (Int32 i = 0; i < _level; ++i)
+        {
+            Vector<SDFace*> newFaces = {};
+            newFaces.reserve(faces.size() * 4);   // 대략적인 크기 예약
+
+            Vector<SDVertex*> newVerts = {};
+            newVerts.reserve(verts.size() * 2);   // 대략적인 크기 예약
+
+            // 새로운 버텍스 및 페이스 생성
+            for (SDVertex* pVert: verts)
+            {
+                pVert->pChildVert            = arena.New<SDVertex>();
+                pVert->pChildVert->bRegular  = pVert->bRegular;
+                pVert->pChildVert->bBoundary = pVert->bBoundary;
+                newVerts.emplace_back(pVert->pChildVert);
+            }
+
+            // 자식 페이스 생성
+            for (SDFace* pFace: faces)
+            {
+                for (Int32 k = 0; k < 4; ++k)
+                {
+                    pFace->pChildFaces[k] = arena.New<SDFace>();
+                    newFaces.emplace_back(pFace->pChildFaces[k]);
+                }
+            }
+
+            // even 버텍스 위치 계산
+            for (SDVertex* pVert: verts)
+            {
+                if (pVert->bBoundary)
+                {
+                    pVert->pChildVert->point = WeightBoundary(pVert, 1.f / 8.f);
+                }
+                else
+                {
+                    pVert->pChildVert->point = pVert->bRegular ? WeightOneRing(pVert, 1.f / 16.f)
+                                                               : WeightOneRing(pVert, Beta(pVert->CalcValence()));
+                }
+            }
+
+            // odd 에지 버텍스 위치 계산
+            HashMap<SDEdge, SDVertex*, SDEdgeHash, SDEdgeEqual> edgeVertMap = {};
+            for (SDFace* pFace: faces)
+            {
+                for (Int32 k = 0; k < 3; ++k)
+                {
+                    SDEdge edge    = {};
+                    edge.pVerts[0] = Min(pFace->pVerts[k], pFace->pVerts[(k + 1) % 3]);
+                    edge.pVerts[1] = Max(pFace->pVerts[k], pFace->pVerts[(k + 1) % 3]);
+
+                    SDVertex* pVert = edgeVertMap[edge];
+                    if (!pVert)
+                    {
+                        // odd 버텍스 생성
+                        pVert = arena.New<SDVertex>();
+                        newVerts.emplace_back(pVert);
+                        pVert->bRegular   = true;
+                        pVert->bBoundary  = (pFace->pFaces[k] == nullptr);
+                        pVert->pStartFace = pFace->pChildFaces[3];
+
+                        // odd 버텍스 위치 계산
+                        const SDVertex* v0 = edge.pVerts[0];
+                        const SDVertex* v1 = edge.pVerts[1];
+
+                        if (pVert->bBoundary)
+                        {
+                            pVert->point = (v0->point + v1->point) * 0.5f;
+                        }
+                        else
+                        {
+                            const SDVertex* vOther    = pFace->GetOtherVertex(v0, v1);
+                            const SDVertex* vOpposite = pFace->pFaces[k]->GetOtherVertex(v0, v1);
+                            pVert->point              = (v0->point + v1->point) * (3.f / 8.f) + (vOther->point + vOpposite->point) * (1.f / 8.f);
+                        }
+                        edgeVertMap[edge] = pVert;
+                    }
+                }
+            }
+
+            for (SDVertex* pVert: verts)
+            {
+                const Int32 index             = pVert->pStartFace->CalcVertexIndex(pVert);
+                pVert->pChildVert->pStartFace = pVert->pStartFace->pChildFaces[index];
+            }
+
+            for (SDFace* pFace: faces)
+            {
+                for (Int32 j = 0; j < 3; ++j)
+                {
+                    pFace->pChildFaces[3]->pFaces[j]           = pFace->pChildFaces[(j + 1) % 3];
+                    pFace->pChildFaces[j]->pFaces[(j + 1) % 3] = pFace->pChildFaces[3];
+
+                    SDFace* f2                                 = pFace->pFaces[j];
+                    pFace->pChildFaces[j]->pFaces[j]           = f2 ? f2->pChildFaces[f2->CalcVertexIndex(pFace->pVerts[j])] : nullptr;
+                    f2                                         = pFace->pFaces[(j + 2) % 3];
+                    pFace->pChildFaces[j]->pFaces[(j + 2) % 3] = f2 ? f2->pChildFaces[f2->CalcVertexIndex(pFace->pVerts[j])] : nullptr;
+                }
+            }
+
+            for (SDFace* pFace: faces)
+            {
+                for (Int32 j = 0; j < 3; ++j)
+                {
+                    pFace->pChildFaces[j]->pVerts[j] = pFace->pVerts[j]->pChildVert;
+
+                    SDEdge edge    = {};
+                    edge.pVerts[0] = Min(pFace->pVerts[j], pFace->pVerts[(j + 1) % 3]);
+                    edge.pVerts[1] = Max(pFace->pVerts[j], pFace->pVerts[(j + 1) % 3]);
+
+                    SDVertex* pVert                            = edgeVertMap[edge];
+                    pFace->pChildFaces[j]->pVerts[(j + 1) % 3] = pVert;
+                    pFace->pChildFaces[(j + 1) % 3]->pVerts[j] = pVert;
+                    pFace->pChildFaces[3]->pVerts[j]           = pVert;
+                }
+            }
+
+            verts.swap(newVerts);
+            faces.swap(newFaces);
+        }
+
+        // 최종 위치 보정
+        Vector<SDPoint> limits = {};
+        limits.reserve(verts.size());
+        for (SizeT i = 0; i < verts.size(); ++i)
+        {
+            const SDVertex* pVert = verts[i];
+            if (pVert->bBoundary)
+            {
+                limits.emplace_back(WeightBoundary(verts[i], 1.f / 5.f));
+            }
+            else
+            {
+                limits.emplace_back(WeightOneRing(verts[i], LoopGamma(verts[i]->CalcValence())));
+            }
+        }
+
+        // 위치 적용
+        for (SizeT i = 0; i < verts.size(); ++i)
+        {
+            verts[i]->point = limits[i];
+        }
+
+        // 포지션 및 Texcoord 배열 생성
+        Vector<Vec3> finalPositions = {};
+        finalPositions.reserve(verts.size());
+
+        Vector<Vec2> finalTexcoords = {};
+        if (bHasTexCoord)
+        {
+            finalTexcoords.reserve(verts.size());
+        }
+
+        for (SizeT i = 0; i < verts.size(); ++i)
+        {
+            finalPositions.emplace_back(verts[i]->point.position);
+
+            if (bHasTexCoord)
+            {
+                finalTexcoords.emplace_back(verts[i]->point.texcoord);
+            }
+        }
+
+        // 인덱스 배열 생성
+        const bool  bUseU32           = Greater(verts.size(), Limits<UInt16>::kHighest);
+        const SizeT finalNumIdxes     = faces.size() * 3;
+        const SizeT finalIdxByteWidth = finalNumIdxes * (bUseU32 ? sizeof(UInt32) : sizeof(UInt16));
+
+        // 버텍스 맵 생성
+        HashMap<SDVertex*, UInt32> usedVertsMap = {};
+        for (SizeT i = 0; i < verts.size(); ++i)
+        {
+            usedVertsMap[verts[i]] = static_cast<UInt32>(i);
+        }
+
+        // 인덱스 버퍼 생성
+        Vector<Byte> finalIdxData(finalIdxByteWidth);
+        IndexWriter  indexWriter { finalIdxData, bUseU32 };
+        for (SizeT i = 0; i < faces.size(); ++i)
+        {
+            for (SizeT j = 0; j < 3; ++j)
+            {
+                const UInt32 index = usedVertsMap[faces[i]->pVerts[j]];
+                JAM_ASSERT(bUseU32 || index <= Limits<UInt16>::kHighest, "Index exceeds UInt16 limit.");
+                indexWriter.WriteAt(i * 3 + j, index);
+            }
+        }
+
+        LoopSubdivisionResult result = {};
+        result.positions             = std::move(finalPositions);
+        result.texcoords             = std::move(finalTexcoords);
+        result.indices               = std::move(finalIdxData);
+        result.bUseU32               = bUseU32;
+        return result;
+    }
+
 }   // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-LoopSubdivisionOutput LoopSubdivide(
+LoopSubdivisionResult LoopSubdivide(
     const Span<const Vec3> _positions,
     const MemoryView       _indexData,
     const bool             _bUseU32,
     const Int32            _level)
 {
-    LoopSubdivisionOutputWithTexcoords result = LoopSubdivide(_positions, {}, _indexData, _bUseU32, _level);
-
-    LoopSubdivisionOutput output = {};
-    output.positions             = std::move(result.positions);
-    output.indices               = std::move(result.indices);
-    output.bUseU32               = result.bUseU32;
-    return output;
+    return LoopSubdivide_(_positions, {}, _indexData, _bUseU32, _level);
 }
 
-LoopSubdivisionOutputWithTexcoords LoopSubdivide(
-    Span<const Vec3> _positions,
-    Span<const Vec2> _texcoordsOrEmpty,   // or empty
-    MemoryView       _indexData,
-    bool             _bUseU32,
-    Int32            _level)
+LoopSubdivisionResult LoopSubdivide(
+    const Span<const Vec3> _positions,
+    const Span<const Vec2> _texcoords,
+    const MemoryView       _indexData,
+    const bool             _bUseU32,
+    const Int32            _level)
 {
-    JAM_ASSERT(!_positions.empty(), "position data is empty.");
-    JAM_ASSERT(_level > 0, "Subdivision level must be greater than 0.");
-
-    MemoryArena arena { 1024 };   // 메모리 아레나
-
-    const IndexReader indexReader { _indexData, _bUseU32 };
-    const Int32       numVerts     = static_cast<Int32>(_positions.size());
-    const Int32       numIdxes     = CalcNumIndices(_indexData, _bUseU32);
-    const Int32       numFaces     = numIdxes / 3;
-    const bool        bHasTexCoord = !_texcoordsOrEmpty.empty();
-
-    // 버텍스 및 페이스
-    Vector<SDVertex*> verts = {};
-    verts.reserve(numVerts);
-
-    Vector<SDFace*> faces = {};
-    faces.reserve(numFaces);
-
-    // 초기 데이터 삽입
-    for (Int32 i = 0; i < numVerts; ++i)
-    {
-        SDVertex* pVert = arena.New<SDVertex>();
-
-        pVert->point.position = _positions[i];
-        if (bHasTexCoord)
-        {
-            pVert->point.texcoord = _texcoordsOrEmpty[i];
-        }
-
-        verts.emplace_back(pVert);
-    }
-
-    // 초기 데이터 삽입
-    for (Int32 i = 0; i < numFaces; ++i)
-    {
-        faces.emplace_back(arena.New<SDFace>());
-    }
-
-    // 페이스의 버텍스 정보 설정
-    for (Int32 i = 0; i < numFaces; ++i)
-    {
-        SDFace* pFace = faces[i];
-        for (Int32 j = 0; j < 3; ++j)
-        {
-            const UInt32 index   = indexReader.ReadAt<UInt32>(i * 3 + j);
-            SDVertex*    pVert = verts[index];
-            pFace->pVerts[j]   = pVert;
-            pVert->pStartFace  = pFace;   // 임의의 면 설정
-        }
-    }
-
-    // 엣지 정보 설정
-    HashSet<SDEdge, SDEdgeHash, SDEdgeEqual> edgeSet = {};
-    for (Int32 i = 0; i < numFaces; ++i)
-    {
-        SDFace* pFace = faces[i];
-        for (Int32 j = 0; j < 3; ++j)
-        {
-            const Int32 v0 = j;
-            const Int32 v1 = (j + 1) % 3;
-
-            SDEdge edge    = {};
-            edge.pVerts[0] = Min(pFace->pVerts[v0], pFace->pVerts[v1]);
-            edge.pVerts[1] = Max(pFace->pVerts[v0], pFace->pVerts[v1]);
-
-            const auto it = edgeSet.find(edge);
-            if (it == edgeSet.end())
-            {
-                // 새로운 엣지
-                edge.pFaces[0]    = pFace;
-                edge.face0EdgeNum = j;
-                edgeSet.insert(edge);
-            }
-            else
-            {
-                // 중복 엣지
-                edge                                      = *it;
-                edge.pFaces[0]->pFaces[edge.face0EdgeNum] = pFace;            // 양쪽 면 연결
-                pFace->pFaces[j]                          = edge.pFaces[0];   // 양쪽 면 연결
-                edgeSet.erase(edge);
-            }
-        }
-    }
-
-    // 버텍스의 경계 및 regular 정보 설정
-    for (Int32 i = 0; i < numVerts; ++i)
-    {
-        SDVertex* pVert = verts[i];
-        SDFace*   pFace = pVert->pStartFace;
-        do
-        {
-            pFace = pFace->GetNextFace(pVert);
-        } while (pFace && pFace != pVert->pStartFace);
-
-        pVert->bBoundary = (pFace == nullptr);
-        pVert->bRegular  = (!pVert->bBoundary && pVert->CalcValence() == 6)
-                       || (pVert->bBoundary && pVert->CalcValence() == 4);
-    }
-
-    // 세분화 수행
-    for (Int32 i = 0; i < _level; ++i)
-    {
-        Vector<SDFace*> newFaces = {};
-        newFaces.reserve(faces.size() * 4);   // 대략적인 크기 예약
-
-        Vector<SDVertex*> newVerts = {};
-        newVerts.reserve(verts.size() * 2);   // 대략적인 크기 예약
-
-        // 새로운 버텍스 및 페이스 생성
-        for (SDVertex* pVert: verts)
-        {
-            pVert->pChildVert            = arena.New<SDVertex>();
-            pVert->pChildVert->bRegular  = pVert->bRegular;
-            pVert->pChildVert->bBoundary = pVert->bBoundary;
-            newVerts.emplace_back(pVert->pChildVert);
-        }
-
-        // 자식 페이스 생성
-        for (SDFace* pFace: faces)
-        {
-            for (Int32 k = 0; k < 4; ++k)
-            {
-                pFace->pChildFaces[k] = arena.New<SDFace>();
-                newFaces.emplace_back(pFace->pChildFaces[k]);
-            }
-        }
-
-        // even 버텍스 위치 계산
-        for (SDVertex* pVert: verts)
-        {
-            if (pVert->bBoundary)
-            {
-                pVert->pChildVert->point = WeightBoundary(pVert, 1.f / 8.f);
-            }
-            else
-            {
-                pVert->pChildVert->point = pVert->bRegular ? WeightOneRing(pVert, 1.f / 16.f)
-                                                           : WeightOneRing(pVert, Beta(pVert->CalcValence()));
-            }
-        }
-
-        // odd 에지 버텍스 위치 계산
-        HashMap<SDEdge, SDVertex*, SDEdgeHash, SDEdgeEqual> edgeVertMap = {};
-        for (SDFace* pFace: faces)
-        {
-            for (Int32 k = 0; k < 3; ++k)
-            {
-                SDEdge edge    = {};
-                edge.pVerts[0] = Min(pFace->pVerts[k], pFace->pVerts[(k + 1) % 3]);
-                edge.pVerts[1] = Max(pFace->pVerts[k], pFace->pVerts[(k + 1) % 3]);
-
-                SDVertex* pVert = edgeVertMap[edge];
-                if (!pVert)
-                {
-                    // odd 버텍스 생성
-                    pVert = arena.New<SDVertex>();
-                    newVerts.emplace_back(pVert);
-                    pVert->bRegular   = true;
-                    pVert->bBoundary  = (pFace->pFaces[k] == nullptr);
-                    pVert->pStartFace = pFace->pChildFaces[3];
-
-                    // odd 버텍스 위치 계산
-                    const SDVertex* v0 = edge.pVerts[0];
-                    const SDVertex* v1 = edge.pVerts[1];
-
-                    if (pVert->bBoundary)
-                    {
-                        pVert->point = (v0->point + v1->point) * 0.5f;
-                    }
-                    else
-                    {
-                        const SDVertex* vOther    = pFace->GetOtherVertex(v0, v1);
-                        const SDVertex* vOpposite = pFace->pFaces[k]->GetOtherVertex(v0, v1);
-                        pVert->point              = (v0->point + v1->point) * (3.f / 8.f) + (vOther->point + vOpposite->point) * (1.f / 8.f);
-                    }
-                    edgeVertMap[edge] = pVert;
-                }
-            }
-        }
-
-        for (SDVertex* pVert: verts)
-        {
-            const Int32 index               = pVert->pStartFace->CalcVertexIndex(pVert);
-            pVert->pChildVert->pStartFace = pVert->pStartFace->pChildFaces[index];
-        }
-
-        for (SDFace* pFace: faces)
-        {
-            for (Int32 j = 0; j < 3; ++j)
-            {
-                pFace->pChildFaces[3]->pFaces[j]           = pFace->pChildFaces[(j + 1) % 3];
-                pFace->pChildFaces[j]->pFaces[(j + 1) % 3] = pFace->pChildFaces[3];
-
-                SDFace* f2                                 = pFace->pFaces[j];
-                pFace->pChildFaces[j]->pFaces[j]           = f2 ? f2->pChildFaces[f2->CalcVertexIndex(pFace->pVerts[j])] : nullptr;
-                f2                                         = pFace->pFaces[(j + 2) % 3];
-                pFace->pChildFaces[j]->pFaces[(j + 2) % 3] = f2 ? f2->pChildFaces[f2->CalcVertexIndex(pFace->pVerts[j])] : nullptr;
-            }
-        }
-
-        for (SDFace* pFace: faces)
-        {
-            for (Int32 j = 0; j < 3; ++j)
-            {
-                pFace->pChildFaces[j]->pVerts[j] = pFace->pVerts[j]->pChildVert;
-
-                SDEdge edge;
-                edge.pVerts[0] = Min(pFace->pVerts[j], pFace->pVerts[(j + 1) % 3]);
-                edge.pVerts[1] = Max(pFace->pVerts[j], pFace->pVerts[(j + 1) % 3]);
-
-                SDVertex* pVert                            = edgeVertMap[edge];
-                pFace->pChildFaces[j]->pVerts[(j + 1) % 3] = pVert;
-                pFace->pChildFaces[(j + 1) % 3]->pVerts[j] = pVert;
-                pFace->pChildFaces[3]->pVerts[j]           = pVert;
-            }
-        }
-
-        verts.swap(newVerts);
-        faces.swap(newFaces);
-    }
-
-    // 최종 위치 보정
-    const Int32 finalNumVerts = static_cast<Int32>(verts.size());
-
-    Vector<SDPoint> limits = {};
-    limits.reserve(finalNumVerts);
-    for (Int32 i = 0; i < finalNumVerts; ++i)
-    {
-        const SDVertex* pVert = verts[i];
-        if (pVert->bBoundary)
-        {
-            limits.emplace_back(WeightBoundary(verts[i], 1.f / 5.f));
-        }
-        else
-        {
-            limits.emplace_back(WeightOneRing(verts[i], LoopGamma(verts[i]->CalcValence())));
-        }
-    }
-
-    // 위치 적용
-    for (Int32 i = 0; i < finalNumVerts; ++i)
-    {
-        verts[i]->point = limits[i];
-    }
-
-    // 포지션 + texCoord 배열 생성
-    Vector<Vec3> finalPositions = {};
-    finalPositions.reserve(finalNumVerts);
-
-    Vector<Vec2> finalTexcoords = {};
-    finalTexcoords.reserve(finalNumVerts);
-
-    for (Int32 i = 0; i < finalNumVerts; ++i)
-    {
-        finalPositions.emplace_back(verts[i]->point.position);
-        finalTexcoords.emplace_back(verts[i]->point.texcoord);
-    }
-
-    // 인덱스 배열 생성
-    const Int32 finalNumFaces     = static_cast<Int32>(faces.size());
-    const bool  bUseU32           = finalNumVerts > Limits<UInt16>::kHighest;
-    const Int32 finalNumIdxes     = finalNumFaces * 3;
-    const Int32 finalIdxByteWidth = CalcIndicesByteWidth(finalNumIdxes, bUseU32);
-
-    struct TangentFrame
-    {
-        Vector<Vec3> tangents;
-        Vector<Vec3> bitangents;
-    };
-    // 버텍스 맵 생성
-    HashMap<SDVertex*, Int32> usedVertsMap = {};
-    for (Int32 i = 0; i < finalNumVerts; ++i)
-    {
-        usedVertsMap[verts[i]] = i;
-    }
-
-    // 인덱스 버퍼
-    Vector<Byte> finalIdxData(finalIdxByteWidth);
-    IndexWriter  indexWriter { finalIdxData, bUseU32 };
-    for (Int32 i = 0; i < finalNumFaces; ++i)
-    {
-        for (Int32 j = 0; j < 3; ++j)
-        {
-            const Int32 index = usedVertsMap[faces[i]->pVerts[j]];
-            indexWriter.WriteAt(i * 3 + j, index);
-        }
-    }
-
-    LoopSubdivisionOutputWithTexcoords output = {};
-    output.positions                          = std::move(finalPositions);
-    output.texcoords                          = std::move(finalTexcoords);
-    output.indices                            = std::move(finalIdxData);
-    output.bUseU32                            = bUseU32;
-    return output;
+    JAM_ASSERT(!_texcoords.empty(), "Texture coordinate data is empty.");
+    return LoopSubdivide_(_positions, _texcoords, _indexData, _bUseU32, _level);
 }
 
 }   // namespace Jam

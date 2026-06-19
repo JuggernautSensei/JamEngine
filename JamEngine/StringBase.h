@@ -408,15 +408,6 @@ public:
     ////////// conversion //////////
 
     template<typename T>
-        requires std::is_arithmetic_v<T>
-    [[nodiscard]] static TString ConvertedFrom(const T _value)
-    {
-        TChar       buffer[64];
-        const SizeT len = CharTraits::AsString(_value, buffer, sizeof(buffer));
-        return { buffer, len };
-    }
-
-    template<typename T>
         requires std::is_integral_v<T>
     [[nodiscard]] Optional<T> ParseAs(const Int32 _base = 10) const
     {
@@ -437,9 +428,9 @@ public:
         const BasicStringView<UChar> _str)
     {
         using CharEncoder = CharEncoder<UChar, TChar>;
-        const SizeT len   = CharEncoder::CalcRequiredBufferSize(_str.GetPtr(), _str.GetLength());
-        Self_().Resize(len);
-        CharEncoder::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr(), len + 1);
+        const SizeT len   = CharEncoder::Encode(_str.GetPtr(), _str.GetLength(), nullptr, 0);
+        Self_().ResizeUninitialized(len);
+        CharEncoder::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr(), len);
     }
 
     template<IsCharT UChar>
@@ -473,10 +464,10 @@ public:
         const BasicStringView<UChar> _str)
     {
         using CharEncoder  = CharEncoder<UChar, TChar>;
-        const SizeT len    = CharEncoder::CalcRequiredBufferSize(_str.GetPtr(), _str.GetLength());
+        const SizeT len    = CharEncoder::Encode(_str.GetPtr(), _str.GetLength(), nullptr, 0);
         const SizeT oldLen = Self_().GetLength();
-        Self_().Resize(oldLen + len);
-        CharEncoder ::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr() + oldLen, len + 1);
+        Self_().ResizeUninitialized(oldLen + len);
+        CharEncoder::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr() + oldLen, len);
     }
 
     template<IsCharT UChar>
@@ -510,11 +501,11 @@ public:
         const BasicStringView<UChar> _str)
     {
         using CharEncoder  = CharEncoder<UChar, TChar>;
-        const SizeT len    = CharEncoder::CalcRequiredBufferSize(_str.GetPtr(), _str.GetLength());
+        const SizeT len    = CharEncoder::Encode(_str.GetPtr(), _str.GetLength(), nullptr, 0);
         const SizeT oldLen = Self_().GetLength();
-        Self_().Resize(oldLen + len);
+        Self_().ResizeUninitialized(oldLen + len);
         std::memmove(Self_().GetPtr() + _pos + len, Self_().GetPtr() + _pos, (oldLen - _pos) * sizeof(TChar));
-        CharEncoder ::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr() + _pos, len + 1);
+        CharEncoder::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr() + _pos, len);
     }
 
     template<IsCharT UChar>
@@ -705,16 +696,20 @@ public:
 
     void Simplify()
     {
-        // simplified dir is shorter or equal to the original dir, so it won't cause heap to grow if it's already in heap mode.
-        TChar       buf[512];
-        const SizeT len = CharTraits::Simplify(Self_().GetPtr(), Self_().GetLength(), buf, CountOf(buf));
-        Set(buf, len);
+        TChar*      ptr = static_cast<TChar*>(JAM_STACK_ALLOC(sizeof(TChar) * Self_().GetLength()));
+        const SizeT len = CharTraits::Simplify(Self_().GetPtr(), Self_().GetLength(), ptr, Self_().GetLength());
+        Set(ptr, len);
     }
 
     void Join(
         const TStringView _str,
         eJoin             _type = eJoin::Auto)
     {
+        if (_str.IsEmpty())
+        {
+            return;
+        }
+
         _type = (_type == eJoin::Auto) ? (_str.IsDirectory() ? eJoin::Directory : eJoin::File) : _type;
 
         if (IsEmpty())
@@ -723,21 +718,21 @@ public:
             return;
         }
 
-        if (!CharTraits::IsPathSeparator(Back()) && !_str.IsEmpty() && !CharTraits::IsPathSeparator(_str.Front()))
+        if (Back() != CharTraits::kPreferredSeparator && _str.Front() != CharTraits::kPreferredSeparator)
         {
-            Append(CharTraits::kPathPreferredSeparator);
+            Append(CharTraits::kPreferredSeparator);
         }
 
         Self_().Append(_str);
-        if (_type == eJoin::Directory && !CharTraits::IsPathSeparator(Back()))
+        if (_type == eJoin::Directory && Back() != CharTraits::kPreferredSeparator)
         {
-            Append(CharTraits::kPathPreferredSeparator);
+            Append(CharTraits::kPreferredSeparator);
         }
 
         if (_type == eJoin::File)
         {
             SizeT end = Self_().GetLength();
-            while (end > 0 && CharTraits::IsPathSeparator(operator[](end - 1)))
+            while (end > 0 && operator[](end - 1) == CharTraits::kPreferredSeparator)
             {
                 --end;
             }
@@ -840,8 +835,7 @@ public:
         return result;
     }
 
-    ////////// std glue //////////
-
+public:   // for STL
     using value_type     = TChar;
     using iterator       = Iter;
     using const_iterator = ConstIter;

@@ -46,7 +46,7 @@ Error FileWatcher::Init_(
 {
     JAM_ASSERT(_info.FileWatcherListener, "FileWatcherListener cannot be null.");
 
-    m_watchPath        = FileSystem::Absolute(_info.path);
+    m_watchPath        = FS::Absolute(_info.path);
     const WString path = WString::Encoded(m_watchPath.ToStringView());
 
     m_dirHandle = ::CreateFileW(
@@ -61,7 +61,7 @@ Error FileWatcher::Init_(
     if (m_dirHandle == INVALID_HANDLE_VALUE)
     {
         JAM_LOG_ERROR("Failed to create file watcher for '{}': {}", _info.path, MakeWindowsLastErrorMessage());
-        return ErrorFromPlatformErrorCode(::GetLastError());
+        return ErrorFromWindowsErrorCode(::GetLastError());
     }
 
     m_bRecursive          = _info.bRecursive;
@@ -95,10 +95,6 @@ void FileWatcher::Run_()
             DWORD                    offset = 0;
 
             FileWatcherEvent event = {};
-            event.path             = m_watchPath;
-
-            String path    = {};
-            String oldPath = {};
 
             do
             {
@@ -110,19 +106,17 @@ void FileWatcher::Run_()
                 {
                     case FILE_ACTION_ADDED:
                     {
-                        path.Encode(pInfo->FileName, len);
-                        event.type    = eFileEvent::Added;
-                        event.path    = path;
-                        event.oldPath = {};
+                        event.type = eFileEvent::Added;
+                        event.path = m_watchPath;
+                        event.path.Encode(pInfo->FileName, len);
                     }
                     break;
 
                     case FILE_ACTION_REMOVED:
                     {
-                        path.Encode(pInfo->FileName, len);
-                        event.type    = eFileEvent::Deleted;
-                        event.path    = path;
-                        event.oldPath = {};
+                        event.type = eFileEvent::Deleted;
+                        event.path = m_watchPath;
+                        event.path.Encode(pInfo->FileName, len);
                     }
                     break;
 
@@ -131,26 +125,25 @@ void FileWatcher::Run_()
                         // 다른 파일이 수정 중일 수 있으므로, 조금 지연
                         std::this_thread::sleep_for(std::chrono::milliseconds { m_fileModifiedEventDebounce });
 
-                        path.Encode(pInfo->FileName, len);
-                        event.type    = eFileEvent::Modified;
-                        event.path    = path;
-                        event.oldPath = {};
+                        event.type = eFileEvent::Modified;
+                        event.path = m_watchPath;
+                        event.path.Encode(pInfo->FileName, len);
                     }
                     break;
 
                     case FILE_ACTION_RENAMED_OLD_NAME:
                     {
-                        oldPath.Encode(pInfo->FileName, len);
+                        event.oldPath = m_watchPath;
+                        event.oldPath.Encode(pInfo->FileName, len);
                         bDispatch = false;   // dispatch in FILE_ACTION_RENAMED_NEW_NAME case
                     }
                     break;
 
                     case FILE_ACTION_RENAMED_NEW_NAME:
                     {
-                        path.Encode(pInfo->FileName, len);
-                        event.type    = eFileEvent::Renamed;
-                        event.path    = path;
-                        event.oldPath = oldPath;
+                        event.type = eFileEvent::Renamed;
+                        event.path = m_watchPath;
+                        event.path.Encode(pInfo->FileName, len);
                     }
                     break;
 
@@ -164,6 +157,7 @@ void FileWatcher::Run_()
                 }
 
                 offset += pInfo->NextEntryOffset;
+
             } while (pInfo->NextEntryOffset != 0);
         }
 

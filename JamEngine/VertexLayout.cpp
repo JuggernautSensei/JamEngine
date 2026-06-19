@@ -16,28 +16,28 @@ VertexLayout& VertexLayout::Add(
 {
     JAM_ASSERT(!Has(_attrib), "vertex attribute cannot be added twice.");
 
-    VertexLayoutElement vlm = {};
-    vlm.attrib              = _attrib;
-    vlm.format              = _format;
-    vlm.byteWidth           = static_cast<Int32>(ByteWidthOf(_format));
-    vlm.offset              = m_stride;
-    m_vles[m_numElems++]    = vlm;
-    m_stride += vlm.byteWidth;
-    m_vleLut[_attrib] = &m_vles[m_numElems - 1];
-    m_bDirty          = true;
+    VertexElement ve    = {};
+    ve.attrib           = _attrib;
+    ve.format           = _format;
+    ve.byteWidth        = static_cast<Int32>(ByteWidthOf(_format));
+    ve.offset           = m_stride;
+    m_ves[m_numElems++] = ve;
+    m_stride += ve.byteWidth;
+    m_veLUT[_attrib] = &m_ves[m_numElems - 1];
+    m_bDirty         = true;
     return *this;
 }
 
 bool VertexLayout::Has(
     const eVertexAttribute _attrib) const
 {
-    return m_vleLut[_attrib] != nullptr;
+    return m_veLUT[_attrib] != nullptr;
 }
 
 void VertexLayout::Reset()
 {
-    m_vles.fill({});
-    m_vleLut.Fill(nullptr);
+    m_ves.fill({});
+    m_veLUT.Fill(nullptr);
     m_stride   = 0;
     m_numElems = 0;
     m_hash     = 0;
@@ -49,19 +49,19 @@ Int32 VertexLayout::GetStride() const
     return m_stride;
 }
 
-const VertexLayoutElement& VertexLayout::GetElem(
+const VertexElement& VertexLayout::GetElement(
     const eVertexAttribute _attrib) const
 {
     JAM_ASSERT(Has(_attrib), "vertex attribute '{}' does not exist in this vertex layout.", NameOf(_attrib));
-    return *m_vleLut[_attrib];
+    return *m_veLUT[_attrib];
 }
 
-Span<const VertexLayoutElement> VertexLayout::GetElems() const
+Span<const VertexElement> VertexLayout::GetElements() const
 {
-    return { m_vles.data(), m_numElems };
+    return { m_ves.data(), m_numElems };
 }
 
-Int32 VertexLayout::GetNumElems() const
+Int32 VertexLayout::GetNumElements() const
 {
     return m_numElems;
 }
@@ -76,7 +76,7 @@ UInt64 VertexLayout::GetHash() const
     if (m_bDirty)
     {
         Murmur3Hasher hasher {};
-        for (const VertexLayoutElement& elem: GetElems())
+        for (const VertexElement& elem: GetElements())
         {
             hasher.Mix(AsMemoryView(elem.attrib));
             hasher.Mix(AsMemoryView(elem.format));

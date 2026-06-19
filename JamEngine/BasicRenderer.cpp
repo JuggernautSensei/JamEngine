@@ -165,7 +165,7 @@
 //    Int32             numBloomPasses         = -1;
 //    Ref<Texture> pIrrdianceMap          = nullptr;
 //    Ref<Texture> pSpecularMap           = nullptr;
-//    Ref<Texture> pBrdfLutMap            = nullptr;
+//    Ref<Texture> pBrdfLUTMap            = nullptr;
 //    Ref<Texture> pSkyboxTeX         = nullptr;
 //    bool              bSSAOEnabled           = false;
 //    bool              bFogEnabled            = false;
@@ -723,7 +723,7 @@
 //    bDirLightShadowEnabled = dirLight.bShadowEnabled;
 //    pIrrdianceMap          = ibl.pIrradianceTex;
 //    pSpecularMap           = ibl.pSpecularTex;
-//    pBrdfLutMap            = ibl.pBrdfLutTex;
+//    pBrdfLUTMap            = ibl.pBrdfLUTTex;
 //    pSkyboxTeX         = skybox.pSkyboxTeX;
 //    bSSAOEnabled           = ssao.bEnabled;
 //    bFogEnabled            = fog.bEnabled;
@@ -851,7 +851,7 @@
 //           JAM_LOG_WARN("IBL specular map is not set in environment, the lighting may look incorrect.");
 //        }
 //
-//        if (!pBrdfLutMap)
+//        if (!pBrdfLUTMap)
 //        {
 //           JAM_LOG_WARN("IBL BRDF LUT is not set in environment, the lighting may look incorrect.");
 //        }
@@ -889,9 +889,9 @@
 //        {
 //            pass.AddTexture(pSpecularMap->GetHandle(), eShader::PixelShader, t_specularSlot);
 //        }
-//        if (pBrdfLutMap)
+//        if (pBrdfLUTMap)
 //        {
-//            pass.AddTexture(pBrdfLutMap->GetHandle(), eShader::PixelShader, t_brdfSlot);
+//            pass.AddTexture(pBrdfLUTMap->GetHandle(), eShader::PixelShader, t_brdfSlot);
 //        }
 //        if (bSSAOEnabled)
 //        {
@@ -1162,7 +1162,7 @@
 //    bDiff |= (dirLight.bShadowEnabled != bDirLightShadowEnabled);
 //    bDiff |= (ibl.pIrradianceTex != pIrrdianceMap);
 //    bDiff |= (ibl.pSpecularTex != pSpecularMap);
-//    bDiff |= (ibl.pBrdfLutTex != pBrdfLutMap);
+//    bDiff |= (ibl.pBrdfLUTTex != pBrdfLUTMap);
 //    bDiff |= (skybox.pSkyboxTeX != pSkyboxTeX);
 //    bDiff |= (bloom.numBlurPasses != numBloomPasses);
 //    bDiff |= (ssao.bEnabled != bSSAOEnabled);

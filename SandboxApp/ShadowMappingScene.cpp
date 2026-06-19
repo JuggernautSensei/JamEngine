@@ -160,6 +160,7 @@ void ShadowMappingScene::OnRender(const RenderView& _view)
     camera.viewProj    = viewProj.Transpose();
     camera.invViewProj = m_camera.CalcInvViewProj().Transpose();
     camera.eyePos      = m_camera.GetEyePos();
+    camera.eyeDir      = m_camera.GetForward();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(camera));
 
     if (m_activeLight == eLight::Directional)
@@ -370,7 +371,7 @@ void ShadowMappingScene::OnImGuiRender()
         ImGui::SeparatorText("Parameters");
 
         // bias, normal offset
-        ImGui::BeginDisabled(m_shadowMode != eShadowMode::VSM);
+        ImGui::BeginDisabled(m_shadowMode == eShadowMode::VSM);
         ImGui::DragFloat("bias##shadow", &m_shadowBias, 0.0001f, 0.f, 0.1f, "%.4f");
         ImGui::DragFloat("normal offset##shadow", &m_shadowNormalOffset, 0.0001f, 0.f, 1.f, "%.4f");
         ImGui::EndDisabled();
@@ -637,7 +638,7 @@ void ShadowMappingScene::InitRenderGraphPasses_()
                     .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBEntity::kSlot)
                     .SetConstantBuffer("CB_ShadowCaster", eShader::VertexShader, CBShadowCaster::kSlot)
                     .SetConstantBuffer("CB_Shadow", eShader::PixelShader, CBShadow::kSlot)
-                    .SetRenderFlags(m_activeLight == eLight::Directional ? kFrontCullDepthTest : kBackCullDepthTest)
+                    .SetRenderFlags(kBackCullDepthTest)
                     .SetBlendFlags(kOpaqueBlend, 0)
                     .SetExecutor(spec.casterExecutor[i]);
 
@@ -658,29 +659,29 @@ void ShadowMappingScene::InitRenderGraphPasses_()
                 // anti aliasing
                 if (m_bApplyAA)
                 {
-                    ImageFilterDesc aaDesc = {};
-                    aaDesc.filter          = eImageFilter::FXAA;
-                    aaDesc.output          = eImageFilterOutput::Create;
-                    aaDesc.format          = eTextureFormat::RG32_Float;
-                    aaDesc.width           = GetShadowMapLength_();
-                    aaDesc.height          = GetShadowMapLength_();
-                    aaDesc.input0Texture   = shadowMap;
+                    ImageFilterInfo aaInfo = {};
+                    aaInfo.filter          = eImageFilter::FXAA;
+                    aaInfo.output          = eImageFilterOutput::Create;
+                    aaInfo.format          = eTextureFormat::RG32_Float;
+                    aaInfo.width           = GetShadowMapLength_();
+                    aaInfo.height          = GetShadowMapLength_();
+                    aaInfo.input0Texture   = shadowMap;
 
                     if (spec.bIsArray)
                     {
-                        aaDesc.bUseTexture2DArrayInput0 = true;
-                        aaDesc.paramCBufferOrEmpty      = "CB_Indexing";
-                        aaDesc.executorOrNull           = spec.screenTriIndexingExecutor[i];
+                        aaInfo.bUseTexture2DArrayInput0 = true;
+                        aaInfo.paramCBufferOrEmpty      = "CB_Indexing";
+                        aaInfo.executorOrNull           = spec.screenTriIndexingExecutor[i];
                     }
 
-                    ifm.AddImageFilter(m_graph, spec.advAAPasses[i], aaDesc);
+                    ifm.AddImageFilter(m_graph, spec.advAAPasses[i], aaInfo);
                     shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
                 }
 
                 // blur
                 if (m_bApplyBlur)
                 {
-                    ImageFilterDesc blurX      = {};
+                    ImageFilterInfo blurX      = {};
                     blurX.filter               = eImageFilter::Convolution1DX;
                     blurX.output               = eImageFilterOutput::Create;
                     blurX.format               = eTextureFormat::RG32_Float;
@@ -698,7 +699,7 @@ void ShadowMappingScene::InitRenderGraphPasses_()
 
                     ifm.AddImageFilter(m_graph, spec.advBlurXPasses[i], blurX);
 
-                    ImageFilterDesc blurY      = {};
+                    ImageFilterInfo blurY      = {};
                     blurY.filter               = eImageFilter::Convolution1DY;
                     blurY.output               = eImageFilterOutput::Inject;
                     blurY.frameBuffer          = spec.advFrameBuffers[i];
@@ -748,13 +749,13 @@ void ShadowMappingScene::InitRenderGraphPasses_()
 
     // light + color 합성
     {
-        ImageFilterDesc multDesc = {};
-        multDesc.filter          = eImageFilter::Mult;
-        multDesc.input0Texture   = "T_SceneColor";
-        multDesc.input1Texture   = "T_SceneLight";
-        multDesc.output          = eImageFilterOutput::Inject;
-        multDesc.frameBuffer     = "FB_SceneFinal";
-        ifm.AddImageFilter(m_graph, "Pass_Mult", multDesc);
+        ImageFilterInfo multInfo = {};
+        multInfo.filter          = eImageFilter::Mult;
+        multInfo.input0Texture   = "T_SceneColor";
+        multInfo.input1Texture   = "T_SceneLight";
+        multInfo.output          = eImageFilterOutput::Inject;
+        multInfo.frameBuffer     = "FB_SceneFinal";
+        ifm.AddImageFilter(m_graph, "Pass_Mult", multInfo);
     }
 
     // debug light cube
@@ -772,11 +773,11 @@ void ShadowMappingScene::InitRenderGraphPasses_()
 
     // blit
     {
-        ImageFilterDesc blitDesc = {};
-        blitDesc.filter          = eImageFilter::Blit;
-        blitDesc.input0Texture   = "T_SceneFinal";
-        blitDesc.output          = eImageFilterOutput::Final;
-        ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+        ImageFilterInfo blitInfo = {};
+        blitInfo.filter          = eImageFilter::Blit;
+        blitInfo.input0Texture   = "T_SceneFinal";
+        blitInfo.output          = eImageFilterOutput::Final;
+        ifm.AddImageFilter(m_graph, "Pass_Blit", blitInfo);
     }
 }
 
@@ -808,7 +809,7 @@ void ShadowMappingScene::RenderSpotShadowCasters_()
     CBShadowCaster caster;
     const Vec3     dir = m_spotLight.dir.Normalized();
     caster.lightView   = Mtx4::MakeInvSRT(Vec3::kOne, dir, Vec3::kUp, m_spotLight.pos).Transpose();
-    caster.lightProj   = Mtx4::MakePerspectiveFov(m_spotLight.outerConeRad * 2.f, 1.f, 0.1f, m_spotLight.fallOffEnd).Transpose();
+    caster.lightProj   = Mtx4::MakePerspective(m_spotLight.outerConeRad * 2.f, 1.f, 0.1f, m_spotLight.fallOffEnd).Transpose();
     gfx.UpdateBuffer(m_shadowCasterCbh, AsMemoryView(caster));
 
     CBEntity entity;
@@ -888,7 +889,7 @@ void ShadowMappingScene::RenderOmniShadowCasters_(
         default:
             JAM_UNREACHABLE;
     }
-    caster.lightProj = Mtx4::MakePerspectiveFov(ToRad(90.f), 1.f, 0.1f, m_omniLight.fallOffEnd).Transpose();
+    caster.lightProj = Mtx4::MakePerspective(ToRad(90.f), 1.f, 0.1f, m_omniLight.fallOffEnd).Transpose();
     gfx.UpdateBuffer(m_shadowCasterCbh, AsMemoryView(caster));
 
     CBEntity entity;
@@ -988,7 +989,8 @@ void ShadowMappingScene::RenderDebugLightCube_() const
     CBEntity entity;
     if (m_activeLight == eLight::Spot)
     {
-        entity.world = Mtx4::MakeSRT(Vec3::kOne, m_spotLight.dir, Vec3::kUp, m_spotLight.pos).Transpose();
+        const Vec3 f = m_spotLight.dir.Normalized();
+        entity.world = Mtx4::MakeSRT(Vec3::kOne, f, Vec3::kUp, m_spotLight.pos).Transpose();
     }
     else if (m_activeLight == eLight::Omni)
     {

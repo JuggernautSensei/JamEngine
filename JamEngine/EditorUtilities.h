@@ -19,7 +19,7 @@ class Scene;
 
 [[nodiscard]] constexpr bool IsZeroApprox(const ImVec4 _vec, const float _epsilon = 1e-6f)
 {
-    return IsZeroApprox(_vec.x, _epsilon) && IsZeroApprox(_vec.y, _epsilon) && IsZeroApprox(_vec.z, _epsilon) && IsZeroApprox(_vec.w, _epsilon);
+    return IsZeroApprox(_vec.x) && IsZeroApprox(_vec.y) && IsZeroApprox(_vec.z) && IsZeroApprox(_vec.w);
 }
 
 [[nodiscard]] constexpr bool IsTransparent(const ImVec4 _color, const float _threshold = 1e-6f)

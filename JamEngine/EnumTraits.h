@@ -174,13 +174,13 @@ namespace Details
     {
         using UT                         = UnderlyingT<TEnum>;
         static constexpr SizeT kNumEnums = CalcNumEnums<TEnum>(std::make_index_sequence<kNumTraits>());
-        static constexpr SizeT kLutSize  = static_cast<SizeT>(2 * kNumEnums * kInvNameToSeqTableLoadFactor);
+        static constexpr SizeT kLUTSize  = static_cast<SizeT>(2 * kNumEnums * kInvNameToSeqTableLoadFactor);
 
         Array<StringView, kNumEnums> fullNames       = {};                                         // seq 순서대로 저장된 풀네임 배열
         Array<StringView, kNumEnums> names           = {};                                         // seq 순서대로 저장된 짧은 이름 배열
         Array<TEnum, kNumEnums>      values          = {};                                         // seq 순서대로 저장된 enum 값 배열
         Array<SizeT, kNumTraits>     rangeToSeqTable = {};                                         // 범위 인덱스(underlying - kReflectionMin)를 seq로 변환하는 LUT
-        NameToSeqTable<kLutSize>     nameToSeqTable  = {};                                         // 이름 문자열을 seq로 조회하는 해시 테이블 (짧은이름/풀네임 모두 등록)
+        NameToSeqTable<kLUTSize>     nameToSeqTable  = {};                                         // 이름 문자열을 seq로 조회하는 해시 테이블 (짧은이름/풀네임 모두 등록)
         TEnum                        minValue        = static_cast<TEnum>(Limits<UT>::kHighest);   // UT 최댓값
         TEnum                        maxValue        = static_cast<TEnum>(Limits<UT>::kLowest);    // UT 최솟값
     };

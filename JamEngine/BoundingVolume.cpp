@@ -32,6 +32,50 @@ bool IsFar(
     return (static_cast<int>(_region) & 0b001) != 0;
 }
 
+Ray::Ray(Vec3 _dir, Vec3 _origin)
+    : dir(_dir)
+    , pos(_origin)
+{
+    JAM_ASSERT(dir.IsNormalized(), "Ray direction must be normalized.");
+}
+
+Ray::Ray(
+    const float _ndcX,
+    const float _ndcY,
+    const Mtx4& _invMtx)
+{
+    Vec3 n = { _ndcX, _ndcY, 0.f };
+    n      = _invMtx.MultPoint(n);
+
+    Vec3 f = { _ndcX, _ndcY, 1.f };
+    f      = _invMtx.MultPoint(f);
+
+    dir = (f - n).Normalized();
+    pos = n;
+}
+
+Ray::Ray(
+    const Int32 _screenX,
+    const Int32 _screenY,
+    const Int32 _screenWidth,
+    const Int32 _screenHeight,
+    const Mtx4& _invMtx)
+{
+    const float fscreenX = static_cast<float>(_screenX) + 0.5f;   // Center of the pixel
+    const float fscreenY = static_cast<float>(_screenY) + 0.5f;   // Center of the pixel
+    const float ndcX     = (fscreenX / static_cast<float>(_screenWidth)) * 2.f - 1.f;
+    const float ndcY     = 1.f - (fscreenY / static_cast<float>(_screenHeight)) * 2.f;
+
+    Vec3 n = { ndcX, ndcY, 0.f };
+    n      = _invMtx.MultPoint(n);
+
+    Vec3 f = { ndcX, ndcY, 1.f };
+    f      = _invMtx.MultPoint(f);
+
+    dir = (f - n).Normalized();
+    pos = n;
+}
+
 Aabb::Aabb(
     const Vec3 _center,
     const Vec3 _extents)
@@ -67,24 +111,23 @@ void Aabb::Merge(
     const Vec3 maxa = center + extents;
     const Vec3 minb = _aabb.center - _aabb.extents;
     const Vec3 maxb = _aabb.center + _aabb.extents;
+    const Vec3 nmin = mina.Min(minb);
+    const Vec3 nmax = maxa.Max(maxb);
 
-    const Vec3 newMin = mina.Min(minb);
-    const Vec3 newMax = maxa.Max(maxb);
-
-    center  = (newMin + newMax) * 0.5f;
-    extents = (newMax - newMin) * 0.5f;
+    center  = (nmin + nmax) * 0.5f;
+    extents = (nmax - nmin) * 0.5f;
 }
 
-void Aabb::Merge(const Vec3 _p)
+void Aabb::Merge(
+    const Vec3 _p)
 {
-    const Vec3 min = center - extents;
-    const Vec3 max = center + extents;
+    const Vec3 min  = center - extents;
+    const Vec3 max  = center + extents;
+    const Vec3 nmin = min.Min(_p);
+    const Vec3 nmax = max.Max(_p);
 
-    const Vec3 newMin = min.Min(_p);
-    const Vec3 newMax = max.Max(_p);
-
-    center  = (newMin + newMax) * 0.5f;
-    extents = (newMax - newMin) * 0.5f;
+    center  = (nmin + nmax) * 0.5f;
+    extents = (nmax - nmin) * 0.5f;
 }
 
 Vec3 Aabb::GetMin() const
@@ -129,13 +172,15 @@ Corners Aabb::CalcCorners() const
     return corners;
 }
 
-bool Aabb::Contains(const Vec3 _p) const
+bool Aabb::Contains(
+    const Vec3 _p) const
 {
     const Vec3 v = (_p - center).Abs();
     return v.x <= extents.x && v.y <= extents.y && v.z <= extents.z;
 }
 
-bool Aabb::Contains(const Aabb& _other) const
+bool Aabb::Contains(
+    const Aabb& _other) const
 {
     const Vec3 min0 = center - extents;
     const Vec3 max0 = center + extents;
@@ -147,15 +192,19 @@ bool Aabb::Contains(const Aabb& _other) const
         && min1.z >= min0.z && max2.z <= max0.z;
 }
 
-bool Aabb::Overlap(const Aabb& _other) const
+bool Aabb::Overlap(
+    const Aabb& _other) const
 {
     const Vec3 d = (center - _other.center).Abs();
     const Vec3 r = extents + _other.extents;
     return d.x <= r.x && d.y <= r.y && d.z <= r.z;
 }
 
-Optional<Hit> Aabb::RayCast(const Ray& _ray) const
+Optional<Hit> Aabb::RayCast(
+    const Ray& _ray) const
 {
+    JAM_ASSERT(_ray.dir.IsNormalized(), "RayCast requires normalized ray direction.");
+
     const Vec3 min    = center - extents;
     const Vec3 max    = center + extents;
     const Vec3 invDir = _ray.dir.Rcp();
@@ -172,7 +221,7 @@ Optional<Hit> Aabb::RayCast(const Ray& _ray) const
         return kNullopt;
     }
 
-    Vec3 normal = {};
+    Vec3 normal = Vec3::kZero;
     if (tmin.x >= tmin.y && tmin.x >= tmin.z)
     {
         normal.x = (t0.x < t1.x) ? -1.f : 1.f;
@@ -188,6 +237,17 @@ Optional<Hit> Aabb::RayCast(const Ray& _ray) const
 
     const Vec3 point = _ray.pos + _ray.dir * tNear;
     return Hit { normal, point, tNear };
+}
+
+Obb::Obb(
+    const Vec3 _center,
+    const Vec3 _extents,
+    const Quat _rotation)
+    : center(_center)
+    , extents(_extents)
+    , rotation(_rotation)
+{
+    JAM_ASSERT(rotation.IsNormalized(), "Obb rotation must be normalized.");
 }
 
 Obb::Obb(
@@ -228,33 +288,32 @@ Corners Obb::GetCorners() const
     points[eRegion::RightBottomNear] = center + axisX - axisY - axisZ;
     points[eRegion::RightTopFar]     = center + axisX + axisY + axisZ;
     points[eRegion::RightTopNear]    = center + axisX + axisY - axisZ;
-
     return points;
 }
 
-Obb Obb::Transform(const Mtx4& _mtx) const
+Obb Obb::Transform(
+    const Mtx4& _mtx) const
 {
-    Obb result    = {};
-    result.center = _mtx.MultPoint(center);
-
     Vec3 s, t;
     Quat r;
     _mtx.DecomposeSRT(&s, &r, &t);
 
-    result.rotation = r * rotation;
-    result.extents  = extents * s;
-
-    return result;
+    const Vec3 c = _mtx.MultPoint(center);
+    const Vec3 e = extents * s;
+    const Quat q = r * rotation;
+    return { c, e, q };
 }
 
-bool Obb::Contains(Vec3 _point) const
+bool Obb::Contains(
+    const Vec3 _point) const
 {
     const Quat invRot = rotation.Inverse();
     const Vec3 pointL = invRot.Rotate(_point - center).Abs();
     return pointL.x <= extents.x && pointL.y <= extents.y && pointL.z <= extents.z;
 }
 
-bool Obb::Contains(const Obb& _other) const
+bool Obb::Contains(
+    const Obb& _other) const
 {
     const Corners corners = _other.GetCorners();
     for (const Vec3& corner: corners)
@@ -267,127 +326,130 @@ bool Obb::Contains(const Obb& _other) const
     return true;
 }
 
-bool Obb::Overlap(const Obb& _other) const
+bool Obb::Overlap(
+    const Obb& _other) const
 {
-    Quat invQ = rotation.Inverse();
-    Mtx4 rMtx = Mtx4::FromQuaternion(invQ * _other.rotation);
-    Vec3 t    = invQ.Rotate(_other.center - center);
-    Vec3 eA   = extents;
-    Vec3 eB   = _other.extents;
-    Vec3 ar0  = rMtx.r0.xyz;
-    Vec3 ar1  = rMtx.r1.xyz;
-    Vec3 ar2  = rMtx.r2.xyz;
+    const Quat invQ = rotation.Inverse();
+    const Mtx4 rMtx = Mtx4::FromQuaternion(invQ * _other.rotation);
+    const Vec3 t    = invQ.Rotate(_other.center - center);
+    const Vec3 eA   = extents;
+    const Vec3 eB   = _other.extents;
+
+    const Vec3 ar0 = rMtx.r0.xyz;
+    const Vec3 ar1 = rMtx.r1.xyz;
+    const Vec3 ar2 = rMtx.r2.xyz;
+
+    const Vec3 abu = { Abs(rMtx.m00), Abs(rMtx.m10), Abs(rMtx.m20) };
+    const Vec3 abv = { Abs(rMtx.m01), Abs(rMtx.m11), Abs(rMtx.m21) };
+    const Vec3 abw = { Abs(rMtx.m02), Abs(rMtx.m12), Abs(rMtx.m22) };
+
+    const Vec3 aar0 = ar0.Abs();
+    const Vec3 aar1 = ar1.Abs();
+    const Vec3 aar2 = ar2.Abs();
 
     float ra, rb;
+
     ra = eA.x;
-    rb = ar0.Dot(eB);
+    rb = abu.Dot(eB);
     if (Abs(t.x) > ra + rb)
     {
         return false;
     }
 
     ra = eA.y;
-    rb = ar1.Dot(eB);
+    rb = abv.Dot(eB);
     if (Abs(t.y) > ra + rb)
     {
         return false;
     }
 
     ra = eA.z;
-    rb = ar2.Dot(eB);
+    rb = abw.Dot(eB);
     if (Abs(t.z) > ra + rb)
     {
         return false;
     }
 
-    Vec3 bu = { rMtx.m00, rMtx.m10, rMtx.m20 };
-    Vec3 bv = { rMtx.m01, rMtx.m11, rMtx.m21 };
-    Vec3 bw = { rMtx.m02, rMtx.m12, rMtx.m22 };
-
-    Vec3 abu = bu.Abs();
-    Vec3 abv = bv.Abs();
-    Vec3 abw = bw.Abs();
-
-    ra = eA.Dot(abu);
+    ra = eA.Dot(aar0);
     rb = eB.x;
-    if (Abs(t.Dot(bu)) > ra + rb)
+    if (Abs(t.Dot(ar0)) > ra + rb)
     {
         return false;
     }
 
-    ra = eA.Dot(abv);
+    ra = eA.Dot(aar1);
     rb = eB.y;
-    if (Abs(t.Dot(bv)) > ra + rb)
+    if (Abs(t.Dot(ar1)) > ra + rb)
     {
         return false;
     }
 
-    ra = eA.Dot(abw);
+    ra = eA.Dot(aar2);
     rb = eB.z;
-    if (Abs(t.Dot(bw)) > ra + rb)
+    if (Abs(t.Dot(ar2)) > ra + rb)
     {
         return false;
     }
 
-    ra = eA.y * abu.z + eA.z * abu.y;
-    rb = eB.y * ar0.z + eB.z * ar0.y;
-    if (Abs(t.z * rMtx.m10 - t.y * rMtx.m20) > ra + rb + kEpsilon)
+    ra = eA.y * aar0.z + eA.z * aar0.y;
+    rb = eB.y * abu.z + eB.z * abu.y;
+    if (Abs(t.z * ar0.y - t.y * ar0.z) > ra + rb + kEpsilon)
     {
         return false;
     }
 
-    ra = eA.y * abv.z + eA.z * abv.y;
-    rb = eB.x * ar0.z + eB.z * ar0.x;
-    if (Abs(t.z * rMtx.m11 - t.y * rMtx.m21) > ra + rb + kEpsilon)
+    ra = eA.y * aar1.z + eA.z * aar1.y;
+    rb = eB.x * abu.z + eB.z * abu.x;
+    if (Abs(t.z * ar1.y - t.y * ar1.z) > ra + rb + kEpsilon)
     {
         return false;
     }
 
-    ra = eA.y * abw.z + eA.z * abw.y;
-    rb = eB.x * ar0.y + eB.y * ar0.x;
-    if (Abs(t.z * rMtx.m12 - t.y * rMtx.m22) > ra + rb + kEpsilon)
+    ra = eA.y * aar2.z + eA.z * aar2.y;
+    rb = eB.x * abu.y + eB.y * abu.x;
+    if (Abs(t.z * ar2.y - t.y * ar2.z) > ra + rb + kEpsilon)
     {
         return false;
     }
 
-    ra = eA.x * abu.z + eA.z * abu.x;
-    rb = eB.y * ar1.z + eB.z * ar1.y;
-    if (Abs(t.x * rMtx.m20 - t.z * rMtx.m00) > ra + rb + kEpsilon)
+    ra = eA.x * aar0.z + eA.z * aar0.x;
+    rb = eB.y * abv.z + eB.z * abv.y;
+    if (Abs(t.x * ar0.z - t.z * ar0.x) > ra + rb + kEpsilon)
     {
         return false;
     }
 
-    ra = eA.x * abv.z + eA.z * abv.x;
-    rb = eB.x * ar1.z + eB.z * ar1.x;
-    if (Abs(t.x * rMtx.m21 - t.z * rMtx.m01) > ra + rb + kEpsilon)
+    ra = eA.x * aar1.z + eA.z * aar1.x;
+    rb = eB.x * abv.z + eB.z * abv.x;
+    if (Abs(t.x * ar1.z - t.z * ar1.x) > ra + rb + kEpsilon)
     {
         return false;
     }
 
-    ra = eA.x * abw.z + eA.z * abw.x;
-    rb = eB.x * ar1.y + eB.y * ar1.x;
-    if (Abs(t.x * rMtx.m22 - t.z * rMtx.m02) > ra + rb + kEpsilon)
+    ra = eA.x * aar2.z + eA.z * aar2.x;
+    rb = eB.x * abv.y + eB.y * abv.x;
+    if (Abs(t.x * ar2.z - t.z * ar2.x) > ra + rb + kEpsilon)
     {
         return false;
     }
 
-    ra = eA.x * abu.y + eA.y * abu.x;
-    rb = eB.y * ar2.z + eB.z * ar2.y;
-    if (Abs(t.y * rMtx.m00 - t.x * rMtx.m10) > ra + rb + kEpsilon)
+    ra = eA.x * aar0.y + eA.y * aar0.x;
+    rb = eB.y * abw.z + eB.z * abw.y;
+    if (Abs(t.y * ar0.x - t.x * ar0.y) > ra + rb + kEpsilon)
     {
         return false;
     }
 
-    ra = eA.x * abv.y + eA.y * abv.x;
-    rb = eB.x * ar2.z + eB.z * ar2.x;
-    if (Abs(t.y * rMtx.m01 - t.x * rMtx.m11) > ra + rb + kEpsilon)
+    ra = eA.x * aar1.y + eA.y * aar1.x;
+    rb = eB.x * abw.z + eB.z * abw.x;
+    if (Abs(t.y * ar1.x - t.x * ar1.y) > ra + rb + kEpsilon)
     {
         return false;
     }
 
-    ra = eA.x * abw.y + eA.y * abw.x;
-    rb = eB.x * ar2.y + eB.y * ar2.x;
-    if (Abs(t.y * rMtx.m02 - t.x * rMtx.m12) > ra + rb + kEpsilon)
+    ra = eA.x * aar2.y + eA.y * aar2.x;
+    rb = eB.x * abw.y + eB.y * abw.x;
+    if (Abs(t.y * ar2.x - t.x * ar2.y) > ra + rb + kEpsilon)
     {
         return false;
     }
@@ -397,11 +459,12 @@ bool Obb::Overlap(const Obb& _other) const
 
 Optional<Hit> Obb::RayCast(const Ray& _ray) const
 {
-    const Quat invQ = rotation.Inverse();
+    JAM_ASSERT(_ray.dir.IsNormalized(), "RayCast requires normalized ray direction.");
 
-    Ray rayL = {};
-    rayL.pos = invQ.Rotate(_ray.pos - center);
-    rayL.dir = invQ.Rotate(_ray.dir);
+    const Quat invQ = rotation.Inverse();
+    const Vec3 pos  = invQ.Rotate(_ray.pos - center);
+    const Vec3 dir  = invQ.Rotate(_ray.dir);
+    const Ray  rayL = { pos, dir };
 
     const Aabb    aabbL  = { Vec3::kZero, extents };
     Optional<Hit> result = aabbL.RayCast(rayL);
@@ -416,20 +479,31 @@ Optional<Hit> Obb::RayCast(const Ray& _ray) const
     return kNullopt;
 }
 
-Plane::Plane(const float _a, const float _b, const float _c, const float _d)
+Plane::Plane(
+    const float _a,
+    const float _b,
+    const float _c,
+    const float _d)
     : vec(_a, _b, _c, _d)
 {
 }
 
-Plane::Plane(const Vec4 _vec)
-    : Plane(_vec.x, _vec.y, _vec.z, _vec.w)
+Plane::Plane(
+    const Vec4 _vec)
+    : vec(_vec)
 {}
 
-Plane::Plane(const Vec3 _normal, const float _d)
-    : Plane(_normal.x, _normal.y, _normal.z, _d)
-{}
+Plane::Plane(
+    const Vec3  _normal,
+    const float _d)
+    : vec(_normal.x, _normal.y, _normal.z, _d)
+{
+}
 
-Plane::Plane(const Vec3 _p1, const Vec3 _p2, const Vec3 _p3)
+Plane::Plane(
+    const Vec3 _p1,
+    const Vec3 _p2,
+    const Vec3 _p3)
 {
     const Vec3 v0 = _p2 - _p1;
     const Vec3 v1 = _p3 - _p1;
@@ -437,13 +511,18 @@ Plane::Plane(const Vec3 _p1, const Vec3 _p2, const Vec3 _p3)
     d             = -normal.Dot(_p1);
 }
 
-Plane::Plane(const Vec3 _point, const Vec3 _normal)
+Plane::Plane(
+    const Vec3 _point,
+    const Vec3 _normal)
+    : normal(_normal)
+    , d(-normal.Dot(_point))
 {
-    normal = _normal;
-    d      = -normal.Dot(_point);
 }
 
-Vec3 Plane::IntersectOf3Planes(const Plane _p0, const Plane _p1, const Plane _p2)
+Vec3 Plane::IntersectOf3Planes(
+    const Plane _p0,
+    const Plane _p1,
+    const Plane _p2)
 {
     const Vec3 n1 = _p0.normal;
     const Vec3 n2 = _p1.normal;
@@ -461,7 +540,8 @@ Vec3 Plane::IntersectOf3Planes(const Plane _p0, const Plane _p1, const Plane _p2
     return (cross23 * -_p0.d + cross31 * -_p1.d + cross12 * -_p2.d) / denom;
 }
 
-Plane Plane::Transform(const Mtx4& _invTransMtx) const
+Plane Plane::Transform(
+    const Mtx4& _invTransMtx) const
 {
     Plane p = *this;
     p.vec   = _invTransMtx.Mult(vec);
@@ -470,7 +550,15 @@ Plane Plane::Transform(const Mtx4& _invTransMtx) const
 
 void Plane::Normalize()
 {
-    const float invLen = RSqrt(normal.LengthSq());
+    const float lenSq = normal.LengthSq();
+    if (lenSq == 0.f)
+    {
+        normal = Vec3::kZero;
+        d      = 0.f;
+        return;
+    }
+
+    const float invLen = RSqrt(lenSq);
     normal             = normal * invLen;
     d *= invLen;
 }
@@ -482,47 +570,68 @@ Plane Plane::Normalized() const
     return out;
 }
 
-float Plane::DistanceTo(const Vec3 _point) const
+bool Plane::IsNormalized() const
 {
+    return normal.IsNormalized();
+}
+
+float Plane::DistanceTo(
+    const Vec3 _point) const
+{
+    JAM_ASSERT(IsNormalized(), "Plane must be normalized to calculate distance.");
     return normal.Dot(_point) + d;
 }
 
-bool Plane::IsFront(const Vec3 _point) const
+bool Plane::IsFront(
+    const Vec3 _point) const
 {
     return DistanceTo(_point) > 0.f;
 }
 
-bool Plane::IsBehind(const Vec3 _point) const
+bool Plane::IsBehind(
+    const Vec3 _point) const
 {
     return DistanceTo(_point) < 0.f;
 }
 
-bool Plane::Overlap(const Aabb& _aabb) const
+bool Plane::Overlap(
+    const Aabb& _aabb) const
 {
     const float d = DistanceTo(_aabb.center);          // aabb의 중심과 평면 사이의 거리
     const float r = normal.Abs().Dot(_aabb.extents);   // aabb가 평면에 걸치는 최대 거리
     return Abs(d) <= r;
 }
 
-bool Plane::IsFront(const Aabb& _aabb) const
+bool Plane::IsFront(
+    const Aabb& _aabb) const
 {
     const float d = DistanceTo(_aabb.center);
     const float r = normal.Abs().Dot(_aabb.extents);
     return d > r;
 }
 
-bool Plane::IsBehind(const Aabb& _aabb) const
+bool Plane::IsBehind(
+    const Aabb& _aabb) const
 {
     const float d = DistanceTo(_aabb.center);
     const float r = normal.Abs().Dot(_aabb.extents);
     return d < -r;
 }
 
-Optional<Hit> Plane::RayCast(const Ray& _ray, const bool _bDoubleSided) const
+Optional<Hit> Plane::RayCast(
+    const Ray& _ray,
+    const bool _bDoubleSided) const
 {
+    JAM_ASSERT(_ray.dir.IsNormalized(), "Ray direction must be normalized to perform raycast against plane.");
+
     const float dist  = DistanceTo(_ray.pos);
     const float nDotd = normal.Dot(_ray.dir);
     if (!_bDoubleSided && (dist < 0.f || nDotd > 0.f))
+    {
+        return kNullopt;
+    }
+
+    if (IsZeroApprox(nDotd))
     {
         return kNullopt;
     }
@@ -548,7 +657,8 @@ Frustum::Frustum(
 {
 }
 
-Frustum::Frustum(const Mtx4& _mtx)
+Frustum::Frustum(
+    const Mtx4& _mtx)
     : leftp(_mtx.m03 + _mtx.m00, _mtx.m13 + _mtx.m10, _mtx.m23 + _mtx.m20, _mtx.m33 + _mtx.m30)
     , rightp(_mtx.m03 - _mtx.m00, _mtx.m13 - _mtx.m10, _mtx.m23 - _mtx.m20, _mtx.m33 - _mtx.m30)
     , bottomp(_mtx.m03 + _mtx.m01, _mtx.m13 + _mtx.m11, _mtx.m23 + _mtx.m21, _mtx.m33 + _mtx.m31)
@@ -558,7 +668,8 @@ Frustum::Frustum(const Mtx4& _mtx)
 {
 }
 
-Frustum Frustum::Transform(const Mtx4& _invTransMtx) const
+Frustum Frustum::Transform(
+    const Mtx4& _invTransMtx) const
 {
     Frustum out = *this;
     for (Plane& p: out.planes)
@@ -641,7 +752,8 @@ Corners Frustum::CalcCornersInViewSpace(
     return corners;
 }
 
-bool Frustum::Overlap(const Aabb& _box) const
+bool Frustum::Overlap(
+    const Aabb& _box) const
 {
     for (const Plane p: planes)
     {
@@ -653,19 +765,6 @@ bool Frustum::Overlap(const Aabb& _box) const
     return true;
 }
 
-Optional<Hit> Frustum::RayCast(const Ray& _ray, const bool _bDoubleSided) const
-{
-    for (const Plane& p: planes)
-    {
-        const Optional<Hit> hit = p.RayCast(_ray, _bDoubleSided);
-        if (hit)
-        {
-            return hit;
-        }
-    }
-    return kNullopt;
-}
-
 void Frustum::CalcCascadeSplitsInViewSpace(
     const Span<CascadeSplit> _outDs,
     const float              _weight) const
@@ -674,22 +773,22 @@ void Frustum::CalcCascadeSplitsInViewSpace(
     // https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-10-parallel-split-shadow-maps-programmable-gpus
 
     JAM_ASSERT(_weight >= 0.f && _weight <= 1.f, "weight must be in [0, 1]");
+    JAM_ASSERT(nearp.IsNormalized() && farp.IsNormalized(), "near and far planes must be normalized to calculate cascade splits.");
 
-    const Int32 numFrustums  = static_cast<Int32>(_outDs.size());
-    const float l            = _weight;
-    const float n            = -nearp.d;   // near plane의 d는 음수이므로 양수로 변환
-    const float f            = farp.d;
-    const float ratio        = f / n;
-    const float frustumRange = f - n;
-    const float invNumF      = 1.f / static_cast<float>(numFrustums);
+    const Int32 numFrustums = static_cast<Int32>(_outDs.size());
+    const float l           = _weight;
+    const float n           = -nearp.d;   // near plane의 d는 음수이므로 양수로 변환
+    const float f           = farp.d;
+    const float ratio       = f / n;
+    const float range       = f - n;
+    const float invNumF     = 1.f / static_cast<float>(numFrustums);
 
     float nn = n;
-
     for (Int32 i = 0; i < numFrustums; ++i)
     {
         const float pctFar = static_cast<float>(i + 1) * invNumF;
         const float logf   = n * Pow(ratio, pctFar);
-        const float unif   = n + frustumRange * pctFar;
+        const float unif   = n + range * pctFar;
         const float ff     = l * logf + (1.f - l) * unif;
 
         _outDs[i].nearZ = nn;
@@ -697,41 +796,6 @@ void Frustum::CalcCascadeSplitsInViewSpace(
 
         nn = ff;
     }
-}
-
-Ray::Ray(const Vec3 _origin, const Vec3 _direction)
-    : pos(_origin)
-    , dir(_direction)
-{
-}
-
-Ray::Ray(float _x, float _y, const Mtx4& _invVP)
-{
-    const Vec3 n  = { _x, _y, 0.f };
-    const Vec3 p0 = _invVP.MultPoint(n);
-
-    const Vec3 f  = { _x, _y, 1.f };
-    const Vec3 p1 = _invVP.MultPoint(f);
-
-    pos = p0;
-    dir = (p1 - p0).Normalized();
-}
-
-Vec3 Ray::GetPoint(const float _t) const
-{
-    return pos + dir * _t;
-}
-
-void Ray::Normalize()
-{
-    dir.Normalize();
-}
-
-Ray Ray::Normalized() const
-{
-    Ray out = *this;
-    out.Normalize();
-    return out;
 }
 
 }   // namespace Jam

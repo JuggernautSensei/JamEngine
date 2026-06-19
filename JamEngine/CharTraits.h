@@ -1,6 +1,7 @@
 // ReSharper disable CppClangTidyClangDiagnosticFloatEqual
 #pragma once
 #include <cwchar>
+#include <filesystem>
 #include "TypeTraits.h"
 #include "Optional.h"
 
@@ -186,28 +187,20 @@ struct CharTraits
 
     ////////// constants //////////
 
-    constexpr static CharT kNullChar     = static_cast<CharT>('\0');
-    constexpr static CharT kSpaceChars[] = {
-        static_cast<CharT>(' '),
-        static_cast<CharT>('\t'),
-        static_cast<CharT>('\n'),
-        static_cast<CharT>('\r'),
-        static_cast<CharT>('\v'),
-        static_cast<CharT>('\f')
-    };
-
-    constexpr static CharT        kSlash                  = static_cast<CharT>('/');
-    constexpr static CharT        kDot                    = static_cast<CharT>('.');
-    constexpr static CharT        kColon                  = static_cast<CharT>(':');
-    constexpr static CharT        kUnderscore             = static_cast<CharT>('_');
-    constexpr static CharT        kPathPreferredSeparator = kSlash;
-    constexpr static CharT        kPathSeparators[]       = { static_cast<CharT>('/'), static_cast<CharT>('\\') };
-    constexpr static CharT        kLowerA                 = static_cast<CharT>('a');
-    constexpr static CharT        kUpperA                 = static_cast<CharT>('A');
-    constexpr static CharT        kLowerZ                 = static_cast<CharT>('z');
-    constexpr static CharT        kUpperZ                 = static_cast<CharT>('Z');
-    constexpr static CharT        kCaseDiff               = kLowerA - kUpperA;
-    constexpr static const CharT* kPlaceholder            = Runtime::kPlaceholder;
+    constexpr static CharT           kNull               = static_cast<CharT>('\0');
+    constexpr static Array<CharT, 6> kSpaces             = { static_cast<CharT>(' '), static_cast<CharT>('\t'), static_cast<CharT>('\n'), static_cast<CharT>('\r'), static_cast<CharT>('\v'), static_cast<CharT>('\f') };
+    constexpr static CharT           kSlash              = static_cast<CharT>('/');
+    constexpr static CharT           kDot                = static_cast<CharT>('.');
+    constexpr static CharT           kColon              = static_cast<CharT>(':');
+    constexpr static CharT           kUnderscore         = static_cast<CharT>('_');
+    constexpr static CharT           kPreferredSeparator = kSlash;
+    constexpr static Array<CharT, 2> kSeparators         = { static_cast<CharT>('/'), static_cast<CharT>('\\') };
+    constexpr static CharT           kLowerA             = static_cast<CharT>('a');
+    constexpr static CharT           kUpperA             = static_cast<CharT>('A');
+    constexpr static CharT           kLowerZ             = static_cast<CharT>('z');
+    constexpr static CharT           kUpperZ             = static_cast<CharT>('Z');
+    constexpr static CharT           kCaseDiff           = kLowerA - kUpperA;
+    constexpr static const CharT*    kPlaceholder        = Runtime::kPlaceholder;
 
     ////////// numeric conversion //////////
 
@@ -246,15 +239,6 @@ struct CharTraits
         return Runtime::ToLongDouble(_str);
     }
 
-    template<typename T>
-        requires std::is_arithmetic_v<T>
-    static SizeT AsString(const T _value, CharT* _pOutBuf, const SizeT _bufCap)
-    {
-        const auto [it, _] = fmt::format_to_n(_pOutBuf, _bufCap - 1, Runtime::kFmtPattern, +_value);
-        *it                = kNullChar;
-        return static_cast<SizeT>(it - _pOutBuf);
-    }
-
     ////////// character predicates //////////
 
     static constexpr bool IsUpper(const CharT _c)
@@ -284,7 +268,7 @@ struct CharTraits
 
     static constexpr bool IsSpace(const CharT _c)
     {
-        for (const CharT ch: kSpaceChars)
+        for (const CharT ch: kSpaces)
         {
             if (_c == ch)
             {
@@ -296,7 +280,7 @@ struct CharTraits
 
     [[nodiscard]] static constexpr bool IsPathSeparator(const CharT _c)
     {
-        for (const CharT s: kPathSeparators)
+        for (const CharT s: kSeparators)
         {
             if (_c == s)
             {
@@ -314,7 +298,7 @@ struct CharTraits
         if (std::is_constant_evaluated())
         {
             SizeT n = 0;
-            while (_str[n] != kNullChar)
+            while (_str[n] != kNull)
             {
                 ++n;
             }
@@ -328,7 +312,9 @@ struct CharTraits
         JAM_ASSERT(_pOutBuf, "StrCpy: _pOutBuf cannot be null.");
         JAM_ASSERT(_bufCap > 0, "StrCpy: _bufCap must be greater than zero.");
         JAM_ASSERT(_str, "StrCpy: _str cannot be null.");
-        JAM_ASSERT(_len <= _bufCap - 1, "StrCpy: _len cannot be greater than _bufCap - 1.");
+        JAM_ASSERT(_len + 1 <= _bufCap, "StrCpy: capacity is too small");
+
+        // 주의. StrCpy는 널 문자를 포함한 크기를 요구함.
 
         if (std::is_constant_evaluated())
         {
@@ -341,7 +327,7 @@ struct CharTraits
         {
             Runtime::MemCpy(_pOutBuf, _str, _len);
         }
-        _pOutBuf[_len] = kNullChar;
+        _pOutBuf[_len] = kNull;
         return _len;
     }
 
@@ -394,41 +380,39 @@ struct CharTraits
         return true;
     }
 
-    static constexpr bool StrEqualIgnoreCase(const CharT* _str0, const CharT _c)
-    {
-        JAM_ASSERT(_str0, "StrEqualIgnoreCase: _str0 cannot be null.");
-        return ToLower(_str0[0]) == ToLower(_c) && _str0[1] == kNullChar;
-    }
-
     static constexpr Optional<SizeT> StrFind(const CharT* _str, const SizeT _len, const CharT _c)
     {
         using StdStringView = std::basic_string_view<CharT>;
-        const StdStringView sv { _str, static_cast<USizeT>(_len) };
-        const USizeT        pos = sv.find(_c);
-        return pos != StdStringView::npos ? static_cast<SizeT>(pos) : kNullopt;
+
+        const StdStringView str = { _str, static_cast<USizeT>(_len) };
+        const USizeT        pos = str.find(_c);
+        return pos != StdStringView::npos ? Optional<SizeT> { static_cast<SizeT>(pos) } : kNullopt;
     }
 
     static constexpr Optional<SizeT> StrFind(const CharT* _str, const SizeT _len, const CharT* _findStr, const SizeT _findStrLen)
     {
         using StdStringView = std::basic_string_view<CharT>;
-        const StdStringView sv { _str, static_cast<USizeT>(_len) };
-        const USizeT        pos = sv.find(_findStr, 0, _findStrLen);
+
+        const StdStringView str = { _str, static_cast<USizeT>(_len) };
+        const USizeT        pos = str.find(_findStr, 0, _findStrLen);
         return pos != StdStringView::npos ? Optional<SizeT> { static_cast<SizeT>(pos) } : kNullopt;
     }
 
     static constexpr Optional<SizeT> StrRFind(const CharT* _str, const SizeT _len, const CharT _c)
     {
         using StdStringView = std::basic_string_view<CharT>;
-        const StdStringView sv { _str, static_cast<USizeT>(_len) };
-        const USizeT        pos = sv.rfind(_c);
+
+        const StdStringView str = { _str, static_cast<USizeT>(_len) };
+        const USizeT        pos = str.rfind(_c);
         return pos != StdStringView::npos ? Optional<SizeT> { static_cast<SizeT>(pos) } : kNullopt;
     }
 
     static constexpr Optional<SizeT> StrRFind(const CharT* _str, const SizeT _len, const CharT* _findStr, const SizeT _findStrLen)
     {
         using StdStringView = std::basic_string_view<CharT>;
-        const StdStringView sv { _str, static_cast<USizeT>(_len) };
-        const USizeT        pos = sv.rfind(_findStr, sv.size() - _findStrLen, _findStrLen);
+
+        const StdStringView sv  = { _str, static_cast<USizeT>(_len) };
+        const USizeT        pos = sv.rfind(_findStr, StdStringView::npos, _findStrLen);
         return pos != StdStringView::npos ? Optional<SizeT> { static_cast<SizeT>(pos) } : kNullopt;
     }
 
@@ -494,8 +478,19 @@ struct CharTraits
             return {};
         }
 
-        const bool          bIsDir = IsPathSeparator(_str[_len - 1]);
-        const SizeT         end    = bIsDir ? _len - 1 : _len;
+        // /aaa/bbb/ccc.txt
+        // directory: /aaa/bbb/
+        // base name: ccc
+        // extension: .txt
+        // file name: ccc + .txt = ccc.txt
+        //
+        // /aaa/bbb/ccc/eee/
+        // directory: /aaa/bbb/ccc/
+        // base name: eee
+        // extension: (none)
+        // file name: eee
+
+        const SizeT         end    = IsPathSeparator(_str[_len - 1]) ? _len - 1 : _len;
         PathDecomposeResult result = {};
 
         for (SizeT i = end; i > 0; --i)
@@ -536,7 +531,9 @@ struct CharTraits
         JAM_ASSERT(_str, "Simplify: _str cannot be null.");
         JAM_ASSERT(_pOutBuf, "Simplify: _pOutBuf cannot be null.");
         JAM_ASSERT(_bufCap > 0, "Simplify: _bufCap must be greater than zero.");
-        JAM_ASSERT(_len < _bufCap, "Simplify: _len must be less than _bufCap.");
+        JAM_ASSERT(_len <= _bufCap, "Simplify: _len must be less than _bufCap.");
+
+        // simplify는 null 문자를 처리하지 않음
 
         if (_len == 0)
         {
@@ -544,47 +541,47 @@ struct CharTraits
             return 1;
         }
 
-        SizeT index  = 0;
-        SizeT dotdot = 0;
+        SizeT inIdx  = 0;
         SizeT outIdx = 0;
+        SizeT dotdot = 0;
 
         if (_len >= 2 && IsAlphabet(_str[0]) && _str[1] == kColon)
         {
             _pOutBuf[outIdx++] = ToUpper(_str[0]);
             _pOutBuf[outIdx++] = kColon;
-            index += 2;
+            inIdx += 2;
             dotdot = outIdx;
         }
 
-        const bool bIsRoot = (index < _len) && IsPathSeparator(_str[index]);
+        const bool bIsRoot = (inIdx < _len) && IsPathSeparator(_str[inIdx]);
         if (bIsRoot)
         {
-            _pOutBuf[outIdx++] = kPathPreferredSeparator;
-            ++index;
+            _pOutBuf[outIdx++] = kPreferredSeparator;
+            ++inIdx;
             dotdot = outIdx;
         }
 
         bool bTrailingSlash = false;
-        while (index < _len)
+        while (inIdx < _len)
         {
-            if (IsPathSeparator(_str[index]))
+            if (IsPathSeparator(_str[inIdx]))
             {
-                ++index;
-                bTrailingSlash = (index == _len);
+                ++inIdx;
+                bTrailingSlash = (inIdx == _len);
                 continue;
             }
 
-            if (_str[index] == kDot)
+            if (_str[inIdx] == kDot)
             {
-                if (index + 1 == _len || IsPathSeparator(_str[index + 1]))
+                if (inIdx + 1 == _len || IsPathSeparator(_str[inIdx + 1]))
                 {
-                    ++index;
+                    ++inIdx;
                     continue;
                 }
 
-                if (kDot == _str[index + 1] && (index + 2 == _len || IsPathSeparator(_str[index + 2])))
+                if (kDot == _str[inIdx + 1] && (inIdx + 2 == _len || IsPathSeparator(_str[inIdx + 2])))
                 {
-                    index += 2;
+                    inIdx += 2;
                     if (dotdot < outIdx)
                     {
                         SizeT i = outIdx - 1;
@@ -597,7 +594,7 @@ struct CharTraits
                     {
                         if (outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
                         {
-                            _pOutBuf[outIdx++] = kPathPreferredSeparator;
+                            _pOutBuf[outIdx++] = kPreferredSeparator;
                         }
                         _pOutBuf[outIdx++] = kDot;
                         _pOutBuf[outIdx++] = kDot;
@@ -611,13 +608,13 @@ struct CharTraits
             {
                 if (outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
                 {
-                    _pOutBuf[outIdx++] = kPathPreferredSeparator;
+                    _pOutBuf[outIdx++] = kPreferredSeparator;
                 }
             }
 
-            for (; index < _len && !IsPathSeparator(_str[index]); ++index)
+            for (; inIdx < _len && !IsPathSeparator(_str[inIdx]); ++inIdx)
             {
-                _pOutBuf[outIdx++] = _str[index];
+                _pOutBuf[outIdx++] = _str[inIdx];
             }
         }
 
@@ -627,10 +624,9 @@ struct CharTraits
         }
         else if (bTrailingSlash && outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
         {
-            _pOutBuf[outIdx++] = kPathPreferredSeparator;
+            _pOutBuf[outIdx++] = kPreferredSeparator;
         }
 
-        _pOutBuf[outIdx] = kNullChar;
         return outIdx;
     }
 

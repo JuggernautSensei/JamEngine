@@ -6,24 +6,21 @@
 namespace Jam
 {
 
-enum class eSeekOp;
-
-enum class eFileWriterCollisionPolicy
+enum class eSeekOp
 {
-    Overwrite,
-    Rename,
-    Fail,
-    Append
+    Set,
+    Current,
+    End
 };
 
-class FileIO
+class FileBase
 {
 public:
-    ~FileIO();
-    FileIO(const FileIO&)            = delete;
-    FileIO& operator=(const FileIO&) = delete;
-    FileIO(FileIO&& _other) noexcept;
-    FileIO& operator=(FileIO&& _other) noexcept;
+    ~FileBase();
+    FileBase(const FileBase&)            = delete;
+    FileBase& operator=(const FileBase&) = delete;
+    FileBase(FileBase&& _other) noexcept;
+    FileBase& operator=(FileBase&& _other) noexcept;
 
     SizeT               Seek(SizeT _offset, eSeekOp _op) const;
     SizeT               Skip(SizeT _numBytes) const;
@@ -38,35 +35,37 @@ public:
     [[nodiscard]] FILE* GetFilePtr() const;
 
 protected:
-    explicit FileIO(FILE* _pFile);
+    explicit FileBase(FILE* _pFile);
 
     FILE* m_pFile = nullptr;
 };
 
-class FileWriter : public FileIO
+enum class eFileWrite
+{
+    Truncate,       // 기존 내용을 모두 지우고 새로 쓰기
+    Append,         // 이어쓰기
+    Rename,         // 파일이 존재하면 이름을 바꿔서 새로 쓰기
+    FailIfExists,   // 파일이 존재하면 실패
+};
+
+class FileWriter : public FileBase
 {
 public:
-    [[nodiscard]] static Expect<FileWriter> Open(StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
-    static Error                            WriteFileAsBinary(MemoryView _data, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
-    static Error                            WriteFileAsString(StringView _str, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
+    [[nodiscard]] static Expect<FileWriter> Open(StringView _path, eFileWrite _mode = eFileWrite::Truncate);
 
-    Expect<SizeT> WriteBinary(MemoryView _data) const;
-    Expect<SizeT> WriteString(StringView _str) const;   // if you want to write text. use this. WriteBinary write raw bytes, so it can be included null terminators.
+    Expect<SizeT> Write(MemoryView _data) const;
     void          Flush() const;
 
 private:
     explicit FileWriter(FILE* _pFile);
 };
 
-class FileReader : public FileIO
+class FileReader : public FileBase
 {
 public:
     [[nodiscard]] static Expect<FileReader> Open(StringView _path);
-    static Expect<Vector<Byte>>             ReadFileAsBinary(StringView _path);
-    static Expect<String>                   ReadFileAsString(StringView _path);
 
-    Expect<SizeT>      ReadBinary(MutableMemoryView _dst, SizeT _count = 0) const;   // zero is treated as "read as much as possible"
-    Expect<String>     ReadString(SizeT _count = 0) const;                           // zero is treated as "read as much as possible"
+    Expect<SizeT>      Read(MutableMemoryView _dst, SizeT _count = 0) const;   // zero is treated as "read as much as possible"
     [[nodiscard]] bool IsEof() const;
 
 private:

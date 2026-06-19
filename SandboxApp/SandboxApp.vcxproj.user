@@ -5,7 +5,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommandArguments>--scene ShadowMappingScene</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>ShadowMappingScene|ComputeScene|--scene ComputeScene|--allow-tearing --scene ShadowMappingScene|--scene ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArgumentsHistory>ComputeScene|--scene ComputeScene|--allow-tearing --scene ShadowMappingScene|--scene PBRScene|--scene ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommandArgumentsHistory>--benchmark_filter=Jam|ShadowMappingScene|DeferedScene|--scene ComputeScene|--scene ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>

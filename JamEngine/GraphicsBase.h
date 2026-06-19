@@ -1,4 +1,5 @@
 #pragma once
+#include "Bit.h"
 #include "HandleAllocator.h"
 #include "TextureFormat.h"
 #include "VertexLayout.h"
@@ -46,8 +47,6 @@ enum class eTextureFlags : UInt32
     MSAAx4 = 2 << 6,   // 4x MSAA
     MSAAx8 = 3 << 6,   // 8x MSAA
 };
-
-[[nodiscard]] Flags<eTextureFlags> FilterMsaaFlags(Flags<eTextureFlags> _flags) noexcept;
 
 enum class eStorageBufferFlags : UInt32
 {
@@ -185,11 +184,11 @@ enum class eRenderFlags : UInt32
     None = 0,
 
     // Primitive [0:2] : 3 bit
-    Primitive_TriangleList  = 0 << 0,
-    Primitive_TriangleStrip = 1 << 0,
-    Primitive_LineList      = 2 << 0,
-    Primitive_LineStrip     = 3 << 0,
-    Primitive_PointList     = 4 << 0,
+    PrimitiveTopology_TriangleList  = 0 << 0,
+    PrimitiveTopology_TriangleStrip = 1 << 0,
+    PrimitiveTopology_LineList      = 2 << 0,
+    PrimitiveTopology_LineStrip     = 3 << 0,
+    PrimitiveTopology_PointList     = 4 << 0,
 
     // CullMode [3:4] : 2 bit
     CullMode_None  = 0 << 3,
@@ -222,23 +221,6 @@ enum class eRenderFlags : UInt32
     // DepthWrite [17] : 1 bit
     DepthWrite = 1 << 17,
 };
-
-// Filter helper
-[[nodiscard]] Flags<eRenderFlags> FilterPrimitiveFlags(Flags<eRenderFlags> _flags);
-[[nodiscard]] Flags<eRenderFlags> FilterCullModeFlags(Flags<eRenderFlags> _flags);
-[[nodiscard]] Flags<eRenderFlags> FilterRasterizerFlags(Flags<eRenderFlags> _flags);
-[[nodiscard]] Flags<eRenderFlags> FilterBlendFlags(Flags<eRenderFlags> _flags);
-[[nodiscard]] Flags<eRenderFlags> FilterDepthFuncFlags(Flags<eRenderFlags> _flags);
-[[nodiscard]] Flags<eRenderFlags> FilterDepthFlags(Flags<eRenderFlags> _flags);
-
-// set helper (not bit flags)
-[[nodiscard]] Flags<eRenderFlags> SetPrimitiveFlags(Flags<eRenderFlags> _flags, Flags<eRenderFlags> _primitiveFlags);
-[[nodiscard]] Flags<eRenderFlags> SetCullModeFlags(Flags<eRenderFlags> _flags, Flags<eRenderFlags> _cullModeFlags);
-[[nodiscard]] Flags<eRenderFlags> SetDepthFuncFlags(Flags<eRenderFlags> _flags, Flags<eRenderFlags> _depthFuncFlags);
-
-// resolve helper
-[[nodiscard]] UInt32 ResolvePrimitiveFlags(Flags<eRenderFlags> _flags);
-[[nodiscard]] UInt32 ResolveDepthFuncFlags(Flags<eRenderFlags> _flags);
 
 enum class eBlendFlags : UInt32
 {
@@ -319,30 +301,6 @@ enum class eBlendFlags : UInt32
     WriteMask_All = WriteMask_R | WriteMask_G | WriteMask_B | WriteMask_A,
 };
 
-// Filter helper
-[[nodiscard]] Flags<eBlendFlags> FilterSrcBlendFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] Flags<eBlendFlags> FilterDstBlendFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] Flags<eBlendFlags> FilterBlendOpFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] Flags<eBlendFlags> FilterSrcBlendAlphaFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] Flags<eBlendFlags> FilterDstBlendAlphaFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] Flags<eBlendFlags> FilterBlendOpAlphaFlags(Flags<eBlendFlags> _flags);
-
-// set helper (not bit flags)
-[[nodiscard]] Flags<eBlendFlags> SetSrcBlendFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _srcBlendFlags);
-[[nodiscard]] Flags<eBlendFlags> SetDstBlendFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _dstBlendFlags);
-[[nodiscard]] Flags<eBlendFlags> SetBlendOpFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _blendOpFlags);
-[[nodiscard]] Flags<eBlendFlags> SetSrcBlendAlphaFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _srcBlendAlphaFlags);
-[[nodiscard]] Flags<eBlendFlags> SetDstBlendAlphaFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _dstBlendAlphaFlags);
-[[nodiscard]] Flags<eBlendFlags> SetBlendOpAlphaFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _blendOpAlphaFlags);
-
-// resolve helper
-[[nodiscard]] UInt32 ResolveSrcBlendFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] UInt32 ResolveDstBlendFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] UInt32 ResolveBlendOpFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] UInt32 ResolveSrcBlendAlphaFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] UInt32 ResolveDstBlendAlphaFlags(Flags<eBlendFlags> _flags);
-[[nodiscard]] UInt32 ResolveBlendOpAlphaFlags(Flags<eBlendFlags> _flags);
-
 enum class eStencilFlags : UInt16
 {
     None = 0,
@@ -389,24 +347,6 @@ enum class eStencilFlags : UInt16
     CompareFunc_Never        = 8 << 9,
 };
 
-// Filter helper
-[[nodiscard]] Flags<eStencilFlags> FilterStencilFailOpFlags(Flags<eStencilFlags> _flags);
-[[nodiscard]] Flags<eStencilFlags> FilterDepthFailOpFlags(Flags<eStencilFlags> _flags);
-[[nodiscard]] Flags<eStencilFlags> FilterPassOpFlags(Flags<eStencilFlags> _flags);
-[[nodiscard]] Flags<eStencilFlags> FilterCompareFuncFlags(Flags<eStencilFlags> _flags);
-
-// set helper (not bit flags)
-[[nodiscard]] Flags<eStencilFlags> SetStencilFailOpFlags(Flags<eStencilFlags> _flags, Flags<eStencilFlags> _stencilFailOpFlags);
-[[nodiscard]] Flags<eStencilFlags> SetDepthFailOpFlags(Flags<eStencilFlags> _flags, Flags<eStencilFlags> _depthFailOpFlags);
-[[nodiscard]] Flags<eStencilFlags> SetPassOpFlags(Flags<eStencilFlags> _flags, Flags<eStencilFlags> _passOpFlags);
-[[nodiscard]] Flags<eStencilFlags> SetCompareFuncFlags(Flags<eStencilFlags> _flags, Flags<eStencilFlags> _compareFuncFlags);
-
-// resolve helper
-[[nodiscard]] UInt32 ResolveStencilFailOpFlags(Flags<eStencilFlags> _flags);
-[[nodiscard]] UInt32 ResolveDepthFailOpFlags(Flags<eStencilFlags> _flags);
-[[nodiscard]] UInt32 ResolvePassOpFlags(Flags<eStencilFlags> _flags);
-[[nodiscard]] UInt32 ResolveCompareFuncFlags(Flags<eStencilFlags> _flags);
-
 enum class eSamplerFlags : UInt32
 {
     None = 0,
@@ -425,58 +365,88 @@ enum class eSamplerFlags : UInt32
     Filter_Anisotropic16                 = 10 << 0,
 
     // AddressU [5:7] : 3 bit
-    AddressU_Wrap       = 0 << 5,
-    AddressU_Mirror     = 1 << 5,
-    AddressU_Clamp      = 2 << 5,
-    AddressU_Border     = 3 << 5,
-    AddressU_MirrorOnce = 4 << 5,
+    AddressU_Wrap       = 0 << 4,
+    AddressU_Mirror     = 1 << 4,
+    AddressU_Clamp      = 2 << 4,
+    AddressU_Border     = 3 << 4,
+    AddressU_MirrorOnce = 4 << 4,
 
     // AddressV [8:10] : 3 bit
-    AddressV_Wrap       = 0 << 8,
-    AddressV_Mirror     = 1 << 8,
-    AddressV_Clamp      = 2 << 8,
-    AddressV_Border     = 3 << 8,
-    AddressV_MirrorOnce = 4 << 8,
+    AddressV_Wrap       = 0 << 7,
+    AddressV_Mirror     = 1 << 7,
+    AddressV_Clamp      = 2 << 7,
+    AddressV_Border     = 3 << 7,
+    AddressV_MirrorOnce = 4 << 7,
 
     // AddressW [11:13] : 3 bit
-    AddressW_Wrap       = 0 << 11,
-    AddressW_Mirror     = 1 << 11,
-    AddressW_Clamp      = 2 << 11,
-    AddressW_Border     = 3 << 11,
-    AddressW_MirrorOnce = 4 << 11,
+    AddressW_Wrap       = 0 << 10,
+    AddressW_Mirror     = 1 << 10,
+    AddressW_Clamp      = 2 << 10,
+    AddressW_Border     = 3 << 10,
+    AddressW_MirrorOnce = 4 << 10,
 
     // CompareFunc [14:17] : 4 bit
-    CompareFunc_None         = 0 << 14,
-    CompareFunc_Less         = 1 << 14,
-    CompareFunc_LessEqual    = 2 << 14,
-    CompareFunc_Greater      = 3 << 14,
-    CompareFunc_GreaterEqual = 4 << 14,
-    CompareFunc_Equal        = 5 << 14,
-    CompareFunc_NotEqual     = 6 << 14,
-    CompareFunc_Always       = 7 << 14,
-    CompareFunc_Never        = 8 << 14,
+    CompareFunc_None         = 0 << 13,
+    CompareFunc_Less         = 1 << 13,
+    CompareFunc_LessEqual    = 2 << 13,
+    CompareFunc_Greater      = 3 << 13,
+    CompareFunc_GreaterEqual = 4 << 13,
+    CompareFunc_Equal        = 5 << 13,
+    CompareFunc_NotEqual     = 6 << 13,
+    CompareFunc_Always       = 7 << 13,
+    CompareFunc_Never        = 8 << 13,
 };
 
-// Filter helper
-[[nodiscard]] Flags<eSamplerFlags> FilterFilterFlags(Flags<eSamplerFlags> _flags);
-[[nodiscard]] Flags<eSamplerFlags> FilterAddressUFlags(Flags<eSamplerFlags> _flags);
-[[nodiscard]] Flags<eSamplerFlags> FilterAddressVFlags(Flags<eSamplerFlags> _flags);
-[[nodiscard]] Flags<eSamplerFlags> FilterAddressWFlags(Flags<eSamplerFlags> _flags);
-[[nodiscard]] Flags<eSamplerFlags> FilterCompareFuncFlags(Flags<eSamplerFlags> _flags);
+namespace Details
+{
 
-// set helper (not bit flags)
-[[nodiscard]] Flags<eSamplerFlags> SetFilterFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _filterFlags);
-[[nodiscard]] Flags<eSamplerFlags> SetAddressUFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _addressUFlags);
-[[nodiscard]] Flags<eSamplerFlags> SetAddressVFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _addressVFlags);
-[[nodiscard]] Flags<eSamplerFlags> SetAddressWFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _addressWFlags);
-[[nodiscard]] Flags<eSamplerFlags> SetCompareFuncFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _compareFuncFlags);
+    constexpr Flags<eTextureFlags> kTextureFlagsAllOne   = Flags<eTextureFlags> { 0 }.WithNot();
+    constexpr Flags<eTextureFlags> kTextureFlagsMsaaMask = kTextureFlagsAllOne.WithFilter(eTextureFlags::MSAAx2, eTextureFlags::MSAAx8);
 
-// resolve helper
-[[nodiscard]] UInt32 ResolveFilterFlags(Flags<eSamplerFlags> _flags);
-[[nodiscard]] UInt32 ResolveAddressUFlags(Flags<eSamplerFlags> _flags);
-[[nodiscard]] UInt32 ResolveAddressVFlags(Flags<eSamplerFlags> _flags);
-[[nodiscard]] UInt32 ResolveAddressWFlags(Flags<eSamplerFlags> _flags);
-[[nodiscard]] UInt32 ResolveCompareFuncFlags(Flags<eSamplerFlags> _flags);
+    constexpr Flags<eRenderFlags> kRenderFlagsAllOne                = Flags<eRenderFlags> { 0 }.WithNot();
+    constexpr Flags<eRenderFlags> kRenderFlagsPrimitiveTopologyMask = kRenderFlagsAllOne.WithFilter(eRenderFlags::PrimitiveTopology_TriangleList, eRenderFlags::PrimitiveTopology_PointList);
+    constexpr Flags<eRenderFlags> kRenderFlagsCullModeMask          = kRenderFlagsAllOne.WithFilter(eRenderFlags::CullMode_Back, eRenderFlags::CullMode_Front);
+    constexpr Flags<eRenderFlags> kRenderFlagsRasterizerMask        = kRenderFlagsAllOne.WithFilter(eRenderFlags::CullMode_Back, eRenderFlags::CCWFront);
+    constexpr Flags<eRenderFlags> kRenderFlagsBlendMask             = kRenderFlagsAllOne.WithFilter(eRenderFlags::AlphaToCoverage, eRenderFlags::IndependentBlend);
+    constexpr Flags<eRenderFlags> kRenderFlagsDepthMask             = kRenderFlagsAllOne.WithFilter(eRenderFlags::DepthFunc_Less, eRenderFlags::DepthWrite);
+    constexpr Flags<eRenderFlags> kRenderFlagsDepthFuncMask         = kRenderFlagsAllOne.WithFilter(eRenderFlags::DepthFunc_Less, eRenderFlags::DepthFunc_Never);
+    constexpr SizeT               kRenderFlagsDepthFuncShift        = UInt32CountRZero(kRenderFlagsDepthFuncMask.GetValue());
+
+    constexpr Flags<eBlendFlags> kBlendFlagsAllOne             = Flags<eBlendFlags> { 0 }.WithNot();
+    constexpr Flags<eBlendFlags> kBlendFlagsSrcBlendMask       = kBlendFlagsAllOne.WithFilter(eBlendFlags::SrcBlend_One, eBlendFlags::SrcBlend_InvBlendFactor);
+    constexpr Flags<eBlendFlags> kBlendFlagsDstBlendMask       = kBlendFlagsAllOne.WithFilter(eBlendFlags::DstBlend_One, eBlendFlags::DstBlend_InvBlendFactor);
+    constexpr Flags<eBlendFlags> kBlendFlagsBlendOpMask        = kBlendFlagsAllOne.WithFilter(eBlendFlags::BlendOp_Subtract, eBlendFlags::BlendOp_Max);
+    constexpr Flags<eBlendFlags> kBlendFlagsSrcBlendAlphaMask  = kBlendFlagsAllOne.WithFilter(eBlendFlags::SrcBlendAlpha_One, eBlendFlags::SrcBlendAlpha_InvBlendFactor);
+    constexpr Flags<eBlendFlags> kBlendFlagsDstBlendAlphaMask  = kBlendFlagsAllOne.WithFilter(eBlendFlags::DstBlendAlpha_One, eBlendFlags::DstBlendAlpha_InvBlendFactor);
+    constexpr Flags<eBlendFlags> kBlendFlagsBlendOpAlphaMask   = kBlendFlagsAllOne.WithFilter(eBlendFlags::BlendOpAlpha_Subtract, eBlendFlags::BlendOpAlpha_Max);
+    constexpr SizeT              kBlendFlagsSrcBlendShift      = UInt32CountRZero(kBlendFlagsSrcBlendMask.GetValue());
+    constexpr SizeT              kBlendFlagsDstBlendShift      = UInt32CountRZero(kBlendFlagsDstBlendMask.GetValue());
+    constexpr SizeT              kBlendFlagsBlendOpShift       = UInt32CountRZero(kBlendFlagsBlendOpMask.GetValue());
+    constexpr SizeT              kBlendFlagsSrcBlendAlphaShift = UInt32CountRZero(kBlendFlagsSrcBlendAlphaMask.GetValue());
+    constexpr SizeT              kBlendFlagsDstBlendAlphaShift = UInt32CountRZero(kBlendFlagsDstBlendAlphaMask.GetValue());
+    constexpr SizeT              kBlendFlagsBlendOpAlphaShift  = UInt32CountRZero(kBlendFlagsBlendOpAlphaMask.GetValue());
+
+    constexpr Flags<eStencilFlags> kStencilFlagsAllOne            = Flags<eStencilFlags> { 0 }.WithNot();
+    constexpr Flags<eStencilFlags> kStencilFlagsStencilFailOpMask = kStencilFlagsAllOne.WithFilter(eStencilFlags::StencilFailOp_Zero, eStencilFlags::StencilFailOp_Decr);
+    constexpr Flags<eStencilFlags> kStencilFlagsDepthFailOpMask   = kStencilFlagsAllOne.WithFilter(eStencilFlags::DepthFailOp_Zero, eStencilFlags::DepthFailOp_Decr);
+    constexpr Flags<eStencilFlags> kStencilFlagsPassOpMask        = kStencilFlagsAllOne.WithFilter(eStencilFlags::PassOp_Zero, eStencilFlags::PassOp_Decr);
+    constexpr Flags<eStencilFlags> kStencilFlagsCompareFuncMask   = kStencilFlagsAllOne.WithFilter(eStencilFlags::CompareFunc_Less, eStencilFlags::CompareFunc_Never);
+    constexpr SizeT                kStencilFlagsDepthFailOpShift  = UInt32CountRZero(kStencilFlagsDepthFailOpMask.GetValue());
+    constexpr SizeT                kStencilFlagsPassOpShift       = UInt32CountRZero(kStencilFlagsPassOpMask.GetValue());
+    constexpr SizeT                kStencilFlagsCompareFuncShift  = UInt32CountRZero(kStencilFlagsCompareFuncMask.GetValue());
+
+    constexpr Flags<eSamplerFlags> kSamplerFlagsAllOne           = Flags<eSamplerFlags> { 0 }.WithNot();
+    constexpr Flags<eSamplerFlags> kSamplerFlagsFilterMask       = kSamplerFlagsAllOne.WithFilter(eSamplerFlags::Filter_MinPoint_MagPoint_MipLinear, eSamplerFlags::Filter_Anisotropic16);
+    constexpr Flags<eSamplerFlags> kSamplerFlagsAddressUMask     = kSamplerFlagsAllOne.WithFilter(eSamplerFlags::AddressU_Mirror, eSamplerFlags::AddressU_MirrorOnce);
+    constexpr Flags<eSamplerFlags> kSamplerFlagsAddressVMask     = kSamplerFlagsAllOne.WithFilter(eSamplerFlags::AddressV_Mirror, eSamplerFlags::AddressV_MirrorOnce);
+    constexpr Flags<eSamplerFlags> kSamplerFlagsAddressWMask     = kSamplerFlagsAllOne.WithFilter(eSamplerFlags::AddressW_Mirror, eSamplerFlags::AddressW_MirrorOnce);
+    constexpr Flags<eSamplerFlags> kSamplerFlagsCompareFuncMask  = kSamplerFlagsAllOne.WithFilter(eSamplerFlags::CompareFunc_Less, eSamplerFlags::CompareFunc_Never);
+    constexpr SizeT                kSamplerFlagsAddressUShift    = UInt32CountRZero(kSamplerFlagsAddressUMask.GetValue());
+    constexpr SizeT                kSamplerFlagsAddressVShift    = UInt32CountRZero(kSamplerFlagsAddressVMask.GetValue());
+    constexpr SizeT                kSamplerFlagsAddressWShift    = UInt32CountRZero(kSamplerFlagsAddressWMask.GetValue());
+    constexpr SizeT                kSamplerFlagsCompareFuncShift = UInt32CountRZero(kSamplerFlagsCompareFuncMask.GetValue());
+
+}   // namespace Details
 
 ////////// RESOURCE //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -618,26 +588,13 @@ using ProgramHandle = Handle<Program>;
 
 ////////// STRUCTS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct GraphicsInit
-{
-    HWND platformHandle  = 0;
-    bool bAllowTearing   = false;
-    bool bAttachDebugger = false;
-
-    // back buffer
-    Int32          backBufferWidth   = 0;
-    Int32          backBufferHeight  = 0;
-    Int32          numBackBuffer     = 0;
-    eTextureFormat backBufferFormat  = eTextureFormat::Unknown;
-    Int32          backBufferSamples = 1;
-};
-
 struct BackBuffer
 {
-    Int32          width   = 0;
-    Int32          height  = 0;
-    eTextureFormat format  = eTextureFormat::Unknown;
-    Int32          samples = 1;
+    Int32          width      = 0;
+    Int32          height     = 0;
+    eTextureFormat format     = eTextureFormat::Unknown;
+    Int32          samples    = 1;
+    Int32          numBuffers = 0;
 
     TextureHandle     texh = kInvalidHandle;
     FrameBufferHandle fbh  = kInvalidHandle;
@@ -1165,6 +1122,13 @@ struct GraphicsStats
 
     Int64 gpuMemoryUsageByte = 0;   // unit. byte
     Int64 gpuMemoryMaxByte   = 0;   // unit. byte
+};
+
+struct GraphicsConfig
+{
+    bool bVSync             = false;
+    bool bAllowTearing      = false;
+    bool bDebuggerConnected = false;
 };
 
 ////////// UTILS ////////////////////////////////////////////////////////////////////////////////////////////////////

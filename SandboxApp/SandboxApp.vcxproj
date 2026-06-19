@@ -165,6 +165,7 @@
     <ClInclude Include="SampleCollector.h" />
     <ClInclude Include="RandomGenerator.h" />
     <ClInclude Include="RenderStates.h" />
+    <ClInclude Include="StencilScene.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="ShadowMappingScene.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -206,6 +207,7 @@
     <ClCompile Include="SampleCollector.cpp" />
     <ClCompile Include="RandomGenerator.cpp" />
     <ClCompile Include="RenderStates.cpp" />
+    <ClCompile Include="StencilScene.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="ShadowMappingScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

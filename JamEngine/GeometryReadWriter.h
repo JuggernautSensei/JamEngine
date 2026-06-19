@@ -4,101 +4,89 @@
 namespace Jam
 {
 
-namespace Details
-{
-    struct TinyElem   // tiny helper struct
-    {
-        Int32 offset    = 0;
-        Int32 byteWidth = 0;
-        bool  bValid    = false;
-    };
-
-    using TinyLayout = EnumArray<eVertexAttribute, TinyElem>;
-
-}   // namespace Details
-
 class VertexWriter
 {
-
 public:
     explicit VertexWriter(
-        const MutableMemoryView _vertData,
+        const MutableMemoryView _data,
         const VertexLayout&     _vl)
-        : m_mem(_vertData)
+        : m_mem(_data)
         , m_stride(_vl.GetStride())
     {
-        for (const VertexLayoutElement& vle: _vl.GetElems())
+        for (const VertexElement& ve: _vl.GetElements())
         {
-            Details::TinyElem elem = { vle.offset, vle.byteWidth, true };
-            m_vles[vle.attrib]     = elem;
+            m_offsets[ve.attrib]     = ve.offset;
+            m_byteWidths[ve.attrib]  = ve.byteWidth;
+            m_validations[ve.attrib] = true;
         }
     }
 
     template<typename T>
     void WriteAt(
-        const SizeT            _vertIdx,
+        const SizeT            _index,
         const eVertexAttribute _attrib,
         const T                _value) const
     {
-        const Details::TinyElem& elem = m_vles[_attrib];
-        JAM_ASSERT(elem.bValid, "Vertex attribute is not valid in the given vertex layout.");
-        const SizeT offset = _vertIdx * m_stride + elem.offset;
-        JAM_ASSERT(sizeof(T) <= elem.byteWidth, "Value size does not match vertex attribute size.");
-        JAM_ASSERT(m_mem.GetByteWidth() >= offset + elem.byteWidth, "Vertex attribute write out of bounds in vertex buffer.");
+        JAM_ASSERT(m_validations[_attrib], "Vertex attribute is not valid in the given vertex layout.");
+        const SizeT offset = _index * m_stride + m_offsets[_attrib];
+        JAM_ASSERT(sizeof(T) <= m_byteWidths[_attrib], "Value size does not match vertex attribute size.");
+        JAM_ASSERT(m_mem.GetByteWidth() >= offset + m_byteWidths[_attrib], "Vertex attribute write out of bounds in vertex buffer.");
         std::memcpy(m_mem.GetPtr() + offset, &_value, sizeof(T));
     }
 
 private:
     // seek must be placed vertex start
-    MutableMemoryView   m_mem    = {};
-    Details::TinyLayout m_vles   = {};
-    Int32               m_stride = 0;
+    MutableMemoryView                  m_mem         = {};
+    Int32                              m_stride      = 0;
+    EnumArray<eVertexAttribute, Int32> m_offsets     = {};
+    EnumArray<eVertexAttribute, Int32> m_byteWidths  = {};
+    EnumArray<eVertexAttribute, bool>  m_validations = {};
 };
 
 class VertexReader
 {
 public:
     VertexReader(
-        const MemoryView    _vertData,
+        const MemoryView    _data,
         const VertexLayout& _vl)
-        : m_mem(_vertData)
+        : m_mem(_data)
         , m_stride(_vl.GetStride())
     {
-        for (const VertexLayoutElement& vle: _vl.GetElems())
+        for (const VertexElement& ve: _vl.GetElements())
         {
-            Details::TinyElem elem = { vle.offset, vle.byteWidth, true };
-            m_vles[vle.attrib]     = elem;
+            m_offsets[ve.attrib]     = ve.offset;
+            m_byteWidths[ve.attrib]  = ve.byteWidth;
+            m_validations[ve.attrib] = true;
         }
     }
 
     template<typename T>
-    T ReadAt(
-        const SizeT            _vertIdx,
+    [[nodiscard]] T ReadAt(
+        const SizeT            _index,
         const eVertexAttribute _attrib) const
     {
-        const Details::TinyElem& elem = m_vles[_attrib];
-        JAM_ASSERT(elem.bValid, "Vertex attribute is not valid in the given vertex layout.");
-        const SizeT offset = _vertIdx * m_stride + elem.offset;
-        JAM_ASSERT(sizeof(T) <= elem.byteWidth, "Value size does not match vertex attribute size.");
-        JAM_ASSERT(m_mem.GetByteWidth() >= offset + elem.byteWidth, "Vertex attribute read out of bounds in vertex buffer.");
-        T value = {};
-        std::memcpy(&value, m_mem.GetPtr() + offset, sizeof(T));
-        return value;
+        JAM_ASSERT(m_validations[_attrib], "Vertex attribute is not valid in the given vertex layout.");
+        const SizeT offset = _index * m_stride + m_offsets[_attrib];
+        JAM_ASSERT(sizeof(T) <= m_byteWidths[_attrib], "Value size does not match vertex attribute size.");
+        JAM_ASSERT(m_mem.GetByteWidth() >= offset + m_byteWidths[_attrib], "Vertex attribute read out of bounds in vertex buffer.");
+        return *reinterpret_cast<const T*>(m_mem.GetPtr() + offset);
     }
 
 private:
-    MemoryView          m_mem;
-    Details::TinyLayout m_vles   = {};
-    Int32               m_stride = 0;
+    MemoryView                         m_mem;
+    Int32                              m_stride      = 0;
+    EnumArray<eVertexAttribute, Int32> m_offsets     = {};
+    EnumArray<eVertexAttribute, Int32> m_byteWidths  = {};
+    EnumArray<eVertexAttribute, bool>  m_validations = {};
 };
 
 class IndexWriter
 {
 public:
     IndexWriter(
-        const MutableMemoryView _indexData,
+        const MutableMemoryView _index,
         const bool              _bUseU32)
-        : m_mem(_indexData)
+        : m_mem(_index)
         , m_bU32(_bUseU32)
     {
     }
@@ -106,20 +94,20 @@ public:
     template<typename T>
         requires(std::is_integral_v<T>)
     void WriteAt(
-        const SizeT _indexIdx,
+        const SizeT _index,
         const T     _value) const
     {
         if (m_bU32)
         {
-            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_indexIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
+            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_index + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
             const UInt32 index = static_cast<UInt32>(_value);
-            std::memcpy(m_mem.GetPtr() + _indexIdx * sizeof(UInt32), &index, sizeof(UInt32));
+            std::memcpy(m_mem.GetPtr() + _index * sizeof(UInt32), &index, sizeof(UInt32));
         }
         else
         {
-            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_indexIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
+            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_index + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
             const UInt16 index = static_cast<UInt16>(_value);
-            std::memcpy(m_mem.GetPtr() + _indexIdx * sizeof(UInt16), &index, sizeof(UInt16));
+            std::memcpy(m_mem.GetPtr() + _index * sizeof(UInt16), &index, sizeof(UInt16));
         }
     }
 
@@ -132,9 +120,9 @@ class IndexReader
 {
 public:
     IndexReader(
-        const MemoryView _indexData,
+        const MemoryView _data,
         const bool       _bUseU32)
-        : m_mem(_indexData)
+        : m_mem(_data)
         , m_bU32(_bUseU32)
     {
     }
@@ -142,21 +130,17 @@ public:
     template<typename T>
         requires(std::is_integral_v<T>)
     T ReadAt(
-        const SizeT _indexIdx) const
+        const SizeT _index) const
     {
         if (m_bU32)
         {
-            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_indexIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
-            UInt32 index = 0;
-            std::memcpy(&index, m_mem.GetPtr() + _indexIdx * sizeof(UInt32), sizeof(UInt32));
-            return static_cast<T>(index);
+            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_index + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
+            return *reinterpret_cast<const UInt32*>(m_mem.GetPtr() + _index * sizeof(UInt32));
         }
         else
         {
-            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_indexIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
-            UInt16 index = 0;
-            std::memcpy(&index, m_mem.GetPtr() + _indexIdx * sizeof(UInt16), sizeof(UInt16));
-            return static_cast<T>(index);
+            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_index + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
+            return *reinterpret_cast<const UInt16*>(m_mem.GetPtr() + _index * sizeof(UInt16));
         }
     }
 
@@ -164,9 +148,5 @@ private:
     MemoryView m_mem  = {};
     bool       m_bU32 = false;
 };
-
-[[nodiscard]] Int32 CalcNumIndices(MemoryView _indexData, bool _bUseU32) noexcept;
-[[nodiscard]] Int32 CalcNumVertices(MemoryView _vertData, const VertexLayout& _vl) noexcept;
-[[nodiscard]] Int32 CalcIndicesByteWidth(Int32 _numIdxes, bool _bUseU32) noexcept;
 
 }   // namespace Jam

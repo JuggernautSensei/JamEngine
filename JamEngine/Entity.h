@@ -1,6 +1,5 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 #pragma once
-#include "Application.h"
 #include "ComponentMetadata.h"
 #include "UID.h"
 
@@ -47,17 +46,6 @@ public:
         return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(_args)...);
     }
 
-    template<typename T, typename... Args>
-        requires HasComponentEssentialMarker<T>
-    void CreateComponentDeferred(Args&&... _args)
-    {
-        Application& app = GetApp();
-        app.SubmitCommandToMainThread(Bind(
-            [this, ... args = std::forward<Args>(_args)] {
-                CreateComponent<T>(std::move(args)...);
-            }));
-    }
-
     template<typename... T>
         requires(HasComponentEssentialMarker<T> && ...)
     decltype(auto) GetComponents() const
@@ -66,7 +54,6 @@ public:
         return m_pRegistry->get<T...>(m_handle);
     }
 
-    // ReSharper disable once CppMemberFunctionMayBeConst
     template<typename... T>
         requires(HasComponentEssentialMarker<T> && ...)
     decltype(auto) GetComponents()
@@ -90,14 +77,6 @@ public:
         JAM_ASSERT(IsValid(), "Entity is not valid");
         JAM_ASSERT(HaveComponents<T...>(), "Entity does not have the specified component(s)");
         m_pRegistry->remove<T...>(m_handle);
-    }
-
-    template<typename... T>
-        requires((HasComponentEssentialMarker<T> && !HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>) && ...)
-    void RemoveComponentsDeferred()
-    {
-        Application& app = GetApp();
-        app.SubmitCommandToMainThread(Bind<&Entity::RemoveComponents<T...>>(this));
     }
 
     static const Entity kNull;

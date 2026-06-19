@@ -41,7 +41,7 @@ public:
     JsonWriter& operator=(JsonWriter&& _other) noexcept;
 
     [[nodiscard]] Expect<String> Stringify(Flags<eJsonWriteFlags> _flags = {}) const;
-    Error                        SaveToFile(StringView _path, Flags<eJsonWriteFlags> _flags = eJsonWriteFlags::None, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const;
+    Error                        SaveToFile(StringView _path, Flags<eJsonWriteFlags> _flags = eJsonWriteFlags::None, eFileWrite _mode = eFileWrite::Truncate) const;
 
     void BeginObject() override;
     void EndObject() override;

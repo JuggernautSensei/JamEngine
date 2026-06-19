@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-06-14 14:58:11.739
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Matrix.cpp
+function name: struct Jam::Mtx4 __cdecl Jam::Mtx4::MakeSRT(struct Jam::Vec3,struct Jam::Vec3,struct Jam::Vec3,struct Jam::Vec3)
+line: 342
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: _forward.IsNormalized()
+Forward direction must be normalized.
+====================================

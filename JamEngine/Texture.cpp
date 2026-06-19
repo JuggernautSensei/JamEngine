@@ -77,9 +77,7 @@ Error Texture::LoadFromFile_(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // import dds (native image format is dds.)
-    ImageImporterInfo info         = {};
-    info.bGenerateMips             = true;
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path, info);
+    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path);
     if (!importer)
     {
         return importer.GetError();
@@ -96,9 +94,9 @@ Error Texture::LoadFromFile_(
 }
 
 Error Texture::Save(
-    const StringView                 _path,
-    const bool                       _bReplaceExtension,
-    const eFileWriterCollisionPolicy _policy) const
+    const StringView _path,
+    const bool       _bReplaceExtension,
+    const eFileWrite _mode) const
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
     JAM_ASSERT(IsValid(), "Cannot save an invalid texture.");
@@ -109,7 +107,7 @@ Error Texture::Save(
         path.ReplaceExtension(kExtension);
     }
 
-    return ImageExporter::ExportToFile(m_texh, path, eImageFormat::DDS, false, _policy);
+    return ImageExporter::ExportToFile(m_texh, path, eImageFormat::DDS, false, _mode);
 }
 
 void Texture::SetName(

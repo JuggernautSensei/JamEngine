@@ -48,14 +48,6 @@ float2 PSMain(PSInput _input) : SV_TARGET
 #endif
 }
 
-#elif defined(SHADOW_MODE_ESM)
-
-float PSMain(PSInput _input) : SV_TARGET
-{
-    float depth = _input.posV.z;
-    return exp(cb_esmExponent * (depth - 1.f));
-}
-
 #elif defined (LIGHT_OMNI)
 
 
