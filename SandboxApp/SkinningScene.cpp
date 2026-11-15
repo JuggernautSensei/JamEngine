@@ -6,6 +6,7 @@
 #include "RenderStates.h"
 #include "Utilities.h"
 #include <filesystem>
+#include "../JamEngine/MeshFactory.h"
 #include "../JamEngine/ModelImporter.h"
 
 #define SCENE_PATH(_filepath) "Resources/SkinningScene/" _filepath
@@ -19,7 +20,7 @@ constexpr float kCentimeterToMeter = 0.01f;
 constexpr float kWalkSpeed         = 1.6f;
 constexpr float kTurnSpeed         = ToRad(540.f);
 constexpr float kBlendDuration     = 0.2f;
-const Vec3      kCameraOffset      = { 0.f, 1.3f, -3.5f };
+const Vec3      kCameraOffset      = { 0.f, 2.4f, -5.8f };
 
 struct CBEntity
 {
@@ -27,7 +28,10 @@ struct CBEntity
 
     Mtx4   world;
     UInt32 bHasAlbedo;
-    float  padding[3];
+    UInt32 bSkinned;
+    Vec2   uvScale;
+    Vec3   tint;
+    float  padding;
 };
 
 struct CBCamera
@@ -78,9 +82,13 @@ SkinningScene::SkinningScene()
 {
     InitModel_();
     LoadStateClips_();
+    InitNpcs_();
     InitRenderGraph_();
 
     m_camera.transform.SetTranslation(kCameraOffset);
+    m_camera.camera.SetFarZ(150.f);
+    m_camera.euler.pitch = ToRad(11.f);
+    m_camera.transform.SetRotation(m_camera.euler);
 }
 
 SkinningScene::~SkinningScene()
@@ -92,6 +100,8 @@ void SkinningScene::OnUpdate(
 {
     UpdateInput_(_deltaTime);
     UpdatePose_(_deltaTime);
+    m_npcTime += static_cast<double>(_deltaTime);
+    UpdateNpcs_();
 
     m_camera.transform.SetTranslation(m_position + kCameraOffset);
 }
@@ -122,9 +132,6 @@ void SkinningScene::OnImGuiRender()
         ImGui::End();
         return;
     }
-
-    ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-    ImGui::Separator();
 
     constexpr const char* kStateNames[] = { "Idle", "Walk", "Slash" };
 
@@ -203,7 +210,7 @@ void SkinningScene::InitRenderGraph_()
     m_graph.AddRenderPass("Pass_Main")
         .SetFrameBuffer("FB_Scene")
         .SetProgram("P_Main")
-        .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 0)
+        .SetRenderTargetClearCommand(RGBA::FromLinear(0.32f, 0.42f, 0.58f, 1.f), 0)
         .SetDepthClearCommand(1.f)
         .SetRenderFlags(kBackCullDepthTest)
         .SetBlendFlags(kOpaqueBlend, 0)
@@ -373,18 +380,80 @@ void SkinningScene::UpdatePose_(
 
 Mtx4 SkinningScene::CalcCharacterWorld_() const
 {
-    const float s = std::sin(m_yaw);
-    const float c = std::cos(m_yaw);
+    return MakeCharacterWorld_(m_position, m_yaw);
+}
+
+Mtx4 SkinningScene::MakeCharacterWorld_(
+    const Vec3  _position,
+    const float _yaw)
+{
+    const float s = std::sin(_yaw);
+    const float c = std::cos(_yaw);
 
     const Vec4 right    = Vec4(c, 0.f, -s, 0.f);
     const Vec4 up       = Vec4(0.f, 1.f, 0.f, 0.f);
     const Vec4 forward  = Vec4(s, 0.f, c, 0.f);
     const Vec4 origin   = Vec4(0.f, 0.f, 0.f, 1.f);
     const Mtx4 rotation = Mtx4(right, up, forward, origin);
-    return Mtx4::MakeScale(Vec3 { kCentimeterToMeter }) * rotation * Mtx4::MakeTranslation(m_position);
+    return Mtx4::MakeScale(Vec3 { kCentimeterToMeter }) * rotation * Mtx4::MakeTranslation(_position);
 }
 
-void SkinningScene::Submit_()
+void SkinningScene::InitNpcs_()
+{
+    VertexLayout layout = {};
+    layout.Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    layout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    layout.Add(eVertexAttribute::BlendIndex, eAttributeFormat::UInt8x4);
+    layout.Add(eVertexAttribute::BlendWeight, eAttributeFormat::Float4);
+    m_pFloor        = CreatePlaneMesh({ 60.f, 60.f }, Vec3::kUp, layout);
+    m_pFloorTexture = LoadTexture(SCENE_PATH("Floor_Albedo.jpg"));
+
+    constexpr Int32 kColumns = 7;
+    constexpr Int32 kRows    = 2;
+    for (Int32 row = 0; row < kRows; ++row)
+    {
+        for (Int32 col = 0; col < kColumns; ++col)
+        {
+            const Int32 index = row * kColumns + col;
+
+            Npc& npc   = m_npcs.emplace_back();
+            npc.center = { (static_cast<float>(col) - 3.f) * 3.2f, 0.f, 5.5f + static_cast<float>(row) * 3.6f };
+            npc.phase  = static_cast<float>(index) * 0.53f;
+            npc.state  = index % 3 == 0 ? eCharacterState::Walk : index % 3 == 1 ? eCharacterState::Idle
+                                                                                 : eCharacterState::Slash;
+            npc.radius = npc.state == eCharacterState::Walk ? 1.1f : 0.f;
+            npc.yaw    = (static_cast<float>(index % 5) - 2.f) * 0.12f;
+        }
+    }
+}
+
+void SkinningScene::UpdateNpcs_()
+{
+    for (Npc& npc: m_npcs)
+    {
+        const double time = m_npcTime + static_cast<double>(npc.phase);
+
+        if (npc.state == eCharacterState::Walk)
+        {
+            const float angle = static_cast<float>(time) * (1.6f / npc.radius);
+            npc.position      = npc.center + Vec3 { std::cos(angle) * npc.radius, 0.f, std::sin(angle) * npc.radius };
+            npc.yaw           = std::atan2(std::sin(angle), -std::cos(angle));
+        }
+        else
+        {
+            npc.position = npc.center;
+        }
+
+        const Error err = SampleLocalPose(m_animation.skeleton, GetStateClip_(npc.state), time, true, m_npcPoses);
+        JAM_ASSERT(!err, "SkinningScene::UpdateNpcs_() - Failed to sample pose. {}", err);
+        const Error err2 = LocalPosesToGlobals(m_animation.skeleton, m_npcPoses, npc.globals);
+        JAM_ASSERT(!err2, "SkinningScene::UpdateNpcs_() - Failed to build globals. {}", err2);
+    }
+}
+
+void SkinningScene::DrawCharacter_(
+    const Vector<Mtx4>& _globals,
+    const Mtx4&         _world)
 {
     Graphics&                    gfx       = GetGraphics();
     const Vector<Ref<Mesh>>&     meshes    = m_pModel->GetMeshes();
@@ -398,8 +467,8 @@ void SkinningScene::Submit_()
             continue;
         }
 
-        const Error err = BuildSkinningPalette(skin, m_globals, m_palette);
-        JAM_ASSERT(!err, "SkinningScene::Submit_() - Failed to build skinning palette. {}", err);
+        const Error err = BuildSkinningPalette(skin, _globals, m_palette);
+        JAM_ASSERT(!err, "SkinningScene::DrawCharacter_() - Failed to build skinning palette. {}", err);
 
         CBSkin cbSkin = {};
         for (SizeT j = 0; j < m_palette.size(); ++j)
@@ -409,8 +478,11 @@ void SkinningScene::Submit_()
         gfx.UpdateBuffer(m_skinCbh, AsMemoryView(cbSkin));
 
         CBEntity entity   = {};
-        entity.world      = (m_globals[skin.meshNodeIndex] * CalcCharacterWorld_()).Transpose();
+        entity.world      = (_globals[skin.meshNodeIndex] * _world).Transpose();
         entity.bHasAlbedo = 0;
+        entity.bSkinned   = 1;
+        entity.uvScale    = { 1.f, 1.f };
+        entity.tint       = { 0.8f, 0.8f, 0.8f };
 
         const Int32 materialIdx = m_meshMaterials[i];
         if (materialIdx >= 0 && materialIdx < static_cast<Int32>(materials.size()))
@@ -420,10 +492,37 @@ void SkinningScene::Submit_()
             {
                 pAlbedo->Bind(eShader::PixelShader, kAlbedoTextureSlot);
                 entity.bHasAlbedo = 1;
+                entity.tint       = Vec3::kOne;
             }
         }
         gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
 
         meshes[i]->Submit();
+    }
+}
+
+void SkinningScene::Submit_()
+{
+    Graphics& gfx = GetGraphics();
+
+    // floor
+    {
+        m_pFloorTexture->Bind(eShader::PixelShader, kAlbedoTextureSlot);
+
+        CBEntity entity   = {};
+        entity.world      = Mtx4::kIdentity;
+        entity.bHasAlbedo = 1;
+        entity.bSkinned   = 0;
+        entity.uvScale    = { 14.f, 14.f };
+        entity.tint       = { 0.7f, 0.7f, 0.75f };
+        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
+        m_pFloor->Submit();
+    }
+
+    DrawCharacter_(m_globals, CalcCharacterWorld_());
+
+    for (const Npc& npc: m_npcs)
+    {
+        DrawCharacter_(npc.globals, MakeCharacterWorld_(npc.position, npc.yaw));
     }
 }

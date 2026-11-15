@@ -1,37 +1,4 @@
-#include "Fullscreen.hlsl"
-
-Texture2D t_normal : register(t0);
-Texture2D<float> t_depth : register(t1);
-Texture2D t_scene : register(t2);
-
-cbuffer CBSSR : register(b0)
-{
-    float4x4 cb_proj;
-    float4x4 cb_invProj;
-    float2 cb_screenSize;
-    float cb_maxDistance;
-    float cb_thickness;
-    float cb_steps;
-    float cb_edgeFade;
-    float cb_bSkyFallback;
-    float cb_padding1;
-    float3 cb_skyColor;
-    float cb_padding2;
-};
-
-float ViewDepth(float _depth)
-{
-    return cb_proj._43 / (_depth - cb_proj._33);
-}
-
-float3 ViewPosition(int2 _pixel)
-{
-    const float depth = t_depth.Load(int3(_pixel, 0));
-    const float2 uv = (float2(_pixel) + 0.5f) / cb_screenSize;
-    const float2 ndc = float2(uv.x * 2.0f - 1.0f, 1.0f - uv.y * 2.0f);
-    const float4 posV = mul(float4(ndc, depth, 1.0f), cb_invProj);
-    return posV.xyz / posV.w;
-}
+#include "SSRCommon.hlsl"
 
 struct TraceResult
 {
@@ -87,19 +54,44 @@ TraceResult Trace(float3 _origin, float3 _direction, int2 _sourcePixel)
         const float depth = t_depth.Load(int3(pixel, 0));
         if (any(pixel != _sourcePixel) && depth < 1.0f)
         {
-            const float sceneZ = ViewDepth(depth);
-            // 같은 픽셀 안의 광선 구간과 표면 두께를 비교
-            if (max(z0, z1) >= sceneZ && min(z0, z1) <= sceneZ + cb_thickness)
+            const float3 hitNormal = normalize(t_normal.Load(int3(pixel, 0)).xyz);
+            const float facing = dot(hitNormal, _direction);
+            if (facing < -0.02f)
             {
-                const float hitZ = clamp(sceneZ, min(z0, z1), max(z0, z1));
-                const float denominator = (endQ - startQ) - hitZ * (endK - startK);
-                const float hit = abs(denominator) > 1e-8f ? saturate((hitZ * startK - startQ) / denominator) : (entry + exit) * 0.5f;
-                result.uv = (start + delta * hit) / cb_screenSize;
-                result.pixel = pixel;
-                const float hitDepth = lerp(startQ, endQ, hit) / lerp(startK, endK, hit);
-                result.distance = abs(_direction.z) > 1e-5f ? max(0.0f, (hitDepth - _origin.z) / _direction.z) : rayLength * hit;
-                result.bHit = true;
-                return result;
+                const float sceneZ = ViewDepth(depth);
+                const float2 ndc = (float2(pixel) + 0.5f) / cb_screenSize * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f);
+                const float3 centerRay = float3(ndc / float2(cb_proj._11, cb_proj._22), 1.0f);
+                const float centerDenominator = abs(dot(hitNormal, centerRay));
+                const float footprint = dot(abs(hitNormal.xy), 1.0f / (cb_screenSize * abs(float2(cb_proj._11, cb_proj._22))));
+                // Bound the entire tangent plane over this pixel, rather than
+                // treating its center depth as a constant-depth box. This retains
+                // oblique/curved surfaces without inflating every silhouette.
+                const float nearZ = sceneZ * centerDenominator / max(centerDenominator + footprint, 1e-6f);
+                const float farZ = sceneZ * centerDenominator / max(centerDenominator - footprint, 1e-6f);
+                if (max(z0, z1) >= nearZ && min(z0, z1) <= farZ + cb_thickness)
+                {
+                    // A depth interval is only a conservative candidate. At a
+                    // silhouette it also overlaps rays already behind the visible
+                    // surface, producing stretched wedges and reflected backsides.
+                    const float3 surface = centerRay * sceneZ;
+                    const float distance = dot(surface - _origin, hitNormal) / facing;
+                    const float3 position = _origin + _direction * distance;
+                    const float4 projected = mul(float4(position, 1.0f), cb_proj);
+                    const float2 hitPixel = float2(projected.x, -projected.y) / projected.w * cb_screenSize * 0.5f + cb_screenSize * 0.5f;
+                    const float2 withinPixel = hitPixel - float2(pixel);
+                    // Intersect the local tangent plane, then require the
+                    // intersection to belong to the candidate pixel. Thickness
+                    // must not invent geometry beyond a depth discontinuity.
+                    if (distance > 0.02f && distance <= rayLength
+                        && all(withinPixel >= -0.001f) && all(withinPixel <= 1.001f))
+                    {
+                        result.uv = hitPixel / cb_screenSize;
+                        result.pixel = pixel;
+                        result.distance = distance;
+                        result.bHit = true;
+                        return result;
+                    }
+                }
             }
         }
 
@@ -118,6 +110,40 @@ TraceResult Trace(float3 _origin, float3 _direction, int2 _sourcePixel)
         }
     }
     return result;
+}
+
+float4 FilterHit(TraceResult _hit, float3 _position)
+{
+    const float3 normal = normalize(t_normal.Load(int3(_hit.pixel, 0)).xyz);
+    const float2 samplePosition = _hit.uv * cb_screenSize - 0.5f;
+    const int2 base = int2(floor(samplePosition));
+    const float2 fraction = frac(samplePosition);
+    float3 color = 0.0f;
+    float coverage = 0.0f;
+    [unroll]
+    for (int y = 0; y < 2; ++y)
+    {
+        [unroll]
+        for (int x = 0; x < 2; ++x)
+        {
+            const int2 pixel = base + int2(x, y);
+            if (all(pixel >= 0) && all(pixel < int2(cb_screenSize)) && t_depth.Load(int3(pixel, 0)) < 1.0f)
+            {
+                const float3 neighborNormal = normalize(t_normal.Load(int3(pixel, 0)).xyz);
+                const float planeError = abs(dot(ViewPosition(pixel) - _position, normal));
+                // Filter only samples belonging to the validated surface.
+                // Missing silhouette coverage fades to the environment;
+                // foreground/background colors must never bleed into a hit.
+                if (dot(neighborNormal, normal) > 0.75f && planeError < max(0.01f, cb_thickness * 0.5f))
+                {
+                    const float weight = (x == 0 ? 1.0f - fraction.x : fraction.x) * (y == 0 ? 1.0f - fraction.y : fraction.y);
+                    color += t_scene.Load(int3(pixel, 0)).rgb * weight;
+                    coverage += weight;
+                }
+            }
+        }
+    }
+    return float4(color / max(coverage, 1e-4f), coverage);
 }
 
 float4 PSMain(PSInput input) : SV_TARGET
@@ -139,23 +165,28 @@ float4 PSMain(PSInput input) : SV_TARGET
     const float3 V = normalize(P);
     const float3 R = reflect(V, N);
 
-    const float skyAlpha = cb_bSkyFallback > 0.5f ? 0.5f : 0.0f;
-
-    const TraceResult hit = Trace(P + N * 0.01f, R, pixel);
+    // Rays heading back toward the camera immediately lose the visible depth
+    // layer. Treat them as unavailable information, not reflected silhouettes.
+    const float directionFade = smoothstep(0.0f, 0.25f, R.z);
+    if (directionFade <= 0.0f)
+    {
+        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    const float3 origin = P + N * max(0.01f, P.z * 1e-4f);
+    const TraceResult hit = Trace(origin, R, pixel);
 
     if (hit.bHit)
     {
         const float2 uv = hit.uv;
         const float2 edge = abs(uv * 2.0f - 1.0f);
         const float edgeFade = 1.0f - smoothstep(1.0f - cb_edgeFade, 1.0f, max(edge.x, edge.y));
-        const float distanceFade = 1.0f - hit.distance / cb_maxDistance;
-
-        const float3 color = t_scene.Load(int3(hit.pixel, 0)).rgb;
-        const float confidence = saturate(edgeFade * distanceFade);
-        const float skyWeight = skyAlpha * (1.0f - confidence);
-        const float alpha = confidence + skyWeight;
-        return float4((color * confidence + cb_skyColor * skyWeight) / max(alpha, 1e-4f), alpha);
+        const float distanceFade = 1.0f - smoothstep(cb_maxDistance * 0.7f, cb_maxDistance, hit.distance);
+        const float3 hitNormal = normalize(t_normal.Load(int3(hit.pixel, 0)).xyz);
+        const float facingFade = smoothstep(0.02f, 0.2f, -dot(hitNormal, R));
+        const float4 filtered = FilterHit(hit, origin + R * hit.distance);
+        const float confidence = saturate(edgeFade * distanceFade * directionFade * facingFade * filtered.a);
+        return float4(filtered.rgb, confidence);
     }
 
-    return float4(cb_skyColor, skyAlpha);
+    return float4(0.0f, 0.0f, 0.0f, 0.0f);
 }

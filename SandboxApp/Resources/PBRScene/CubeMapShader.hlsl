@@ -15,7 +15,7 @@ cbuffer CBPBRSceneCamera : register(b1)
 cbuffer CBPBRSceneCubeMap : register(b2)
 {
     uint cb_type;
-    PADDING3;
+    float3 cb_backgroundColor;
 };
 
 TextureCube t_iblIrradiance : register(t0);
@@ -58,6 +58,6 @@ float4 PSMain(PSInput input) : SV_TARGET
     }
     else
     {
-        return float4(0.2f, 0.2f, 0.2f, 1.0f);
+        return float4(cb_backgroundColor, 1.0f);
     }
 }

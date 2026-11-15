@@ -36,15 +36,10 @@ MousePickingScene::MousePickingScene()
     m_camera.dMove = 5.f;
 }
 
-void MousePickingScene::RequestPick(const Vec2i _clientPoint)
+void MousePickingScene::RequestPick_(const Vec2i _clientPoint)
 {
     m_pickPoint      = _clientPoint;
     m_bPickRequested = true;
-}
-
-void MousePickingScene::SetShowIds(const bool _bShowIds)
-{
-    m_bShowIds = _bShowIds;
 }
 
 void MousePickingScene::OnEvent(Event& _event)
@@ -59,7 +54,7 @@ void MousePickingScene::OnMouseDown_(const MouseDownEvent& _event)
         return;
     POINT point = {};
     if (::GetCursorPos(&point) && ::ScreenToClient(GetWindowsPlatform().GetPlatformHandle(), &point))
-        RequestPick({ point.x, point.y });
+        RequestPick_({ point.x, point.y });
 }
 
 void MousePickingScene::OnUpdate(const float _deltaTime)
@@ -232,6 +227,5 @@ void MousePickingScene::ReadPick_()
     if (bytes == sizeof(selectedId) && selectedId >= 0 && selectedId <= m_objects.size())
     {
         m_selectedId = selectedId;
-        JAM_LOG_INFO("Picked object ID: {}", m_selectedId);
     }
 }

@@ -80,8 +80,8 @@ StencilScene::StencilScene()
     InitMeshes_();
     InitRenderGraph_();
 
-    m_camera.transform.SetTranslation({ 0.f, 2.5f, -7.f });
-    m_camera.euler.pitch = ToRad(15.f);
+    m_camera.transform.SetTranslation({ 0.f, 4.8f, -12.5f });
+    m_camera.euler.pitch = ToRad(17.f);
     m_camera.transform.SetRotation(m_camera.euler);
 }
 
@@ -97,22 +97,51 @@ void StencilScene::OnUpdate(
     if (m_bAnimate)
     {
         m_counter += _deltaTime;
+        const float t = m_counter;
 
-        // cube. 회전만
-        Vec3 cubeR  = m_transforms[eObject::Cube].ToEuler();
-        cubeR.pitch = ToRad(45.f) * m_counter;
-        cubeR.yaw   = ToRad(45.f) * m_counter;
-        m_transforms[eObject::Cube].SetRotation(cubeR);
+        // bunny. 원을 그리며 공전, 진행 방향을 바라봄
+        {
+            const float angle = 0.6f * t;
+            m_transforms[eObject::Bunny].SetTranslation({ Cos(angle) * 3.2f, -0.333f, Sin(angle) * 2.4f + 1.f });
+            m_transforms[eObject::Bunny].SetRotation(Vec3 { 0.f, -angle + kPi, 0.f });
+        }
 
-        // sphere. 위 아래로 왔다갔다.
-        Vec3 sphereT = m_transforms[eObject::Sphere].GetTranslation();
-        sphereT.y    = 1.2f + Sin(2.f * m_counter) * 0.5f;
-        m_transforms[eObject::Sphere].SetTranslation(sphereT);
+        // sphere. 8자 궤적으로 이동하며 통통 튐
+        {
+            const float x = Sin(0.9f * t) * 4.f;
+            const float z = Sin(1.8f * t) * 1.5f + 1.5f;
+            const float y = 0.5f + Abs(Sin(2.6f * t)) * 1.8f;
+            m_transforms[eObject::Sphere].SetTranslation({ x, y, z });
+        }
 
-        // bunny. 회전만
-        Vec3 bunnyR = m_transforms[eObject::Bunny].ToEuler();
-        bunnyR.yaw  = ToRad(30.f) * m_counter;
-        m_transforms[eObject::Bunny].SetRotation(bunnyR);
+        // cube. 반대 방향으로 공전하며 공중제비
+        {
+            const float angle = -0.45f * t;
+            m_transforms[eObject::Cube].SetTranslation({ Cos(angle) * 5.f, 1.2f + Sin(1.5f * t) * 0.4f, Sin(angle) * 3.f + 2.f });
+            m_transforms[eObject::Cube].SetRotation(Vec3 { ToRad(80.f) * t, ToRad(55.f) * t, ToRad(30.f) * t });
+        }
+
+        // cone. 제자리에서 빠르게 회전하며 위아래로 움직임
+        {
+            m_transforms[eObject::Cone].SetTranslation({ -5.5f, 0.2f + (Sin(1.2f * t) * 0.5f + 0.5f) * 1.6f, 3.5f });
+            m_transforms[eObject::Cone].SetRotation(Vec3 { 0.f, ToRad(160.f) * t, 0.f });
+        }
+
+        // cylinder. 시계추처럼 흔들림
+        {
+            m_transforms[eObject::Cylinder].SetTranslation({ 5.5f, 0.f, 3.5f });
+            m_transforms[eObject::Cylinder].SetRotation(Vec3 { 0.f, ToRad(40.f) * t, Sin(1.6f * t) * ToRad(35.f) });
+        }
+
+        // ring. 수직 원을 그리며 회전
+        {
+            const float angle = 1.4f * t;
+            m_transforms[eObject::Ring].SetTranslation({ Cos(angle) * 3.4f, 2.1f + Sin(angle) * 1.4f, -1.8f });
+            m_transforms[eObject::Ring].SetRotation(Vec3 { ToRad(90.f) * t, 0.f, 0.f });
+        }
+
+        // light. 천천히 이동
+        m_lightPos = { Cos(0.35f * t) * 6.f, 8.f, -5.f + Sin(0.35f * t) * 3.f };
     }
 }
 
@@ -150,6 +179,8 @@ void StencilScene::OnImGuiRender()
     ImGui::Checkbox("Bunny", &m_bOutline[eObject::Bunny]);
     ImGui::SameLine();
     ImGui::Checkbox("Sphere", &m_bOutline[eObject::Sphere]);
+    ImGui::SameLine();
+    ImGui::Checkbox("Ring", &m_bOutline[eObject::Ring]);
     ImGui::SliderFloat("Width", &m_outlineWidth, 0.f, 0.15f);
     ImGui::ColorEdit3("Color", &m_outlineColor.x);
 
@@ -182,6 +213,18 @@ void StencilScene::InitMeshes_()
     m_pObjects[eObject::Cube] = CreateCubeMesh(Vec3 { 0.5f }, attribLayout);
     m_transforms[eObject::Cube].SetTranslation({ -2.5f, 1.f, 0.f });
     m_colors[eObject::Cube] = { 0.8f, 0.3f, 0.3f };
+
+    // cone
+    m_pObjects[eObject::Cone] = CreateConeMesh(1.2f, 0.55f, Vec3::kUp, 48, eCreateConeMesh::OriginAtBase, attribLayout);
+    m_colors[eObject::Cone]   = { 0.95f, 0.75f, 0.2f };
+
+    // cylinder
+    m_pObjects[eObject::Cylinder] = CreateCylinderMesh(1.6f, 0.4f, Vec3::kUp, 48, eCreateCylinderMesh::OriginAtBase, attribLayout);
+    m_colors[eObject::Cylinder]   = { 0.35f, 0.8f, 0.45f };
+
+    // ring (small sphere)
+    m_pObjects[eObject::Ring] = CreateSphereMesh(0.32f, 5, attribLayout);
+    m_colors[eObject::Ring]   = { 0.85f, 0.4f, 0.9f };
 
     // floor
     m_pFloor = CreatePlaneMesh({ 20.f, 20.f }, Vec3::kUp, attribLayout);
@@ -337,7 +380,8 @@ void StencilScene::InitRenderGraph_()
 bool StencilScene::IsSelected_(
     const eObject _object) const
 {
-    return _object != eObject::Cube && m_bOutline[_object];   // cube has hard edges
+    const bool bHardEdges = _object == eObject::Cube || _object == eObject::Cone || _object == eObject::Cylinder;
+    return !bHardEdges && m_bOutline[_object];
 }
 
 void StencilScene::DrawObject_(

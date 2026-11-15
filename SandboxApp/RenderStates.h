@@ -14,6 +14,12 @@ constexpr Flags<eSamplerFlags> kLinearClamp =
     | eSamplerFlags::AddressV_Clamp
     | eSamplerFlags::AddressW_Clamp;
 
+constexpr Flags<eSamplerFlags> kAnisotropicWrap =
+    eSamplerFlags::Filter_Anisotropic16
+    | eSamplerFlags::AddressU_Wrap
+    | eSamplerFlags::AddressV_Wrap
+    | eSamplerFlags::AddressW_Wrap;
+
 constexpr Flags<eSamplerFlags> kShadowComparison =
     eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear
     | eSamplerFlags::AddressU_Clamp

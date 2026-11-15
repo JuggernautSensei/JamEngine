@@ -4064,8 +4064,9 @@ FrameBuffer Graphics::CreateFrameBuffer_(
         JAM_ASSERT(i == 0 || bIsArray == (texture.numLayers > 1), "All attachments in a framebuffer must be either array textures or non-array textures.");
         JAM_ASSERT(i == 0 || numFrameBufferLayers == attachment.numLayers, "All attachments in a framebuffer must have the same number of layers.");
 
-        // for debugging
-        if (JAM_DEBUG_ENABLED && i == 0)
+        // View dimensions are required in every build, including array slices
+        // used by cascaded and omnidirectional shadow maps.
+        if (i == 0)
         {
             bIsMsaa              = texture.samples > 1;
             bIsArray             = texture.numLayers > 1;

@@ -50,6 +50,27 @@ class PBRScene : public Scene
         eLight type         = eLight::Point;
     };
 
+    struct TextureSet
+    {
+        Ref<Texture> pAlbedo = nullptr;
+        Ref<Texture> pArm    = nullptr;
+        Ref<Texture> pNormal = nullptr;
+    };
+
+    struct SceneObject
+    {
+        Ref<Mesh> pMesh     = nullptr;
+        Int32     texSet    = -1;   // -1: 상수 머테리얼
+        Vec3      position  = Vec3::kZero;
+        Vec3      euler     = Vec3::kZero;
+        Vec3      albedo    = Vec3::kOne;
+        float     roughness = 1.f;
+        float     metallic  = 0.f;
+        float     spinSpeed = 0.f;
+        float     scale     = 1.f;
+        Vec2      uvScale   = { 1.f, 1.f };
+    };
+
 public:
     PBRScene();
     ~PBRScene() noexcept override;
@@ -64,7 +85,9 @@ public:
     void OnImGuiRender() override;
 
 private:
+    void LoadEnvironment_(Int32 _index);
     void OnResize(Int32 _width, Int32 _height) override;
+    void InitObjects_();
     void InitRenderGraph_();
     void SubmitCubeMap_() const;
     void SubmitPBR_();
@@ -72,10 +95,11 @@ private:
 
     RenderGraph m_graph = {};
 
-    ConstantBufferHandle m_entityCbh  = kInvalidHandle;
-    ConstantBufferHandle m_cmrCbh     = kInvalidHandle;
-    ConstantBufferHandle m_lightCbh   = kInvalidHandle;
-    ConstantBufferHandle m_cubeMapCbh = kInvalidHandle;
+    ConstantBufferHandle m_entityCbh   = kInvalidHandle;
+    ConstantBufferHandle m_cmrCbh      = kInvalidHandle;
+    ConstantBufferHandle m_lightCbh    = kInvalidHandle;
+    ConstantBufferHandle m_cubeMapCbh  = kInvalidHandle;
+    ConstantBufferHandle m_materialCbh = kInvalidHandle;
 
     VertexBufferHandle m_cubeVbh = kInvalidHandle;
     IndexBufferHandle  m_cubeIbh = kInvalidHandle;
@@ -84,22 +108,22 @@ private:
     float m_dRot     = ToRad(45.f);
     float m_rot      = 0.f;
 
-    Ref<Mesh>    m_pMesh                = nullptr;
-    Ref<Texture> m_pAlbedo              = nullptr;
-    Ref<Texture> m_pAoRoughnessMetallic = nullptr;
-    Ref<Texture> m_pEmissive            = nullptr;
-    Ref<Texture> m_pNormal              = nullptr;
+    Vector<TextureSet>  m_textureSets = {};
+    Vector<SceneObject> m_objects     = {};
 
     Ref<Texture> m_pIBLIrradiance  = nullptr;
     Ref<Texture> m_pIBLSpecular    = nullptr;
     Ref<Texture> m_pIBLEnvironment = nullptr;
     Ref<Texture> m_pBRDFLUT        = nullptr;
 
-    eToneMapping m_tmType   = eToneMapping::Linear;
-    float        m_exposure = 0.f;
+    eToneMapping m_tmType   = eToneMapping::Aces;
+    float        m_exposure = -1.2f;
     float        m_gamma    = 2.2f;
 
-    Array<Light, 4> m_lights      = {};
-    eCubeMap        m_cubeMapType = eCubeMap::Irradiance;
-    FlyingCamera    m_camera      = {};
+    Array<Light, 4> m_lights           = {};
+    eCubeMap        m_cubeMapType      = eCubeMap::Environment;
+    Int32           m_environmentIndex = 0;
+    Vec3            m_backgroundColor  = { 0.04f, 0.045f, 0.055f };
+    float           m_lightTime        = 0.f;
+    FlyingCamera    m_camera           = {};
 };

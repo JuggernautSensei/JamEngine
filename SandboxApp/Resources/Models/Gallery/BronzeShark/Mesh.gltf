@@ -1,0 +1,160 @@
+{
+  "asset": {
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "BronzeShark"
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "Mesh.bin",
+      "byteLength": 232840
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 54312,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 54312,
+      "byteLength": 54312,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 108624,
+      "byteLength": 36208,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 144832,
+      "byteLength": 88008,
+      "target": 34963
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 4526,
+      "type": "VEC3",
+      "min": [
+        -0.40773507952690125,
+        0.0,
+        -0.8801942467689514
+      ],
+      "max": [
+        0.40773507952690125,
+        1.0,
+        0.8801942467689514
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4526,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 4526,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5125,
+      "count": 22002,
+      "type": "SCALAR"
+    }
+  ],
+  "images": [
+    {
+      "uri": "Albedo.jpg"
+    },
+    {
+      "uri": "NormalGL.jpg"
+    },
+    {
+      "uri": "Arm.jpg"
+    },
+    {
+      "uri": "Ao.jpg"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0
+    },
+    {
+      "source": 1
+    },
+    {
+      "source": 2
+    },
+    {
+      "source": 3
+    }
+  ],
+  "materials": [
+    {
+      "name": "BronzeShark",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      },
+      "normalTexture": {
+        "index": 1
+      },
+      "occlusionTexture": {
+        "index": 3
+      }
+    }
+  ]
+}

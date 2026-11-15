@@ -5,6 +5,7 @@
 #include "ImageFilterManager.h"
 #include "RenderStates.h"
 #include "Utilities.h"
+#include "../JamEngine/ImGuiEngine.h"
 #include "../JamEngine/ModelImporter.h"
 
 #define SCENE_PATH(_filepath) "Resources/DeferredScene/" _filepath
@@ -112,15 +113,70 @@ void DeferredScene::OnRender(const RenderView& _view)
 
 void DeferredScene::OnImGuiRender()
 {
-    if (!BeginSceneDemoWindow("DeferredScene"))
+    if (m_bVisualizeScissor)
     {
-        ImGui::End();
+        const ImVec2 origin = ImGui::GetMainViewport()->Pos;
+        ImDrawList*  pDraw  = ImGui::GetBackgroundDrawList();
+        for (const ScissorPreview& preview: m_scissorPreviews)
+        {
+            if (m_previewLight >= 0 && preview.lightIndex != m_previewLight)
+            {
+                continue;
+            }
+            const ImVec2 min   = { origin.x + preview.rect.left, origin.y + preview.rect.top };
+            const ImVec2 max   = { origin.x + preview.rect.right, origin.y + preview.rect.bottom };
+            const ImU32  color = ImGui::ColorConvertFloat4ToU32({ preview.color.x, preview.color.y, preview.color.z, 0.8f });
+            pDraw->AddRectFilled(min, max, (color & 0x00ffffff) | (20u << 24));
+            pDraw->AddRect(min, max, color, 0.f, 0, 2.f);
+            if (m_previewLight >= 0)
+            {
+                const String label = String::Formatted("Light {} scissor", preview.lightIndex);
+                pDraw->AddText({ min.x + 4.f, min.y + 4.f }, color, label.GetPtr());
+            }
+        }
+    }
+
+    if (BeginSceneDemoWindow("DeferredScene"))
+    {
+        ImGui::SliderInt("Light Count", &m_numLights, 1, kMaxLights);
+        m_previewLight = Clamp(m_previewLight, -1, m_numLights - 1);
+        ImGui::Checkbox("Use Scissor", &m_bUseScissor);
+        ImGui::Checkbox("Visualize Scissor Rects", &m_bVisualizeScissor);
+        if (m_bVisualizeScissor)
+        {
+            ImGui::SliderInt("Preview Light (-1: all)", &m_previewLight, -1, m_numLights - 1);
+            ImGui::Text("Submitted light rectangles: %d", static_cast<Int32>(m_scissorPreviews.size()));
+        }
+        ImGui::Checkbox("Show Color Textures", &m_bShowColorTextures);
+    }
+    ImGui::End();
+
+    if (!m_bShowColorTextures)
+    {
         return;
     }
 
-    ImGui::SliderInt("Light Count", &m_numLights, 1, kMaxLights);
-    ImGui::Checkbox("Use Scissor", &m_bUseScissor);
-
+    const ImGuiViewport* pViewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos({ pViewport->WorkPos.x + Max(0.f, pViewport->WorkSize.x - 396.f), pViewport->WorkPos.y + 16.f }, ImGuiCond_Once);
+    ImGui::SetNextWindowSize({ 380.f, Min(720.f, pViewport->WorkSize.y - 32.f) }, ImGuiCond_Once);
+    if (ImGui::Begin("Deferred Color Textures", &m_bShowColorTextures))
+    {
+        constexpr const char* kTextures[] = { "T_GColor", "T_GNormal", "T_Light" };
+        constexpr const char* kLabels[]   = { "Albedo", "Normal", "Lighting" };
+        for (Int32 i = 0; i < 3; ++i)
+        {
+            const TextureHandle texh = m_graph.GetTexture(kTextures[i]);
+            if (texh == kInvalidHandle)
+            {
+                continue;
+            }
+            const TextureInfo info = GetGraphics().GetTextureInfo(texh);
+            ImGui::SeparatorText(kLabels[i]);
+            ImGui::Text("%s (%d x %d)", kTextures[i], info.width, info.height);
+            const float width = Max(1.f, ImGui::GetContentRegionAvail().x);
+            ImGui::Image(AsImTextureRef(texh), { width, width * static_cast<float>(info.height) / static_cast<float>(info.width) });
+        }
+    }
     ImGui::End();
 }
 
@@ -247,8 +303,9 @@ void DeferredScene::SubmitGBuffer_() const
     }
 }
 
-void DeferredScene::SubmitLights_() const
+void DeferredScene::SubmitLights_()
 {
+    m_scissorPreviews.clear();
     Graphics&           gfx = GetGraphics();
     WindowsPlatform&    win = GetWindowsPlatform();
     ImageFilterManager& ifm = GetImageFilterManager();
@@ -322,6 +379,10 @@ void DeferredScene::SubmitLights_() const
         }
 
         gfx.SetScissor(scissor);
+        if (m_bVisualizeScissor)
+        {
+            m_scissorPreviews.push_back({ scissor, light.lightColor, i });
+        }
         gfx.UpdateBuffer(m_lightCbh, AsMemoryView(light));
         ifm.SubmitScreenTriangle();
     }

@@ -4,10 +4,26 @@
 #define LIGHT_TYPE_POINT 1
 #define LIGHT_TYPE_SPOT 2
 
+#define MATERIAL_ALBEDO_MAP (1 << 0)
+#define MATERIAL_NORMAL_MAP (1 << 1)
+#define MATERIAL_ARM_MAP (1 << 2)
+#define MATERIAL_EMISSIVE_MAP (1 << 3)
+
 cbuffer CBEntity : register(b0)
 {
     float4x4 cb_world;
     float4x4 cb_worldInvTrans;
+    float2 cb_uvScale;
+    float2 cb_entityPadding;
+};
+
+cbuffer CBMaterial : register(b3)
+{
+    float3 cb_albedo;
+    float cb_roughness;
+    float cb_metallic;
+    uint cb_materialFlags;
+    float2 cb_materialPadding;
 };
 
 cbuffer CBCamera : register(b1)
@@ -64,7 +80,6 @@ Texture2D t_normal : register(t6);
 
 static const float k_pi = 3.14159265359f;
 static const float3 k_f0 = float3(0.04f, 0.04f, 0.04f);
-static const float k_maxReflectionLod = 4.f;
 
 float DistributionGGX(float NdotH, float roughness) // D
 {
@@ -112,7 +127,7 @@ PSInput VSMain(VSInput input)
     float4 posW = mul(float4(input.pos, 1.0f), cb_world);
     output.posH = mul(posW, cb_viewProj);
     output.posW = posW.xyz;
-    output.texcoord = input.texcoord;
+    output.texcoord = input.texcoord * cb_uvScale;
     output.normalW = normalize(mul(float4(input.normal, 0.0f), cb_worldInvTrans).xyz);
     output.tangentW = normalize(mul(float4(input.tangent, 0.0f), cb_world).xyz);
     return output;
@@ -120,20 +135,35 @@ PSInput VSMain(VSInput input)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    float3 T = normalize(input.tangentW);
     float3 N = normalize(input.normalW);
-    float3 B = normalize(cross(N, T));
-    float3x3 TBN = float3x3(T, B, N);
-  
-    float3 sampleNormal = t_normal.Sample(s_linearWrap, input.texcoord).xyz * 2.0f - 1.0f;
-    sampleNormal.y = -sampleNormal.y; // invert y for DirectX
-    N = normalize(mul(sampleNormal, TBN));
-    float3 albedo = t_albedo.Sample(s_linearWrap, input.texcoord).xyz;
+    if (cb_materialFlags & MATERIAL_NORMAL_MAP)
+    {
+        float3 T = normalize(input.tangentW);
+        float3 B = normalize(cross(N, T));
+        float3x3 TBN = float3x3(T, B, N);
 
-    float3 aoRoughnessMetallic = t_aoRoughnessMetallic.Sample(s_linearWrap, input.texcoord).xyz;
-    float ao = aoRoughnessMetallic.x;
-    float roughness = aoRoughnessMetallic.y;
-    float metallic = aoRoughnessMetallic.z;
+        float3 sampleNormal = t_normal.Sample(s_linearWrap, input.texcoord).xyz * 2.0f - 1.0f;
+        sampleNormal.y = -sampleNormal.y; // invert y for DirectX
+        N = normalize(mul(sampleNormal, TBN));
+    }
+
+    float3 albedo = cb_albedo;
+    if (cb_materialFlags & MATERIAL_ALBEDO_MAP)
+    {
+        albedo *= pow(t_albedo.Sample(s_linearWrap, input.texcoord).xyz, 2.2f);
+    }
+
+    float ao = 1.0f;
+    float roughness = cb_roughness;
+    float metallic = cb_metallic;
+    if (cb_materialFlags & MATERIAL_ARM_MAP)
+    {
+        float3 arm = t_aoRoughnessMetallic.Sample(s_linearWrap, input.texcoord).xyz;
+        ao = arm.x;
+        roughness *= arm.y;
+        metallic *= arm.z;
+    }
+    roughness = clamp(roughness, 0.04f, 1.0f);
 
     float3 V = normalize(cb_eyePos - input.posW);
     float NdotV = max(dot(N, V), 0.f);
@@ -189,12 +219,18 @@ float4 PSMain(PSInput input) : SV_TARGET
 
     // IBL specular
     float3 R = normalize(reflect(-V, N));
-    float3 prefilteredColor = t_iblSpecular.SampleLevel(s_linearWrap, R, roughness * k_maxReflectionLod).rgb;
+    uint specularWidth, specularHeight, specularMipLevels;
+    t_iblSpecular.GetDimensions(0, specularWidth, specularHeight, specularMipLevels);
+    float3 prefilteredColor = t_iblSpecular.SampleLevel(s_linearWrap, R, roughness * (specularMipLevels - 1)).rgb;
     float2 brdf = t_brdfLUT.Sample(s_linearClamp, float2(NdotV, roughness)).rg;
     float3 specular = prefilteredColor * (kS * brdf.x + brdf.y);
 
     float3 ambient = (kD * diffuse + specular) * ao;
-    float3 emissive = t_emissive.Sample(s_linearWrap, input.texcoord).xyz;
+    float3 emissive = float3(0.0f, 0.0f, 0.0f);
+    if (cb_materialFlags & MATERIAL_EMISSIVE_MAP)
+    {
+        emissive = t_emissive.Sample(s_linearWrap, input.texcoord).xyz;
+    }
     float3 finalColor = ambient + lightCol + emissive;
     return float4(finalColor, 1.0f);
 }

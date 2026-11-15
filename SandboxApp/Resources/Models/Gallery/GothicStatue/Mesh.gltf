@@ -1,0 +1,160 @@
+{
+  "asset": {
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "GothicStatue"
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "Mesh.bin",
+      "byteLength": 1078916
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 279768,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 279768,
+      "byteLength": 279768,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 559536,
+      "byteLength": 186512,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 746048,
+      "byteLength": 332868,
+      "target": 34963
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 23314,
+      "type": "VEC3",
+      "min": [
+        -0.4245835542678833,
+        0.0,
+        -0.44938215613365173
+      ],
+      "max": [
+        0.4245835542678833,
+        1.0,
+        0.44938215613365173
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 23314,
+      "type": "VEC3",
+      "min": [
+        -0.99996417760849,
+        -0.9999440908432007,
+        -0.9999444484710693
+      ],
+      "max": [
+        0.9999087452888489,
+        0.9999784827232361,
+        0.9999511241912842
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 23314,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5125,
+      "count": 83217,
+      "type": "SCALAR"
+    }
+  ],
+  "images": [
+    {
+      "uri": "Albedo.jpg"
+    },
+    {
+      "uri": "NormalGL.jpg"
+    },
+    {
+      "uri": "Arm.jpg"
+    },
+    {
+      "uri": "Ao.jpg"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0
+    },
+    {
+      "source": 1
+    },
+    {
+      "source": 2
+    },
+    {
+      "source": 3
+    }
+  ],
+  "materials": [
+    {
+      "name": "GothicStatue",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      },
+      "normalTexture": {
+        "index": 1
+      },
+      "occlusionTexture": {
+        "index": 3
+      }
+    }
+  ]
+}

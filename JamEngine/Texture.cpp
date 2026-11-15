@@ -81,6 +81,24 @@ Error Texture::LoadFromFile_(
         return importer.GetError();
     }
 
+    // Ordinary image formats contain only the base level. Build the full chain
+    // before upload; authored DDS/IBL mip chains stay untouched.
+    const DirectX::ScratchImage& source   = importer->GetImageContainer();
+    const DirectX::TexMetadata&  metadata = source.GetMetadata();
+    if (metadata.mipLevels == 1 && metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE2D
+        && !metadata.IsCubemap() && (metadata.width > 1 || metadata.height > 1)
+        && _path.GetExtension().IgnoreCaseHash() != IgnoreCaseHashOf(".dds"))
+    {
+        DirectX::ScratchImage mips;
+        const HRESULT         hr = DirectX::GenerateMipMaps(source.GetImages(), source.GetImageCount(), metadata, DirectX::TEX_FILTER_DEFAULT, 0, mips);
+        if (FAILED(hr))
+        {
+            JAM_LOG_ERROR("Failed to generate mipmaps for '{}' (HRESULT {})", _path, hr);
+            return Error::ImportFailed;
+        }
+        *importer = Image { std::move(mips) };
+    }
+
     // done.
     CleanUp_();
 

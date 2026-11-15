@@ -1,0 +1,160 @@
+{
+  "asset": {
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "BrassVase"
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "Mesh.bin",
+      "byteLength": 80832
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 18540,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 18540,
+      "byteLength": 18540,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 37080,
+      "byteLength": 12360,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 49440,
+      "byteLength": 31392,
+      "target": 34963
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 1545,
+      "type": "VEC3",
+      "min": [
+        -0.20587483048439026,
+        0.0,
+        -0.2058749943971634
+      ],
+      "max": [
+        0.20587483048439026,
+        1.0,
+        0.2058749943971634
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1545,
+      "type": "VEC3",
+      "min": [
+        -0.9977239370346069,
+        -1.0,
+        -0.9976372718811035
+      ],
+      "max": [
+        0.9975654482841492,
+        0.9021403193473816,
+        0.9976996779441833
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1545,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5125,
+      "count": 7848,
+      "type": "SCALAR"
+    }
+  ],
+  "images": [
+    {
+      "uri": "Albedo.jpg"
+    },
+    {
+      "uri": "NormalGL.jpg"
+    },
+    {
+      "uri": "Arm.jpg"
+    },
+    {
+      "uri": "Ao.jpg"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0
+    },
+    {
+      "source": 1
+    },
+    {
+      "source": 2
+    },
+    {
+      "source": 3
+    }
+  ],
+  "materials": [
+    {
+      "name": "BrassVase",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      },
+      "normalTexture": {
+        "index": 1
+      },
+      "occlusionTexture": {
+        "index": 3
+      }
+    }
+  ]
+}

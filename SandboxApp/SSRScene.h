@@ -47,6 +47,7 @@ private:
     Vector<Object> m_objects;
     Int32          m_sphereIndex = 0;
     Int32          m_cubeIndex   = 0;
+    Vector<Int32>  m_orbiters;
 
     // camera
     FlyingCamera m_camera;
@@ -58,10 +59,10 @@ private:
     bool  m_bSkyFallback      = true;
     float m_maxDistance       = 30.f;
     Int32 m_steps             = 1024;
-    float m_thickness         = 0.3f;
+    float m_thickness         = 0.12f;
     float m_edgeFade          = 0.15f;
     float m_strength          = 1.f;
     float m_floorReflectivity = 0.7f;
-    float m_ambient           = 0.35f;
+    float m_ambient           = 0.55f;
     float m_counter           = 0.f;
 };

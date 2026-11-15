@@ -5,6 +5,7 @@
 #include "ImageFilterManager.h"
 #include "RenderStates.h"
 #include "Utilities.h"
+#include "../JamEngine/MeshFactory.h"
 #include "../JamEngine/ModelImporter.h"
 
 #define SCENE_PATH(_filepath) "Resources/PBRScene/" _filepath
@@ -29,8 +30,30 @@ struct CBEntity
 {
     static constexpr Int32 kSlot = 0;
 
-    Mtx4 world;
-    Mtx4 invTransWorld;
+    Mtx4  world;
+    Mtx4  invTransWorld;
+    Vec2  uvScale;
+    float padding[2];
+};
+
+struct CBMaterial
+{
+    static constexpr Int32 kSlot = 3;
+
+    Vec3   albedo;
+    float  roughness;
+    float  metallic;
+    UInt32 flags;
+    float  padding[2];
+};
+
+constexpr UInt32 kMaterialAlbedoMap   = 1 << 0;
+constexpr UInt32 kMaterialNormalMap   = 1 << 1;
+constexpr UInt32 kMaterialArmMap      = 1 << 2;
+constexpr UInt32 kMaterialEmissiveMap = 1 << 3;
+
+constexpr const char* kTextureSetNames[] = {
+    "brown_planks_03",
 };
 
 struct CBCamera
@@ -71,7 +94,7 @@ struct CBCubeMap
     constexpr static Int32 kSlot = 2;
 
     UInt32 type;   // 0: none, 1: irradiance, 2: specular, 3: environment
-    float  padding[3];
+    Vec3   backgroundColor;
 };
 
 }   // namespace
@@ -80,22 +103,8 @@ PBRScene::PBRScene()
 {
     Graphics& gfx = GetGraphics();
 
-    // load model
-    VertexLayout attribLayout = {};
-    attribLayout.Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-    attribLayout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
-    attribLayout.Add(eVertexAttribute::Tangent, eAttributeFormat::Float3);
-    m_pMesh = LoadMesh(SCENE_PATH("scene.gltf"), attribLayout);
-
-    // load texture
-    m_pAlbedo              = LoadTexture(SCENE_PATH("Albedo.jpeg"));
-    m_pAoRoughnessMetallic = LoadTexture(SCENE_PATH("AoRoughnessMetaliic.png"));
-    m_pEmissive            = LoadTexture(SCENE_PATH("Emissive.jpeg"));
-    m_pNormal              = LoadTexture(SCENE_PATH("Normal.jpeg"));
-    m_pIBLIrradiance       = LoadTexture(SCENE_PATH("IBLDiffuse.dds"));
-    m_pIBLSpecular         = LoadTexture(SCENE_PATH("IBLSpecular.dds"));
-    m_pIBLEnvironment      = LoadTexture(SCENE_PATH("IBLEnv.dds"));
-    m_pBRDFLUT             = LoadTexture(SCENE_PATH("IBLBrdf.dds"));
+    LoadEnvironment_(0);
+    m_pBRDFLUT = LoadTexture(SCENE_PATH("IBLBrdf.dds"));
 
     // cube for skybox
     {
@@ -118,15 +127,26 @@ PBRScene::PBRScene()
         m_cubeIbh = gfx.CreateIndexBuffer(AsMemoryView(indices));
     }
 
+    InitObjects_();
     InitRenderGraph_();
 
     m_camera.camera.SetAspectRatio(16.f / 9.f);
-    m_camera.transform.SetTranslationZ(-5.f);
+    m_camera.camera.SetFarZ(200.f);
+    m_camera.transform.SetTranslation({ 0.f, 11.5f, -14.f });
+    m_camera.euler.pitch = ToRad(29.f);
+    m_camera.transform.SetRotation(m_camera.euler);
 
-    m_lights[0].bEnabled   = true;
-    m_lights[0].type       = eLight::Point;
-    m_lights[0].pos        = Vec3(2.f, 2.f, -2.f);
-    m_lights[0].fallOffEnd = 50.f;
+    m_lights[0].bEnabled     = true;
+    m_lights[0].type         = eLight::Point;
+    m_lights[0].color        = Vec3 { 4.f, 2.8f, 1.6f };
+    m_lights[0].fallOffStart = 4.f;
+    m_lights[0].fallOffEnd   = 22.f;
+
+    m_lights[1].bEnabled     = true;
+    m_lights[1].type         = eLight::Point;
+    m_lights[1].color        = Vec3 { 1.4f, 2.4f, 4.5f };
+    m_lights[1].fallOffStart = 4.f;
+    m_lights[1].fallOffEnd   = 22.f;
 }
 
 PBRScene::~PBRScene() noexcept
@@ -143,7 +163,13 @@ void PBRScene::OnUpdate(
     if (m_bAnimate)
     {
         m_rot += m_dRot * _deltaTime;
+        m_lightTime += _deltaTime;
     }
+
+    m_lights[0].pos    = Vec3 { Cos(m_lightTime * 0.6f) * 7.f, 4.5f, 1.5f + Sin(m_lightTime * 0.6f) * 3.f };
+    m_lights[1].pos    = Vec3 { Cos(m_lightTime * 0.6f + kPi) * 7.f, 4.5f, 1.5f + Sin(m_lightTime * 0.6f + kPi) * 3.f };
+    m_lights[0].lookAt = Vec3 { 0.f, 0.f, 2.f };
+    m_lights[1].lookAt = Vec3 { 0.f, 0.f, 2.f };
 }
 
 void PBRScene::OnRender(
@@ -157,7 +183,8 @@ void PBRScene::OnRender(
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(camera));
 
     CBCubeMap cubeMap;
-    cubeMap.type = AsUnderlying(m_cubeMapType);
+    cubeMap.type            = AsUnderlying(m_cubeMapType);
+    cubeMap.backgroundColor = m_backgroundColor;
     gfx.UpdateBuffer(m_cubeMapCbh, AsMemoryView(cubeMap));
 
     CBLights lights;
@@ -203,6 +230,26 @@ void PBRScene::OnImGuiRender()
         "AgX"
     };
 
+    ImGui::Checkbox("Animate", &m_bAnimate);
+    ImGui::Text("35 spheres: roughness increases left to right");
+    ImGui::Text("Metallic increases from the front row (0) to the back (1)");
+    const char* environments[] = { "Studio", "Courtyard", "Church" };
+    Int32       environment    = m_environmentIndex;
+    if (ImGui::Combo("Environment / IBL", &environment, environments, IM_ARRAYSIZE(environments)))
+    {
+        LoadEnvironment_(environment);
+    }
+    const char* backgrounds[] = { "Solid color", "Diffuse irradiance", "Prefiltered specular", "Environment" };
+    Int32       background    = AsUnderlying(m_cubeMapType);
+    if (ImGui::Combo("Background", &background, backgrounds, IM_ARRAYSIZE(backgrounds)))
+    {
+        m_cubeMapType = static_cast<eCubeMap>(background);
+    }
+    if (m_cubeMapType == eCubeMap::None)
+    {
+        ImGui::ColorEdit3("Background color", &m_backgroundColor.x);
+    }
+
     bool bChanged = false;
     bChanged |= ImGui::SliderFloat("Exposure", &m_exposure, -5.f, 5.f);
     bChanged |= ImGui::SliderFloat("Gamma", &m_gamma, 0.1f, 5.f);
@@ -229,6 +276,26 @@ void PBRScene::OnResize(
     m_camera.SetAspectRatioFromBackBuffer();
 }
 
+void PBRScene::LoadEnvironment_(const Int32 _index)
+{
+    // Release the previous maps only after removing their cached GPU bindings.
+    GetGraphics().Reset();
+    m_environmentIndex = Clamp(_index, 0, 2);
+    if (m_environmentIndex == 2)
+    {
+        m_pIBLIrradiance  = LoadTexture(SCENE_PATH("IBLDiffuse.dds"));
+        m_pIBLSpecular    = LoadTexture(SCENE_PATH("IBLSpecular.dds"));
+        m_pIBLEnvironment = LoadTexture(SCENE_PATH("IBLEnv.dds"));
+    }
+    else
+    {
+        const String path = String::Formatted("{}Environments/{}/", SCENE_PATH(""), m_environmentIndex == 0 ? "Studio" : "Courtyard");
+        m_pIBLIrradiance  = LoadTexture(path + "Diffuse.dds");
+        m_pIBLSpecular    = LoadTexture(path + "Specular.dds");
+        m_pIBLEnvironment = LoadTexture(path + "Environment.dds");
+    }
+}
+
 void PBRScene::InitRenderGraph_()
 {
     m_graph.EmplaceTexture2D("T_HDR", 1.f, eTextureFormat::RGBA16_Float, false, 1, eTextureFlags::RenderTarget);
@@ -243,11 +310,13 @@ void PBRScene::InitRenderGraph_()
     m_graph.EmplaceConstantBuffer("CB_Camera", sizeof(CBCamera));
     m_graph.EmplaceConstantBuffer("CB_Light", sizeof(CBLights));
     m_graph.EmplaceConstantBuffer("CB_CubeMap", sizeof(CBCubeMap));
+    m_graph.EmplaceConstantBuffer("CB_Material", sizeof(CBMaterial));
 
-    m_entityCbh  = m_graph.GetConstantBuffer("CB_Entity");
-    m_cmrCbh     = m_graph.GetConstantBuffer("CB_Camera");
-    m_lightCbh   = m_graph.GetConstantBuffer("CB_Light");
-    m_cubeMapCbh = m_graph.GetConstantBuffer("CB_CubeMap");
+    m_entityCbh   = m_graph.GetConstantBuffer("CB_Entity");
+    m_cmrCbh      = m_graph.GetConstantBuffer("CB_Camera");
+    m_lightCbh    = m_graph.GetConstantBuffer("CB_Light");
+    m_cubeMapCbh  = m_graph.GetConstantBuffer("CB_CubeMap");
+    m_materialCbh = m_graph.GetConstantBuffer("CB_Material");
 
     LoadProgram(m_graph, "P_PBR", "Resources/PBRScene/PBRShader.hlsl");
     LoadProgram(m_graph, "P_CubeMap", "Resources/PBRScene/CubeMapShader.hlsl");
@@ -259,7 +328,7 @@ void PBRScene::InitRenderGraph_()
         .SetDepthClearCommand(1.f)
         .SetRenderFlags(kSkyboxRenderFlags)
         .SetBlendFlags(kOpaqueBlend, 0)
-        .SetSampler(kLinearWrap, eShader::PixelShader, kLinearWrapSlot)
+        .SetSampler(kAnisotropicWrap, eShader::PixelShader, kLinearWrapSlot)
         .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBCamera::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBCamera::kSlot)
         .SetConstantBuffer("CB_CubeMap", eShader::PixelShader, CBCubeMap::kSlot)
@@ -271,12 +340,13 @@ void PBRScene::InitRenderGraph_()
         .SetRenderFlags(kBackCullDepthTest)
         .SetBlendFlags(kOpaqueBlend, 0)
         .SetSampler(kLinearClamp, eShader::PixelShader, kLinearClampSlot)
-        .SetSampler(kLinearWrap, eShader::PixelShader, kLinearWrapSlot)
+        .SetSampler(kAnisotropicWrap, eShader::PixelShader, kLinearWrapSlot)
         .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBEntity::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBCamera::kSlot)
         .SetConstantBuffer("CB_Entity", eShader::PixelShader, CBEntity::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBCamera::kSlot)
         .SetConstantBuffer("CB_Light", eShader::PixelShader, CBLights::kSlot)
+        .SetConstantBuffer("CB_Material", eShader::PixelShader, CBMaterial::kSlot)
         .SetExecutor(Bind<&PBRScene::SubmitPBR_>(this));
 
     ImageFilterManager& ifm = GetImageFilterManager();
@@ -301,6 +371,85 @@ void PBRScene::SubmitCubeMap_() const
     gfx.Submit();
 }
 
+void PBRScene::InitObjects_()
+{
+    VertexLayout layout = {};
+    layout.Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    layout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    layout.Add(eVertexAttribute::Tangent, eAttributeFormat::Float3);
+
+    m_textureSets.resize(IM_ARRAYSIZE(kTextureSetNames));
+    for (SizeT i = 0; i < m_textureSets.size(); ++i)
+    {
+        const String prefix = String::Formatted("{}{}", SCENE_PATH("Materials/"), kTextureSetNames[i]);
+
+        m_textureSets[i].pAlbedo = LoadTexture(String::Formatted("{}_Albedo.jpg", prefix));
+        m_textureSets[i].pArm    = LoadTexture(String::Formatted("{}_Arm.jpg", prefix));
+        m_textureSets[i].pNormal = LoadTexture(String::Formatted("{}_Normal.jpg", prefix));
+    }
+
+    const Ref<Mesh> pSphere = CreateSphereMesh(0.58f, 4, layout);
+    const Ref<Mesh> pFloor  = CreatePlaneMesh({ 28.f, 24.f }, Vec3::kUp, layout);
+
+    SceneObject& floor = m_objects.emplace_back();
+    floor.pMesh        = pFloor;
+    floor.texSet       = 0;
+    floor.position     = { 0.f, 0.f, 3.f };
+    floor.uvScale      = { 5.f, 4.f };
+    floor.metallic     = 1.f;
+
+    // Columns vary roughness; rows vary metallic, with identical base color.
+    for (Int32 row = 0; row < 5; ++row)
+    {
+        for (Int32 column = 0; column < 7; ++column)
+        {
+            SceneObject& obj = m_objects.emplace_back();
+            obj.pMesh        = pSphere;
+            obj.position     = { -4.5f + static_cast<float>(column) * 1.5f, 0.7f, 1.f + static_cast<float>(row) * 1.65f };
+            obj.albedo       = { 0.8f, 0.5f, 0.2f };
+            obj.roughness    = 0.05f + static_cast<float>(column) / 6.f * 0.95f;
+            obj.metallic     = static_cast<float>(row) / 4.f;
+        }
+    }
+
+    auto addModel = [&](const char* _name, const Vec3 _position, const float _height, const float _yaw) {
+        const String path     = String::Formatted("{}Gallery/{}/", MODEL_PATH(""), _name);
+        const Int32  material = static_cast<Int32>(m_textureSets.size());
+        TextureSet&  set      = m_textureSets.emplace_back();
+        set.pAlbedo           = LoadTexture(path + "Albedo.jpg");
+        set.pArm              = LoadTexture(path + "Arm.jpg");
+        set.pNormal           = LoadTexture(path + "NormalGL.jpg");
+        SceneObject& obj      = m_objects.emplace_back();
+        obj.pMesh             = LoadMesh(path + "Mesh.gltf", layout);
+        obj.texSet            = material;
+        obj.position          = _position;
+        obj.scale             = _height;
+        obj.euler.y           = _yaw;
+        obj.metallic          = 1.f;
+    };
+    addModel("GothicStatue", { -7.1f, 0.f, 4.f }, 4.4f, ToRad(15.f));
+    addModel("MarbleBust", { 7.1f, 0.f, 4.f }, 3.9f, ToRad(-15.f));
+    addModel("BronzeShark", { -3.2f, 0.f, -2.8f }, 2.1f, ToRad(15.f));
+    addModel("BrassVase", { 3.2f, 0.f, -2.8f }, 2.5f, ToRad(-20.f));
+
+    const Int32 columnMaterial = static_cast<Int32>(m_textureSets.size());
+    TextureSet& columnSurface  = m_textureSets.emplace_back();
+    columnSurface.pAlbedo      = LoadTexture(MODEL_PATH("Gallery/Column/Albedo.jpg"));
+    columnSurface.pArm         = LoadTexture(MODEL_PATH("Gallery/Column/Arm.jpg"));
+    columnSurface.pNormal      = LoadTexture(MODEL_PATH("Gallery/Column/NormalGL.jpg"));
+    const Ref<Mesh> pColumn    = LoadMesh(MODEL_PATH("Gallery/Column/Mesh.gltf"), layout);
+    for (const float x: { -9.f, 9.f })
+    {
+        SceneObject& obj = m_objects.emplace_back();
+        obj.pMesh        = pColumn;
+        obj.texSet       = columnMaterial;
+        obj.position     = { x, 0.f, 8.f };
+        obj.scale        = 5.5f;
+        obj.metallic     = 1.f;
+        obj.uvScale      = { 2.f, 2.f };
+    }
+}
+
 void PBRScene::SubmitPBR_()
 {
     Graphics& gfx = GetGraphics();
@@ -308,17 +457,36 @@ void PBRScene::SubmitPBR_()
     m_pIBLIrradiance->Bind(eShader::PixelShader, kIblIrradianceSlot);
     m_pIBLSpecular->Bind(eShader::PixelShader, kIblSpecularSlot);
     m_pBRDFLUT->Bind(eShader::PixelShader, kBrdfLUTSlot);
-    m_pAlbedo->Bind(eShader::PixelShader, kAlbedoSlot);
-    m_pNormal->Bind(eShader::PixelShader, kNormalSlot);
-    m_pAoRoughnessMetallic->Bind(eShader::PixelShader, kAoRoughnessMetallicSlot);
-    m_pEmissive->Bind(eShader::PixelShader, kEmissiveSlot);
 
-    CBEntity entity;
-    entity.world         = Mtx4::FromEuler({ ToRad(-90.f), m_rot, 0.f }).Transpose();
-    entity.invTransWorld = entity.world;
-    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
+    for (const SceneObject& obj: m_objects)
+    {
+        CBMaterial material = {};
+        material.albedo     = obj.albedo;
+        material.roughness  = obj.roughness;
+        material.metallic   = obj.metallic;
 
-    m_pMesh->Submit();
+        if (obj.texSet >= 0)
+        {
+            const TextureSet& set = m_textureSets[obj.texSet];
+            set.pAlbedo->Bind(eShader::PixelShader, kAlbedoSlot);
+            set.pNormal->Bind(eShader::PixelShader, kNormalSlot);
+            set.pArm->Bind(eShader::PixelShader, kAoRoughnessMetallicSlot);
+            material.albedo = Vec3::kOne;
+            material.flags  = kMaterialAlbedoMap | kMaterialNormalMap | kMaterialArmMap;
+        }
+        gfx.UpdateBuffer(m_materialCbh, AsMemoryView(material));
+
+        const Vec3 euler = { obj.euler.x, obj.euler.y + m_rot * obj.spinSpeed, obj.euler.z };
+        const Mtx4 world = Mtx4::MakeSRT(Vec3 { obj.scale }, euler, obj.position);
+
+        CBEntity entity;
+        entity.world         = world.Transpose();
+        entity.invTransWorld = world.Inverse();
+        entity.uvScale       = obj.uvScale;
+        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
+
+        obj.pMesh->Submit();
+    }
 }
 
 void PBRScene::UpdateToneMappingParams_() const

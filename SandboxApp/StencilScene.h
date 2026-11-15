@@ -10,6 +10,9 @@ class StencilScene : public Scene
         Bunny,
         Sphere,
         Cube,
+        Cone,
+        Cylinder,
+        Ring,
         Count,
     };
 
@@ -78,12 +81,12 @@ private:
     Vec3 m_ambientCol  = { 0.15f, 0.15f, 0.15f };
 
     // ui
-    bool  m_bAnimate           = true;
-    bool  m_bOutline[2]        = { true, false };   // bunny, sphere
-    float m_outlineWidth       = 0.05f;
-    Vec3  m_outlineColor       = { 1.f, 0.6f, 0.1f };
-    bool  m_bMirror            = true;
-    float m_mirrorReflectivity = 0.6f;
-    Vec3  m_floorColor         = { 0.25f, 0.3f, 0.4f };
-    float m_counter            = 0.f;
+    bool  m_bAnimate                 = true;
+    bool  m_bOutline[eObject::Count] = { true, true, false, false, false, true };   // bunny, sphere, ring
+    float m_outlineWidth             = 0.05f;
+    Vec3  m_outlineColor             = { 1.f, 0.6f, 0.1f };
+    bool  m_bMirror                  = true;
+    float m_mirrorReflectivity       = 0.6f;
+    Vec3  m_floorColor               = { 0.25f, 0.3f, 0.4f };
+    float m_counter                  = 0.f;
 };

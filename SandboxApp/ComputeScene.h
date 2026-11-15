@@ -23,7 +23,6 @@ class ComputeScene : public Scene
 
 public:
     ComputeScene();
-    void RunDemo(Int32 _index);
 
     void OnUpdate(float _deltaSec) override;
     void OnRender(const RenderView& _view) override;

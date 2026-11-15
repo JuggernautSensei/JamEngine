@@ -93,10 +93,7 @@ void ReportCrash__(
 
     // alert
     const WString mbMsg = WString::Encoded(msg.ToStringView());
-    if (::GetEnvironmentVariableW(L"JAM_NO_ERROR_DIALOG", nullptr, 0) == 0)
-    {
-        ::MessageBoxW(nullptr, mbMsg.GetPtr(), L"Fatal Error", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
-    }
+    ::MessageBoxW(nullptr, mbMsg.GetPtr(), L"Fatal Error", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
 }
 
 void ReportHRESULTFailure_(

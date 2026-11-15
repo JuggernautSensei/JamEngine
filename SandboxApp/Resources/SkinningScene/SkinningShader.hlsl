@@ -6,7 +6,10 @@ cbuffer CBEntity : register(b0)
 {
     float4x4 cb_world;
     uint cb_bHasAlbedo;
-    PADDING3;
+    uint cb_bSkinned;
+    float2 cb_uvScale;
+    float3 cb_tint;
+    PADDING1;
 };
 
 cbuffer CBCamera : register(b1)
@@ -57,6 +60,10 @@ PSInput VSMain(VSInput input)
                   + cb_joints[input.blendIndex.y] * input.blendWeight.y
                   + cb_joints[input.blendIndex.z] * input.blendWeight.z
                   + cb_joints[input.blendIndex.w] * input.blendWeight.w;
+    if (cb_bSkinned == 0)
+    {
+        skin = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    }
 
     float4 posL = mul(float4(input.pos, 1.0f), skin);
     float3 normalL = mul(float4(input.normal, 0.0f), skin).xyz;
@@ -66,7 +73,7 @@ PSInput VSMain(VSInput input)
     PSInput output;
     output.posH = mul(posW, cb_viewProj);
     output.posW = posW.xyz;
-    output.texcoord = input.texcoord;
+    output.texcoord = input.texcoord * cb_uvScale;
     output.normalW = normalize(mul(float4(normalL, 0.0f), cb_world).xyz);
     return output;
 }
@@ -78,10 +85,10 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 E = normalize(cb_eyePos - input.posW);
     float3 H = normalize(L + E);
 
-    float3 albedo = float3(0.8f, 0.8f, 0.8f);
+    float3 albedo = cb_tint;
     if (cb_bHasAlbedo != 0)
     {
-        albedo = t_albedo.Sample(s_linear, input.texcoord).xyz;
+        albedo *= t_albedo.Sample(s_linear, input.texcoord).xyz;
     }
 
     float NdotL = max(dot(N, L), 0.0f);

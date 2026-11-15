@@ -89,7 +89,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComputeScene.h" />
-    <ClInclude Include="DebugNormalScene.h" />
     <ClInclude Include="DeferredScene.h" />
     <ClInclude Include="FlyingCamera.h" />
     <ClInclude Include="Gui.h" />
@@ -99,8 +98,8 @@
     <ClInclude Include="RandomGenerator.h" />
     <ClInclude Include="RenderStates.h" />
     <ClInclude Include="Utilities.h" />
-    <ClInclude Include="ShadowMappingScene.h" />
-    <ClInclude Include="TextureMappingScene.h" />
+    <ClInclude Include="ShadowScene.h" />
+    <ClInclude Include="TextureScene.h" />
     <ClInclude Include="InstancingScene.h" />
     <ClInclude Include="MultiVertexStreamScene.h" />
     <ClInclude Include="pch.h" />
@@ -117,7 +116,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComputeScene.cpp" />
-    <ClCompile Include="DebugNormalScene.cpp" />
     <ClCompile Include="DeferredScene.cpp" />
     <ClCompile Include="FlyingCamera.cpp" />
     <ClCompile Include="Gui.cpp" />
@@ -127,8 +125,8 @@
     <ClCompile Include="RandomGenerator.cpp" />
     <ClCompile Include="RenderStates.cpp" />
     <ClCompile Include="Utilities.cpp" />
-    <ClCompile Include="ShadowMappingScene.cpp" />
-    <ClCompile Include="TextureMappingScene.cpp" />
+    <ClCompile Include="ShadowScene.cpp" />
+    <ClCompile Include="TextureScene.cpp" />
     <ClCompile Include="InstancingScene.cpp" />
     <ClCompile Include="MultiVertexStreamScene.cpp" />
     <ClCompile Include="pch.cpp">
@@ -177,21 +175,16 @@
     <None Include="Resources\ImageFilter\ToneMappingShader.hlsl" />
     <None Include="Resources\InstancingScene\InstancingShader.hlsl" />
     <None Include="Resources\InstancingScene\NoInstancingShader.hlsl" />
-    <None Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalNoWITShader.hlsl" />
-    <None Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalWithWITShader.hlsl" />
-    <None Include="Resources\Misc\DebugNormalScene\DebugNormalSceneNoWITShader.hlsl" />
-    <None Include="Resources\Misc\DebugNormalScene\DebugNormalScenePassThroughShader.hlsl" />
-    <None Include="Resources\Misc\DebugNormalScene\DebugNormalSceneWithWITShader.hlsl" />
     <None Include="Resources\MultiVertexStreamScene\MultiVertexStreamShader.hlsl" />
     <None Include="Resources\PBRScene\CubeMapShader.hlsl" />
     <None Include="Resources\PBRScene\PBRShader.hlsl" />
-    <None Include="Resources\ShadowMappingScene\DebugLightCubeShader.hlsl" />
-    <None Include="Resources\ShadowMappingScene\CascadeShadowReceiverShader.hlsl" />
-    <None Include="Resources\ShadowMappingScene\GBufferShader.hlsl" />
-    <None Include="Resources\ShadowMappingScene\Common.hlsl" />
-    <None Include="Resources\ShadowMappingScene\OmniShadowReceiverShader.hlsl" />
-    <None Include="Resources\ShadowMappingScene\ShadowCasterShader.hlsl" />
-    <None Include="Resources\ShadowMappingScene\SpotShadowReceiverShader.hlsl" />
+    <None Include="Resources\ShadowScene\DebugLightCubeShader.hlsl" />
+    <None Include="Resources\ShadowScene\CascadeShadowReceiverShader.hlsl" />
+    <None Include="Resources\ShadowScene\GBufferShader.hlsl" />
+    <None Include="Resources\ShadowScene\Common.hlsl" />
+    <None Include="Resources\ShadowScene\OmniShadowReceiverShader.hlsl" />
+    <None Include="Resources\ShadowScene\ShadowCasterShader.hlsl" />
+    <None Include="Resources\ShadowScene\SpotShadowReceiverShader.hlsl" />
     <None Include="Resources\SimpleScene\SimpleShader.hlsl" />
     <None Include="Resources\StencilScene\StencilShader.hlsl" />
     <None Include="Resources\CullingScene\CullingShader.hlsl" />
@@ -213,8 +206,10 @@
     <None Include="Resources\SSRScene\GBufferShader.hlsl" />
     <None Include="Resources\SSRScene\LightingShader.hlsl" />
     <None Include="Resources\SSRScene\SSRShader.hlsl" />
+    <None Include="Resources\SSRScene\SSRCommon.hlsl" />
+    <None Include="Resources\SSRScene\ResolveShader.hlsl" />
     <None Include="Resources\SSRScene\CompositeShader.hlsl" />
-    <None Include="Resources\TextureMappingScene\TextureMappingShader.hlsl" />
+    <None Include="Resources\TextureScene\TextureShader.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

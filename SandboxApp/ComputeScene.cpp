@@ -19,15 +19,6 @@ ComputeScene::ComputeScene()
 {
 }
 
-void ComputeScene::RunDemo(
-    const Int32 _index)
-{
-    JAM_ASSERT(_index >= 0 && _index < CountOf(s_demos), "Invalid compute demo index.");
-    m_selectedDemo = _index;
-    RunSelectedDemo_();
-    m_bBool0 = true;
-}
-
 void ComputeScene::OnUpdate(
     const float _deltaSec)
 {

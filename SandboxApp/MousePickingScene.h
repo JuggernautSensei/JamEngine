@@ -21,15 +21,13 @@ public:
     MousePickingScene(MousePickingScene&&) noexcept            = delete;
     MousePickingScene& operator=(MousePickingScene&&) noexcept = delete;
 
-    void RequestPick(Vec2i _clientPoint);
-    void SetShowIds(bool _bShowIds);
-
     void OnEvent(Event& _event) override;
     void OnUpdate(float _deltaTime) override;
     void OnRender(const RenderView& _view) override;
     void OnImGuiRender() override;
 
 private:
+    void RequestPick_(Vec2i _clientPoint);
     void OnResize(Int32 _width, Int32 _height) override;
     void OnMouseDown_(const MouseDownEvent& _event);
     void InitObjects_();

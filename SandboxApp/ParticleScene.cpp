@@ -39,7 +39,7 @@ ParticleScene::ParticleScene()
     InitRenderGraph_();
 }
 
-void ParticleScene::RunDemo(const Int32 _index)
+void ParticleScene::SetEffect_(const Int32 _index)
 {
     m_effect    = Clamp(_index, 0, 1);
     m_count     = m_effect == 0 ? 12000 : 6000;
@@ -47,11 +47,6 @@ void ParticleScene::RunDemo(const Int32 _index)
     m_size      = 1.f;
     m_fallSpeed = 1.f;
     Restart_();
-}
-
-void ParticleScene::SetParticleCount(const Int32 _count)
-{
-    m_count = Clamp(_count, 0, kCapacity);
 }
 
 void ParticleScene::OnUpdate(const float _deltaTime)
@@ -109,7 +104,7 @@ void ParticleScene::OnImGuiRender()
 
     Int32 effect = m_effect;
     if (ImGui::Combo("Effect", &effect, "Snow\0Confetti\0"))
-        RunDemo(effect);
+        SetEffect_(effect);
     ImGui::SliderInt("Particles", &m_count, 0, kCapacity);
     m_count = Clamp(m_count, 0, kCapacity);
     ImGui::Checkbox("Pause", &m_bPaused);

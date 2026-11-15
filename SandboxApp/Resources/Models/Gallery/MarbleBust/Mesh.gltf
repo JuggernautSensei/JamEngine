@@ -1,0 +1,160 @@
+{
+  "asset": {
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "MarbleBust"
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "Mesh.bin",
+      "byteLength": 521344
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 116952,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 116952,
+      "byteLength": 116952,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 233904,
+      "byteLength": 77968,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 311872,
+      "byteLength": 209472,
+      "target": 34963
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 9746,
+      "type": "VEC3",
+      "min": [
+        -0.2638636827468872,
+        0.0,
+        -0.29101625084877014
+      ],
+      "max": [
+        0.2638636827468872,
+        1.0,
+        0.29101625084877014
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 9746,
+      "type": "VEC3",
+      "min": [
+        -0.9999161958694458,
+        -1.0,
+        -0.9999818205833435
+      ],
+      "max": [
+        0.9996770620346069,
+        0.9999996423721313,
+        0.999897301197052
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 9746,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5125,
+      "count": 52368,
+      "type": "SCALAR"
+    }
+  ],
+  "images": [
+    {
+      "uri": "Albedo.jpg"
+    },
+    {
+      "uri": "NormalGL.jpg"
+    },
+    {
+      "uri": "Arm.jpg"
+    },
+    {
+      "uri": "Ao.jpg"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0
+    },
+    {
+      "source": 1
+    },
+    {
+      "source": 2
+    },
+    {
+      "source": 3
+    }
+  ],
+  "materials": [
+    {
+      "name": "MarbleBust",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      },
+      "normalTexture": {
+        "index": 1
+      },
+      "occlusionTexture": {
+        "index": 3
+      }
+    }
+  ]
+}

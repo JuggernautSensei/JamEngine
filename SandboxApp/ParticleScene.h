@@ -19,9 +19,9 @@ class ParticleScene : public Scene
     };
     static_assert(sizeof(Particle) == 64);
 
-public:
     static constexpr Int32 kCapacity = 100000;
 
+public:
     ParticleScene();
     ~ParticleScene() noexcept override = default;
 
@@ -30,14 +30,12 @@ public:
     ParticleScene(ParticleScene&&) noexcept            = delete;
     ParticleScene& operator=(ParticleScene&&) noexcept = delete;
 
-    void RunDemo(Int32 _index);
-    void SetParticleCount(Int32 _count);
-
     void OnUpdate(float _deltaTime) override;
     void OnRender(const RenderView& _view) override;
     void OnImGuiRender() override;
 
 private:
+    void SetEffect_(Int32 _index);
     void OnResize(Int32 _width, Int32 _height) override;
     void InitRenderGraph_();
     void Simulate_() const;

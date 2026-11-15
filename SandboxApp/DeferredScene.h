@@ -27,7 +27,7 @@ private:
     void InitRenderGraph_();
 
     void SubmitGBuffer_() const;
-    void SubmitLights_() const;
+    void SubmitLights_();
 
     float m_dLightMove = 0.5f;
     float m_dRot       = ToRad(45.f);
@@ -51,8 +51,18 @@ private:
     ConstantBufferHandle m_cameraCbh = kInvalidHandle;
     ConstantBufferHandle m_lightCbh  = kInvalidHandle;
 
-    Int32 m_numLights   = 512;
-    bool  m_bUseScissor = true;
+    Int32 m_numLights          = 512;
+    bool  m_bUseScissor        = true;
+    bool  m_bVisualizeScissor  = false;
+    bool  m_bShowColorTextures = true;
+    Int32 m_previewLight       = 0;
+    struct ScissorPreview
+    {
+        Rect  rect;
+        Vec3  color;
+        Int32 lightIndex;
+    };
+    Vector<ScissorPreview> m_scissorPreviews;
 
     FlyingCamera m_camera = {};
 };

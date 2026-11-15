@@ -1839,7 +1839,8 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetSampler(
     return *this;
 }
 
-RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetExecutor(const Delegate<void()>& _executor)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetExecutor(
+    const Delegate<void()>& _executor)
 {
     JAM_ASSERT(_executor, "Executor cannot be null.");
     m_pInfo->executor = _executor;

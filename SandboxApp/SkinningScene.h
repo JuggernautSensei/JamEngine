@@ -15,6 +15,17 @@ class SkinningScene : public Scene
         Count
     };
 
+    struct Npc
+    {
+        eCharacterState state    = eCharacterState::Idle;
+        Vec3            center   = Vec3::kZero;
+        float           radius   = 0.f;
+        float           phase    = 0.f;
+        float           yaw      = 0.f;
+        Vec3            position = Vec3::kZero;
+        Vector<Mtx4>    globals  = {};
+    };
+
 public:
     SkinningScene();
     ~SkinningScene() noexcept override;
@@ -37,10 +48,14 @@ private:
     void UpdateInput_(float _deltaTime);
     void ChangeState_(eCharacterState _state);
     void UpdatePose_(float _deltaTime);
+    void InitNpcs_();
+    void UpdateNpcs_();
+    void DrawCharacter_(const Vector<Mtx4>& _globals, const Mtx4& _world);
     void Submit_();
 
     [[nodiscard]] const AnimationClip* GetStateClip_(eCharacterState _state) const;
     [[nodiscard]] Mtx4                 CalcCharacterWorld_() const;
+    [[nodiscard]] static Mtx4          MakeCharacterWorld_(Vec3 _position, float _yaw);
 
     RenderGraph m_graph = {};
 
@@ -57,6 +72,11 @@ private:
     Vector<JointPose>     m_blendedPoses;
     Vector<Mtx4>          m_globals;
     Vector<Mtx4>          m_palette;
+    Vector<Npc>           m_npcs;
+    Vector<JointPose>     m_npcPoses;
+    Ref<Mesh>             m_pFloor        = nullptr;
+    Ref<Texture>          m_pFloorTexture = nullptr;
+    double                m_npcTime       = 0.0;
 
     Array<AnimationClip, 3> m_stateClips;
     Array<bool, 3>          m_bHasStateClip = {};
