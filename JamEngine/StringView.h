@@ -61,7 +61,7 @@ public:
 
     [[nodiscard]] constexpr bool IsNullTerminated() const
     {
-        return m_ptr ? m_ptr[m_len] == CharTraits::kNullChar : false;
+        return m_ptr ? m_ptr[m_len] == CharTraits::kNull : false;
     }
 
     [[nodiscard]] constexpr const CharT& operator[](const SizeT _index) const
@@ -218,22 +218,22 @@ public:
 
     [[nodiscard]] constexpr bool StartsWith(const CharT _c) const
     {
-        return SubView(0, 1).CompareEqual(_c);
+        return !IsEmpty() && m_ptr[0] == _c;
     }
 
     [[nodiscard]] constexpr bool StartsWith(const BasicStringView _other) const
     {
-        return SubView(0, _other.m_len).CompareEqual(_other);
+        return _other.m_len <= m_len && SubView(0, _other.m_len).CompareEqual(_other);
     }
 
     [[nodiscard]] constexpr bool EndsWith(const CharT _c) const
     {
-        return SubView(m_len - 1, 1).CompareEqual(_c);
+        return !IsEmpty() && m_ptr[m_len - 1] == _c;
     }
 
     [[nodiscard]] constexpr bool EndsWith(const BasicStringView _other) const
     {
-        return SubView(m_len - _other.m_len, _other.m_len).CompareEqual(_other);
+        return _other.m_len <= m_len && SubView(m_len - _other.m_len, _other.m_len).CompareEqual(_other);
     }
 
     [[nodiscard]] constexpr BasicStringView SubView(const SizeT _pos) const
@@ -374,8 +374,8 @@ public:
 
     [[nodiscard]] bool IsAbsolute() const
     {
-        return (m_len > 2 && m_ptr[1] == CharTraits::kColon && m_ptr[2] == CharTraits::kPreferredSeparator)
-            || (m_len > 0 && m_ptr[0] == CharTraits::kPreferredSeparator);
+        return (m_len > 2 && CharTraits::IsAlphabet(m_ptr[0]) && m_ptr[1] == CharTraits::kColon && CharTraits::IsPathSeparator(m_ptr[2]))
+            || (m_len > 0 && CharTraits::IsPathSeparator(m_ptr[0]));
     }
 
     [[nodiscard]] bool IsRelative() const
@@ -385,18 +385,22 @@ public:
 
     [[nodiscard]] bool IsDirectory() const
     {
-        return !IsEmpty() && Back() == CharTraits::kPreferredSeparator;
+        return !IsEmpty() && CharTraits::IsPathSeparator(Back());
     }
 
     [[nodiscard]] bool IsFile() const
     {
-        return !IsEmpty() && Back() != CharTraits::kPreferredSeparator;
+        return !IsEmpty() && !CharTraits::IsPathSeparator(Back());
     }
 
     [[nodiscard]] bool MatchExtension(const BasicStringView _ext) const
     {
         BasicStringView ext = GetExtension();
-        ext                 = _ext.StartsWith(CharTraits::kDot) ? ext : ext.SubView(1);   // If _ext starts with dot, then ext should also start with dot for comparison, otherwise both should not start with dot.
+        if (ext.IsEmpty())
+        {
+            return _ext.IsEmpty();
+        }
+        ext = _ext.StartsWith(CharTraits::kDot) ? ext : ext.SubView(1);   // If _ext starts with dot, then ext should also start with dot for comparison, otherwise both should not start with dot.
         return ext.CompareEqualIgnoreCase(_ext, 0);
     }
 

@@ -31,8 +31,7 @@ static const Jam::Vec3 kScale { 2.f, 3.f, 0.5f };
 static const Jam::Vec3 kTranslation { 10.f, -5.f, 7.f };
 
 // 단위 쿼터니언 (45° Y축 회전)
-static const Jam::Quat kQuat = []
-{
+static const Jam::Quat kQuat = [] {
     // Quat(w, x, y, z) — 헤더 확인 후 생성자에 맞춰 조정하세요
     constexpr float half = 0.392699f;   // pi/8
     return Jam::Quat(
@@ -122,4 +121,3 @@ static void BM_InvSRT_CreateInvSRT(benchmark::State& state)
     }
 }
 BENCHMARK(BM_InvSRT_CreateInvSRT);
-

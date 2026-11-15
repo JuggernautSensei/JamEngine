@@ -1,47 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Base">
-      <UniqueIdentifier>{dd28b033-7e5f-405b-a9b0-b4353c837326}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Main">
-      <UniqueIdentifier>{70053dcf-8f33-4ec7-b7be-c8c29b49a4b1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06. Deferred">
-      <UniqueIdentifier>{bd3052bb-ccdb-4318-9b20-314d6dfa85ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="07. ShadowMapping">
-      <UniqueIdentifier>{19262fad-e94b-47e3-9fc9-a06356f5dcfb}</UniqueIdentifier>
+    <Filter Include="00. App">
+      <UniqueIdentifier>{7f22b58d-ad2f-485f-9d7b-c7b0629388ba}</UniqueIdentifier>
     </Filter>
     <Filter Include="01. SimpleScene">
       <UniqueIdentifier>{30e5dd68-72b0-48e1-8c16-bcad5cd5c997}</UniqueIdentifier>
     </Filter>
     <Filter Include="02. Instancing">
       <UniqueIdentifier>{990702e6-7a70-4db3-9fda-3efe49b5577c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="10. Frustum Culling + Space Division">
-      <UniqueIdentifier>{3d472299-b9ff-49f2-a162-a048a22cf4ab}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="11. Terrain">
-      <UniqueIdentifier>{4d65b907-6818-4641-bc3e-8a8532cc5faa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="12. MousePicking">
-      <UniqueIdentifier>{d98c27a8-46ab-4e1f-aa78-3937f8e278cb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="13. RSM">
-      <UniqueIdentifier>{86593565-55f9-4478-89c0-8dcfcc0c6112}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="14. Particle">
-      <UniqueIdentifier>{20e39091-0581-4ab2-a346-178fe6ff866d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="15. SSAO">
-      <UniqueIdentifier>{32cc3ff0-47e5-4dce-907d-7b3bfe54aa76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="17. SSR">
-      <UniqueIdentifier>{dcad46d1-4235-4eb5-9379-a3b625eac05c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="18. Skeleton Animation">
-      <UniqueIdentifier>{613987a4-1219-4b4c-b685-fe7839638b7d}</UniqueIdentifier>
     </Filter>
     <Filter Include="03. MultiVertexStream">
       <UniqueIdentifier>{798fb466-5054-4334-bdf0-ab4ce1bd0670}</UniqueIdentifier>
@@ -52,99 +19,58 @@
     <Filter Include="05. PBR">
       <UniqueIdentifier>{45858421-24eb-47c9-ac00-b1ee8b818cf1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Misc">
-      <UniqueIdentifier>{07b50bca-54da-4cdb-9ce8-a2597c8392a3}</UniqueIdentifier>
+    <Filter Include="06. Deferred">
+      <UniqueIdentifier>{bd3052bb-ccdb-4318-9b20-314d6dfa85ca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Misc\DebugNormal">
-      <UniqueIdentifier>{aedf790a-45b8-4ebc-b6a6-2a555a2150b7}</UniqueIdentifier>
+    <Filter Include="07. DebugNormal">
+      <UniqueIdentifier>{5cbf932d-ea4c-4cdf-bd51-6f0cfc924d41}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils">
-      <UniqueIdentifier>{b79028c1-37cc-41df-93b7-2cac09e9da49}</UniqueIdentifier>
+    <Filter Include="08. ShadowMapping">
+      <UniqueIdentifier>{497154f3-9ed2-41e0-b65f-5a613213328f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PostProcess">
-      <UniqueIdentifier>{f178d307-caa4-4139-a502-029cd6adebc3}</UniqueIdentifier>
+    <Filter Include="09. Stencil">
+      <UniqueIdentifier>{53bd074f-a44e-4a03-a5dc-b45f8c1d1b80}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PostProcess\ImageFilter">
-      <UniqueIdentifier>{e47fb6ff-89e0-4cce-a1c8-c61bcf307482}</UniqueIdentifier>
+    <Filter Include="10. Culling">
+      <UniqueIdentifier>{3d472299-b9ff-49f2-a162-a048a22cf4ab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Misc\ComputeShader">
-      <UniqueIdentifier>{72da2ff3-7c6e-4b45-930d-2a64e513f1cd}</UniqueIdentifier>
+    <Filter Include="11. Terrain">
+      <UniqueIdentifier>{4d65b907-6818-4641-bc3e-8a8532cc5faa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="18. Skeleton Animation\16. PostProcessing">
-      <UniqueIdentifier>{79b057c1-f794-4a21-98f3-8e2f5168b05b}</UniqueIdentifier>
+    <Filter Include="12. SSAO">
+      <UniqueIdentifier>{db9d5646-8a2f-432d-b00e-d1583ad96a93}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Misc\FXAA">
-      <UniqueIdentifier>{6ec9c269-4bd3-4a5f-82d5-4b2812e19875}</UniqueIdentifier>
+    <Filter Include="13. SSR">
+      <UniqueIdentifier>{cde7327e-67f0-4396-af69-f209529f45e8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="08. Stencil">
-      <UniqueIdentifier>{98be7fbc-019f-4f89-8ab2-096dbb259a5b}</UniqueIdentifier>
+    <Filter Include="14. Particle">
+      <UniqueIdentifier>{20e39091-0581-4ab2-a346-178fe6ff866d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="15. MousePicking">
+      <UniqueIdentifier>{e8bbfe4a-ce06-407a-a40b-5fab53ad628b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="16. Skinning">
+      <UniqueIdentifier>{71611963-9d6f-4afc-a2f1-9148d7225996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="17. Compute">
+      <UniqueIdentifier>{56a916c2-c7b2-4882-828f-7fa7a7197722}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="90. PostProcess">
+      <UniqueIdentifier>{04e3f323-63ed-4657-98b9-d6bc190818f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="90. PostProcess\ImageFilter">
+      <UniqueIdentifier>{d1944ebc-7e79-41ce-9d14-3fd966cac4e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="91. Utils">
+      <UniqueIdentifier>{136d9a0b-8525-4012-a31b-07a784e91b8d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SandboxApp.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleScene.cpp">
-      <Filter>01. SimpleScene</Filter>
-    </ClCompile>
-    <ClCompile Include="InstancingScene.cpp">
-      <Filter>02. Instancing</Filter>
-    </ClCompile>
-    <ClCompile Include="MultiVertexStreamScene.cpp">
-      <Filter>03. MultiVertexStream</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureMappingScene.cpp">
-      <Filter>04. TextureMapping</Filter>
-    </ClCompile>
-    <ClCompile Include="PBRScene.cpp">
-      <Filter>05. PBR</Filter>
-    </ClCompile>
-    <ClCompile Include="DeferredScene.cpp">
-      <Filter>06. Deferred</Filter>
-    </ClCompile>
-    <ClCompile Include="ShadowMappingScene.cpp">
-      <Filter>07. ShadowMapping</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugNormalScene.cpp">
-      <Filter>Misc\DebugNormal</Filter>
-    </ClCompile>
-    <ClCompile Include="FlyingCamera.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Gui.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderStates.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="RandomGenerator.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="SampleCollector.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageFilterManager.cpp">
-      <Filter>PostProcess</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="ComputeScene.cpp">
-      <Filter>Misc\ComputeShader</Filter>
-    </ClCompile>
-    <ClCompile Include="StencilScene.cpp">
-      <Filter>08. Stencil</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="SandboxApp.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
-      <Filter>Base</Filter>
+      <Filter>00. App</Filter>
+    </ClInclude>
+    <ClInclude Include="SandboxApp.h">
+      <Filter>00. App</Filter>
     </ClInclude>
     <ClInclude Include="SimpleScene.h">
       <Filter>01. SimpleScene</Filter>
@@ -164,183 +90,342 @@
     <ClInclude Include="DeferredScene.h">
       <Filter>06. Deferred</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowMappingScene.h">
-      <Filter>07. ShadowMapping</Filter>
-    </ClInclude>
     <ClInclude Include="DebugNormalScene.h">
-      <Filter>Misc\DebugNormal</Filter>
+      <Filter>07. DebugNormal</Filter>
     </ClInclude>
-    <ClInclude Include="FlyingCamera.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Gui.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderStates.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="RandomGenerator.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="SampleCollector.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageFilterManager.h">
-      <Filter>PostProcess</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="ComputeScene.h">
-      <Filter>Misc\ComputeShader</Filter>
+    <ClInclude Include="ShadowMappingScene.h">
+      <Filter>08. ShadowMapping</Filter>
     </ClInclude>
     <ClInclude Include="StencilScene.h">
-      <Filter>08. Stencil</Filter>
+      <Filter>09. Stencil</Filter>
+    </ClInclude>
+    <ClInclude Include="CullingScene.h">
+      <Filter>10. Culling</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainScene.h">
+      <Filter>11. Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="SSAOScene.h">
+      <Filter>12. SSAO</Filter>
+    </ClInclude>
+    <ClInclude Include="SSRScene.h">
+      <Filter>13. SSR</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleScene.h">
+      <Filter>14. Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="MousePickingScene.h">
+      <Filter>15. MousePicking</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinningScene.h">
+      <Filter>16. Skinning</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeScene.h">
+      <Filter>17. Compute</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageFilterManager.h">
+      <Filter>90. PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="FlyingCamera.h">
+      <Filter>91. Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui.h">
+      <Filter>91. Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomGenerator.h">
+      <Filter>91. Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderStates.h">
+      <Filter>91. Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="SampleCollector.h">
+      <Filter>91. Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities.h">
+      <Filter>91. Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include=".clang-format">
-      <Filter>Base</Filter>
-    </None>
+    <ClCompile Include="pch.cpp">
+      <Filter>00. App</Filter>
+    </ClCompile>
+    <ClCompile Include="SandboxApp.cpp">
+      <Filter>00. App</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleScene.cpp">
+      <Filter>01. SimpleScene</Filter>
+    </ClCompile>
+    <ClCompile Include="InstancingScene.cpp">
+      <Filter>02. Instancing</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiVertexStreamScene.cpp">
+      <Filter>03. MultiVertexStream</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureMappingScene.cpp">
+      <Filter>04. TextureMapping</Filter>
+    </ClCompile>
+    <ClCompile Include="PBRScene.cpp">
+      <Filter>05. PBR</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredScene.cpp">
+      <Filter>06. Deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugNormalScene.cpp">
+      <Filter>07. DebugNormal</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowMappingScene.cpp">
+      <Filter>08. ShadowMapping</Filter>
+    </ClCompile>
+    <ClCompile Include="StencilScene.cpp">
+      <Filter>09. Stencil</Filter>
+    </ClCompile>
+    <ClCompile Include="CullingScene.cpp">
+      <Filter>10. Culling</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainScene.cpp">
+      <Filter>11. Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="SSAOScene.cpp">
+      <Filter>12. SSAO</Filter>
+    </ClCompile>
+    <ClCompile Include="SSRScene.cpp">
+      <Filter>13. SSR</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleScene.cpp">
+      <Filter>14. Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="MousePickingScene.cpp">
+      <Filter>15. MousePicking</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinningScene.cpp">
+      <Filter>16. Skinning</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeScene.cpp">
+      <Filter>17. Compute</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageFilterManager.cpp">
+      <Filter>90. PostProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="FlyingCamera.cpp">
+      <Filter>91. Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui.cpp">
+      <Filter>91. Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="RandomGenerator.cpp">
+      <Filter>91. Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderStates.cpp">
+      <Filter>91. Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="SampleCollector.cpp">
+      <Filter>91. Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities.cpp">
+      <Filter>91. Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\PBRScene\PBRShader.hlsl">
-      <Filter>05. PBR</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\PBRScene\CubeMapShader.hlsl">
-      <Filter>05. PBR</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\TextureMappingScene\TextureMappingShader.hlsl">
-      <Filter>04. TextureMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\MultiVertexStreamScene\MultiVertexStreamShader.hlsl">
-      <Filter>03. MultiVertexStream</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\InstancingScene\InstancingShader.hlsl">
-      <Filter>02. Instancing</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\InstancingScene\NoInstancingShader.hlsl">
-      <Filter>02. Instancing</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\SimpleScene\SimpleShader.hlsl">
+    <None Include="Resources\SimpleScene\SimpleShader.hlsl">
       <Filter>01. SimpleScene</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\GBufferShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalWithWITShader.hlsl">
-      <Filter>Misc\DebugNormal</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneNoWITShader.hlsl">
-      <Filter>Misc\DebugNormal</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalScenePassThroughShader.hlsl">
-      <Filter>Misc\DebugNormal</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneWithWITShader.hlsl">
-      <Filter>Misc\DebugNormal</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalNoWITShader.hlsl">
-      <Filter>Misc\DebugNormal</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\OmniShadowReceiverShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowCasterShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\SpotShadowReceiverShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\CascadeShadowReceiverShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\Common.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ImageFilter\BlitShader.hlsl">
-      <Filter>PostProcess\ImageFilter</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ImageFilter\ConvolutionShader.hlsl">
-      <Filter>PostProcess\ImageFilter</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ImageFilter\ImageFilterCommon.hlsl">
-      <Filter>PostProcess\ImageFilter</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ImageFilter\MixShader.hlsl">
-      <Filter>PostProcess\ImageFilter</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ImageFilter\ToneMappingShader.hlsl">
-      <Filter>PostProcess\ImageFilter</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ImageFilter\MultiplyShader.hlsl">
-      <Filter>PostProcess\ImageFilter</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\HelloComputeShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\AddConstantShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\AddTwoBuffersShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\FlattenShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\GradiateShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\GrayScaleShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\ThreadGroupVisualizeShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\BoundsCheckShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\BlockSumShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\InterlockedAddShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\NagativeShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\ThresholdingShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\1DBoxBlurShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\FindMaxShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\ParalleReductionShader1.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\ParalleReductionShader2.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\GaussianBlurShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ComputeScene\GrayScaleHistogramShader.hlsl">
-      <Filter>Misc\ComputeShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\DebugLightCubeShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ImageFilter\FXAAShader.hlsl">
-      <Filter>PostProcess\ImageFilter</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\DeferredScene\GbufferShader.hlsl">
+    </None>
+    <None Include="Resources\InstancingScene\InstancingShader.hlsl">
+      <Filter>02. Instancing</Filter>
+    </None>
+    <None Include="Resources\InstancingScene\NoInstancingShader.hlsl">
+      <Filter>02. Instancing</Filter>
+    </None>
+    <None Include="Resources\MultiVertexStreamScene\MultiVertexStreamShader.hlsl">
+      <Filter>03. MultiVertexStream</Filter>
+    </None>
+    <None Include="Resources\TextureMappingScene\TextureMappingShader.hlsl">
+      <Filter>04. TextureMapping</Filter>
+    </None>
+    <None Include="Resources\PBRScene\CubeMapShader.hlsl">
+      <Filter>05. PBR</Filter>
+    </None>
+    <None Include="Resources\PBRScene\PBRShader.hlsl">
+      <Filter>05. PBR</Filter>
+    </None>
+    <None Include="Resources\DeferredScene\GbufferShader.hlsl">
       <Filter>06. Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\DeferredScene\LightingShader.hlsl">
+    </None>
+    <None Include="Resources\DeferredScene\LightingShader.hlsl">
       <Filter>06. Deferred</Filter>
-    </FxCompile>
+    </None>
+    <None Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalNoWITShader.hlsl">
+      <Filter>07. DebugNormal</Filter>
+    </None>
+    <None Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalWithWITShader.hlsl">
+      <Filter>07. DebugNormal</Filter>
+    </None>
+    <None Include="Resources\Misc\DebugNormalScene\DebugNormalSceneNoWITShader.hlsl">
+      <Filter>07. DebugNormal</Filter>
+    </None>
+    <None Include="Resources\Misc\DebugNormalScene\DebugNormalScenePassThroughShader.hlsl">
+      <Filter>07. DebugNormal</Filter>
+    </None>
+    <None Include="Resources\Misc\DebugNormalScene\DebugNormalSceneWithWITShader.hlsl">
+      <Filter>07. DebugNormal</Filter>
+    </None>
+    <None Include="Resources\ShadowMappingScene\CascadeShadowReceiverShader.hlsl">
+      <Filter>08. ShadowMapping</Filter>
+    </None>
+    <None Include="Resources\ShadowMappingScene\Common.hlsl">
+      <Filter>08. ShadowMapping</Filter>
+    </None>
+    <None Include="Resources\ShadowMappingScene\DebugLightCubeShader.hlsl">
+      <Filter>08. ShadowMapping</Filter>
+    </None>
+    <None Include="Resources\ShadowMappingScene\GBufferShader.hlsl">
+      <Filter>08. ShadowMapping</Filter>
+    </None>
+    <None Include="Resources\ShadowMappingScene\OmniShadowReceiverShader.hlsl">
+      <Filter>08. ShadowMapping</Filter>
+    </None>
+    <None Include="Resources\ShadowMappingScene\ShadowCasterShader.hlsl">
+      <Filter>08. ShadowMapping</Filter>
+    </None>
+    <None Include="Resources\ShadowMappingScene\SpotShadowReceiverShader.hlsl">
+      <Filter>08. ShadowMapping</Filter>
+    </None>
+    <None Include="Resources\StencilScene\StencilShader.hlsl">
+      <Filter>09. Stencil</Filter>
+    </None>
+    <None Include="Resources\CullingScene\CullingShader.hlsl">
+      <Filter>10. Culling</Filter>
+    </None>
+    <None Include="Resources\CullingScene\LineShader.hlsl">
+      <Filter>10. Culling</Filter>
+    </None>
+    <None Include="Resources\TerrainScene\TerrainShader.hlsl">
+      <Filter>11. Terrain</Filter>
+    </None>
+    <None Include="Resources\SSAOScene\BlurShader.hlsl">
+      <Filter>12. SSAO</Filter>
+    </None>
+    <None Include="Resources\SSAOScene\CompositeShader.hlsl">
+      <Filter>12. SSAO</Filter>
+    </None>
+    <None Include="Resources\SSAOScene\GBufferShader.hlsl">
+      <Filter>12. SSAO</Filter>
+    </None>
+    <None Include="Resources\SSAOScene\SSAOShader.hlsl">
+      <Filter>12. SSAO</Filter>
+    </None>
+    <None Include="Resources\SSRScene\CompositeShader.hlsl">
+      <Filter>13. SSR</Filter>
+    </None>
+    <None Include="Resources\SSRScene\Fullscreen.hlsl">
+      <Filter>13. SSR</Filter>
+    </None>
+    <None Include="Resources\SSRScene\GBufferShader.hlsl">
+      <Filter>13. SSR</Filter>
+    </None>
+    <None Include="Resources\SSRScene\LightingShader.hlsl">
+      <Filter>13. SSR</Filter>
+    </None>
+    <None Include="Resources\SSRScene\SSRShader.hlsl">
+      <Filter>13. SSR</Filter>
+    </None>
+    <None Include="Resources\ParticleScene\BackgroundShader.hlsl">
+      <Filter>14. Particle</Filter>
+    </None>
+    <None Include="Resources\ParticleScene\Camera.hlsl">
+      <Filter>14. Particle</Filter>
+    </None>
+    <None Include="Resources\ParticleScene\ParticleCommon.hlsl">
+      <Filter>14. Particle</Filter>
+    </None>
+    <None Include="Resources\ParticleScene\ParticleShader.hlsl">
+      <Filter>14. Particle</Filter>
+    </None>
+    <None Include="Resources\ParticleScene\SimulateShader.hlsl">
+      <Filter>14. Particle</Filter>
+    </None>
+    <None Include="Resources\MousePickingScene\CompositeShader.hlsl">
+      <Filter>15. MousePicking</Filter>
+    </None>
+    <None Include="Resources\MousePickingScene\PickingShader.hlsl">
+      <Filter>15. MousePicking</Filter>
+    </None>
+    <None Include="Resources\SkinningScene\SkinningShader.hlsl">
+      <Filter>16. Skinning</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\1DBoxBlurShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\AddConstantShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\AddTwoBuffersShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\BlockSumShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\BoundsCheckShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\FindMaxShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\FlattenShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\GaussianBlurShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\GradiateShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\GrayScaleHistogramShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\GrayScaleShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\HelloComputeShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\InterlockedAddShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\NagativeShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\ParalleReductionShader1.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\ParalleReductionShader2.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\ThreadGroupVisualizeShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ComputeScene\ThresholdingShader.hlsl">
+      <Filter>17. Compute</Filter>
+    </None>
+    <None Include="Resources\ImageFilter\BlitShader.hlsl">
+      <Filter>90. PostProcess\ImageFilter</Filter>
+    </None>
+    <None Include="Resources\ImageFilter\ConvolutionShader.hlsl">
+      <Filter>90. PostProcess\ImageFilter</Filter>
+    </None>
+    <None Include="Resources\ImageFilter\FXAAShader.hlsl">
+      <Filter>90. PostProcess\ImageFilter</Filter>
+    </None>
+    <None Include="Resources\ImageFilter\ImageFilterCommon.hlsl">
+      <Filter>90. PostProcess\ImageFilter</Filter>
+    </None>
+    <None Include="Resources\ImageFilter\MixShader.hlsl">
+      <Filter>90. PostProcess\ImageFilter</Filter>
+    </None>
+    <None Include="Resources\ImageFilter\MultiplyShader.hlsl">
+      <Filter>90. PostProcess\ImageFilter</Filter>
+    </None>
+    <None Include="Resources\ImageFilter\ToneMappingShader.hlsl">
+      <Filter>90. PostProcess\ImageFilter</Filter>
+    </None>
   </ItemGroup>
 </Project>

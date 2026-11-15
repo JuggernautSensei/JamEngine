@@ -458,7 +458,7 @@ TEST_F(FileRWTest, FileReader_Read_WithCount)
     auto reader = FileReader::Open(path);
     ASSERT_TRUE(reader.HasValue());
 
-    char               buffer[10] = {};
+    char                buffer[10] = {};
     const Expect<SizeT> ret        = reader->Read(MemoryBlock { buffer, 10 }, 5);
 
     ASSERT_TRUE(ret.HasValue());
@@ -476,7 +476,7 @@ TEST_F(FileRWTest, FileReader_Read_ZeroCount_ReadRemaining)
 
     reader->Seek(3, eSeekOp::Set);
 
-    char               buffer[20] = {};
+    char                buffer[20] = {};
     const Expect<SizeT> ret        = reader->Read(MemoryBlock { buffer, 20 }, 0);
 
     ASSERT_TRUE(ret.HasValue());
@@ -492,7 +492,7 @@ TEST_F(FileRWTest, FileReader_Read_CountLargerThanRemaining)
     auto reader = FileReader::Open(path);
     ASSERT_TRUE(reader.HasValue());
 
-    char               buffer[10] = {};
+    char                buffer[10] = {};
     const Expect<SizeT> ret        = reader->Read(MemoryBlock { buffer, 10 }, 3);
 
     ASSERT_TRUE(ret.HasValue());
@@ -1300,10 +1300,10 @@ TEST_F(FileRWTest, Stress_LargeSequentialRead)
     }
     FileWriter::WriteFileAsMemory(CMemoryBlock { writeData.data(), totalSize }, path);
 
-    auto         reader     = FileReader::Open(path);
-    const SizeT  chunkSize  = 4096;
+    auto         reader    = FileReader::Open(path);
+    const SizeT  chunkSize = 4096;
     Vector<Byte> readBuffer(chunkSize);
-    SizeT        totalRead  = 0;
+    SizeT        totalRead = 0;
 
     while (totalRead < totalSize)
     {
@@ -1331,7 +1331,7 @@ TEST_F(FileRWTest, Stress_RandomAccessPattern)
     auto reader = FileReader::Open(path);
 
     const SizeT offsets[] = { 0, 1000, 5000, 10000, 50000, 100000, 500000 };
-    for (SizeT offset : offsets)
+    for (SizeT offset: offsets)
     {
         reader->Seek(offset, eSeekOp::Set);
         Byte b;
@@ -1702,7 +1702,7 @@ TEST_F(FileRWTest, Robustness_FileExtensions)
 {
     const char* extensions[] = { ".txt", ".bin", ".dat", ".tmp", ".log", ".json", ".xml" };
 
-    for (const char* ext : extensions)
+    for (const char* ext: extensions)
     {
         String filename = "test";
         filename += ext;
@@ -1721,7 +1721,7 @@ TEST_F(FileRWTest, Robustness_WriteThenReadSameHandle_NotSupported)
     writer->WriteAsString("Data");
     writer->Close();
 
-    auto reader = FileReader::Open(path);
+    auto   reader = FileReader::Open(path);
     String result = reader->ReadAsString().GetValue();
     EXPECT_EQ(result, "Data");
 }
@@ -1814,7 +1814,7 @@ TEST_F(FileRWTest, Detailed_ReadBeyondBufferSize)
 
     auto reader = FileReader::Open(path);
 
-    char               buffer[10] = {};
+    char                buffer[10] = {};
     const Expect<SizeT> ret        = reader->Read(MemoryBlock { buffer, 10 }, 3);
 
     ASSERT_TRUE(ret.HasValue());
@@ -1883,7 +1883,7 @@ TEST_F(FileRWTest, Detailed_ReadCountLargerThanBuffer)
 
     auto reader = FileReader::Open(path);
 
-    char               buffer[5] = {};
+    char                buffer[5] = {};
     const Expect<SizeT> ret       = reader->Read(MemoryBlock { buffer, 5 }, 10);
 
     ASSERT_TRUE(ret.HasValue());
@@ -1978,7 +1978,7 @@ TEST_F(FileRWTest, Advanced_LargeFileRandomAccess)
 
     const SizeT testPositions[] = { 0, 1, 127, 128, 255, 256, 1023, 1024, 4095, 4096, size / 2, size - 1 };
 
-    for (SizeT pos : testPositions)
+    for (SizeT pos: testPositions)
     {
         if (pos >= size)
             continue;

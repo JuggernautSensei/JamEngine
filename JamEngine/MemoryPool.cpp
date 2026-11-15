@@ -28,7 +28,7 @@ MemoryPool::MemoryPool(MemoryPool&& _pool) noexcept
     m_pFreeBlock = _pool.m_pFreeBlock;
     m_pPoolHead  = _pool.m_pPoolHead;
 
-    m_bytePerBlock  = _pool.m_bytePerBlock;
+    m_bytePerBlock     = _pool.m_bytePerBlock;
     m_numBlocksPerPool = _pool.m_numBlocksPerPool;
 }
 
@@ -43,7 +43,7 @@ MemoryPool& MemoryPool::operator=(MemoryPool&& _pool) noexcept
         m_pFreeBlock = _pool.m_pFreeBlock;
         m_pPoolHead  = _pool.m_pPoolHead;
 
-        m_bytePerBlock  = _pool.m_bytePerBlock;
+        m_bytePerBlock     = _pool.m_bytePerBlock;
         m_numBlocksPerPool = _pool.m_numBlocksPerPool;
     }
     return *this;

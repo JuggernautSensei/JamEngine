@@ -9,6 +9,9 @@ namespace Jam
 template<typename TBoundingVolume, typename TIntersectFunc>
 concept IsOctreeIntersectFunc = requires(TBoundingVolume _bv, const Aabb& _aabb, TIntersectFunc&& _func) { { _func(_bv, _aabb) } -> std::convertible_to<bool>; };
 
+template<typename TBoundingVolume, typename TClassifyFunc>
+concept IsOctreeClassifyFunc = requires(const TBoundingVolume& _bv, const Aabb& _aabb, TClassifyFunc&& _func) { { _func(_bv, _aabb) } -> std::convertible_to<eContainment>; };
+
 template<typename TUserData, typename TCollectFunc>
 concept IsOctreeCollectFunc = requires(Entity _entity, const TUserData& _userdata, TCollectFunc&& _func) { { _func(_entity, _userdata) }; };
 
@@ -26,42 +29,38 @@ struct OctreeInfo
     float looseFactor               = 2.f;               // loose factor (>= 1.f). 1.f = tight octree
 };
 
+// Insert / Build 반환 핸들. Remove 이후 무효, 이후 Insert에서 재사용될 수 있음
+using OctreeItemHandle = Int32;
+
+constexpr OctreeItemHandle kInvalidOctreeItemHandle = -1;
+
 template<typename T>
 class Octree
 {
+public:
+    struct BuildItem
+    {
+        Entity entity   = Entity::kNull;
+        Aabb   aabb     = {};
+        T      userdata = {};
+    };
+
+private:
+    static constexpr Int32 kQueryStackSize = 512;
+
     struct OcNode;
-    struct OcItem;
-
-    struct OcNodeDeletor
-    {
-        void operator()(OcNode* _pNode) const
-        {
-            pPool->Delete(_pNode);
-        }
-
-        ObjectPool<OcNode>* pPool = nullptr;
-    };
-
-    struct OcItemDeletor
-    {
-        void operator()(OcItem* _pItem) const
-        {
-            pPool->Delete(_pItem);
-        }
-
-        ObjectPool<OcItem>* pPool = nullptr;
-    };
-
-    using OcNodeScoped = Scoped<OcNode, OcNodeDeletor>;
-    using OcItemScoped = Scoped<OcItem, OcItemDeletor>;
 
     struct OcItem
     {
-        Entity  entity   = Entity::kNull;
-        Aabb    aabb     = {};
-        OcNode* pOwner   = nullptr;
-        Int32   index    = -1;
-        T       userdata = {};
+        Entity           entity   = Entity::kNull;
+        T                userdata = {};
+        OctreeItemHandle handle   = kInvalidOctreeItemHandle;
+    };
+
+    struct OcSlot
+    {
+        OcNode* pNode = nullptr;
+        Int32   index = -1;
     };
 
     struct OcNode
@@ -76,22 +75,14 @@ class Octree
             return children[0] != nullptr;
         }
 
-        [[nodiscard]] bool HasGrandChildren() const
+        [[nodiscard]] Vec3 GetCenter() const
         {
-            return HasChildren() && children[0]->HasChildren();
+            return aabb.center;
         }
 
-        [[nodiscard]] bool HasParent() const
+        [[nodiscard]] Vec3 GetExtents() const
         {
-            return pParent != nullptr;
-        }
-
-        void ClearChildren()
-        {
-            for (OcNodeScoped& child: children)
-            {
-                child.Reset();
-            }
+            return aabb.extents;
         }
 
         [[nodiscard]] bool Contains(const Aabb& _aabb) const
@@ -99,24 +90,20 @@ class Octree
             return aabb.Contains(_aabb);
         }
 
-        [[nodiscard]] bool Contains(const OcItem* _pItem) const
-        {
-            return aabb.Contains(_pItem->aabb);
-        }
-
-        EnumArray<eRegion, OcNodeScoped> children       = {};
-        OcNode*                          pParent        = nullptr;
-        Vector<OcItemScoped>             items          = {};
-        Aabb                             aabb           = {};
-        Int32                            depth          = -1;
-        Int32                            numItemsInTree = 0;   // 이 노드 + 모든 자손의 아이템 수
+        Array<OcNode*, 8> children       = {};
+        OcNode*           pParent        = nullptr;
+        Aabb              aabb           = {};
+        Int32             depth          = -1;
+        Int32             numItemsInTree = 0;   // 이 노드 + 모든 자손의 아이템 수
+        Vector<Aabb>      aabbs;                // items와 같은 인덱스. 쿼리용 연속 메모리
+        Vector<OcItem>    items;
     };
 
 public:
     explicit Octree(const OctreeInfo& _info = {})
-        : m_itemPool(2048)
-        , m_nodePool(512)
+        : m_nodePool(512)
         , m_info(_info)
+        , m_initInfo(_info)
     {
         JAM_ASSERT(_info.looseFactor >= 1.f, "looseFactor must be >= 1.f");
         JAM_ASSERT(_info.maxDepth >= 2, "maxDepth must be >= 2");
@@ -124,108 +111,168 @@ public:
         JAM_ASSERT(_info.minBaseExtents.x > 1.f && _info.minBaseExtents.y > 1.f && _info.minBaseExtents.z > 1.f, "minBaseExtents must be > 1.f");
         JAM_ASSERT(_info.initBaseExtents.x >= _info.minBaseExtents.x && _info.initBaseExtents.y >= _info.minBaseExtents.y && _info.initBaseExtents.z >= _info.minBaseExtents.z, "initBaseExtents must be >= minBaseExtents");
 
-        const Vec3 ext  = m_info.initBaseExtents * m_info.looseFactor;
-        const Aabb aabb = { Vec3::kZero, ext };
-        m_pRoot         = MakeNode_(aabb);
-        m_pRoot->depth  = 0;
+        CreateRoot_();
     }
 
-    void Insert(
+    ~Octree()
+    {
+        DestroySubtree_(m_pRoot);
+    }
+
+    Octree(const Octree&)                = delete;
+    Octree& operator=(const Octree&)     = delete;
+    Octree(Octree&&) noexcept            = delete;
+    Octree& operator=(Octree&&) noexcept = delete;
+
+    OctreeItemHandle Insert(
         const Entity _entity,
         const Aabb&  _aabb,
         const T&     _userdata)
     {
         JAM_ASSERT(_entity, "Invalid entity");
-        JAM_ASSERT(!m_itemCache.contains(_entity.GetUID()), "Entity already exists");
+        EnsureEntitySlots_();
+        JAM_ASSERT(!m_entitySlots.contains(_entity.GetUID()), "Entity already exists");
 
         while (!m_pRoot->Contains(_aabb))   // 필요시 확장
         {
             Expand_(_aabb);
         }
 
-        OcItemScoped pItem = MakeItem_(_entity, _aabb, _userdata);
-        Insert_Recursive_(m_pRoot.GetPtr(), std::move(pItem));
+        const OctreeItemHandle handle   = AllocSlot_();
+        m_entitySlots[_entity.GetUID()] = handle;
+        InsertItem_(m_pRoot, OcItem { _entity, _userdata, handle }, _aabb);
+        return handle;
+    }
+
+    // 아이템 배열로 트리를 새로 구성. 기존 내용은 버림
+    // 개별 Insert보다 빠름. 핸들은 입력 인덱스
+    // Entity API는 처음 호출 시 Entity 맵 생성. 핸들만 쓰면 비용 없음
+    void Build(
+        const Span<const BuildItem> _items,
+        Vector<OctreeItemHandle>*   _pOutHandlesOrNull = nullptr)
+    {
+        Build_(_items.data(), static_cast<Int32>(_items.size()), _pOutHandlesOrNull);
+    }
+
+    void Build(
+        const Vector<BuildItem>&  _items,
+        Vector<OctreeItemHandle>* _pOutHandlesOrNull = nullptr)
+    {
+        Build_(_items.data(), static_cast<Int32>(_items.size()), _pOutHandlesOrNull);
+    }
+
+    void Clear()
+    {
+        DestroySubtree_(m_pRoot);
+        m_pRoot = nullptr;
+        m_slots.clear();
+        m_freeSlots.clear();
+        m_entitySlots.clear();
+        m_bEntitySlotsValid = true;
+        m_info              = m_initInfo;
+        CreateRoot_();
     }
 
     void Update(
-        const Entity _entity,
-        const Aabb&  _aabb)
+        const OctreeItemHandle _handle,
+        const Aabb&            _aabb)
     {
-        JAM_ASSERT(_entity, "Invalid entity");
+        JAM_ASSERT(IsValidHandle_(_handle), "Invalid item handle");
 
-        const auto it = m_itemCache.find(_entity.GetUID());
-        JAM_ASSERT(it != m_itemCache.end(), "Entity does not exist");
-
-        OcItem* pItem = it->second;
-        pItem->aabb   = _aabb;
+        const OcSlot slot         = m_slots[_handle];
+        OcNode*      pOwner       = slot.pNode;
+        pOwner->aabbs[slot.index] = _aabb;
 
         // 자신을 포함하는 가장 작은 조상 노드를 바텀-업으로 탐색.
         // 벗어난 노드들의 numItemsInTree 를 감소시키면서 올라감.
-        OcNode* pOwnerNode = pItem->pOwner;
-        OcNode* pNode      = pOwnerNode;
-        while (pNode && !pNode->Contains(pItem))
+        OcNode* pNode = pOwner;
+        while (pNode && !pNode->Contains(_aabb))
         {
             --pNode->numItemsInTree;
             pNode = pNode->pParent;
         }
 
         // 시나리오
-        // 1. 같은 노드에 머무르는 경우
+        // 1. 같은 노드에 머무르는 경우 (대부분)
         // 2. 옥트리 밖으로 벗어나는 경우
         // 3. 옥트리 내 다른 서브트리로 이동하는 경우
 
-        if (pNode == pOwnerNode)
+        if (pNode == pOwner)
         {
-            // 자식 노드로 이동할 수 있는지 확인
-            if (pOwnerNode->HasChildren())
+            if (!pOwner->HasChildren())
             {
-                if (OcNode* pChildNode = FindBestChildNodeOrNull_(pOwnerNode, _aabb))
-                {
-                    Insert_Recursive_(pChildNode, PopItemFromList_(pItem));
-                }
-
-                // 적합한 자식 없으면 현재 노드에 그대로 유지
+                return;
             }
+
+            OcNode* pChild = FindBestChild_(pOwner, _aabb);
+            if (!pChild)
+            {
+                return;   // 적합한 자식 없으면 현재 노드에 그대로 유지
+            }
+
+            OcItem item = PopItem_(_handle);
+            InsertItem_(pChild, std::move(item), _aabb);
+            return;
         }
-        else if (pNode == nullptr)
+
+        OcItem item = PopItem_(_handle);
+        if (pNode == nullptr)
         {
             // 옥트리 밖으로 벗어나는 경우. 루트부터 다시 삽입.
-            // 확장 코드가 꼬일 수 있기 때문에 pItem은 제거 후 다시 삽입
-            OcItemScoped pPoppedItem = PopItemFromList_(pItem);
+            // 확장 코드가 꼬일 수 있기 때문에 item은 제거 후 다시 삽입
             while (!m_pRoot->Contains(_aabb))
             {
                 Expand_(_aabb);
             }
-
-            Insert_Recursive_(m_pRoot.GetPtr(), std::move(pPoppedItem));
+            InsertItem_(m_pRoot, std::move(item), _aabb);
         }
         else
         {
             // 옥트리 내 다른 서브트리로 이동.
-            // while 루프에서 pNode 는 감소되지 않았고,
-            // Insert_Recursive_ 가 pNode 부터 시작해 다시 증가시키므로 미리 감소.
+            // InsertItem_ 이 pNode 부터 시작해 다시 증가시키므로 미리 감소.
             --pNode->numItemsInTree;
-            Insert_Recursive_(pNode, PopItemFromList_(pItem));
+            InsertItem_(pNode, std::move(item), _aabb);
         }
+    }
+
+    void Update(
+        const Entity _entity,
+        const Aabb&  _aabb)
+    {
+        Update(FindHandle_(_entity), _aabb);
+    }
+
+    void Remove(
+        const OctreeItemHandle _handle)
+    {
+        JAM_ASSERT(IsValidHandle_(_handle), "Invalid item handle");
+
+        // 자신을 포함한 모든 조상의 numItemsInTree 를 감소
+        for (OcNode* pNode = m_slots[_handle].pNode; pNode; pNode = pNode->pParent)
+        {
+            --pNode->numItemsInTree;
+        }
+
+        const OcItem item = PopItem_(_handle);
+        if (m_bEntitySlotsValid)
+        {
+            m_entitySlots.erase(item.entity.GetUID());
+        }
+        m_freeSlots.push_back(_handle);
     }
 
     void Remove(
         const Entity _entity)
     {
-        JAM_ASSERT(_entity, "Invalid entity");
+        Remove(FindHandle_(_entity));
+    }
 
-        const auto it = m_itemCache.find(_entity.GetUID());
-        JAM_ASSERT(it != m_itemCache.end(), "Entity does not exist");
-
-        // 자신을 포함한 모든 조상의 numItemsInTree 를 감소
-        const OcItem* pItem = it->second;
-        for (OcNode* pNode = pItem->pOwner; pNode; pNode = pNode->pParent)
-        {
-            --pNode->numItemsInTree;
-        }
-
-        PopItemFromList_(pItem);
-        m_itemCache.erase(it);
+    [[nodiscard]] OctreeItemHandle GetHandle(
+        const Entity _entity) const
+    {
+        EnsureEntitySlots_();
+        const auto it = m_entitySlots.find(_entity.GetUID());
+        return it != m_entitySlots.end() ? it->second : kInvalidOctreeItemHandle;
     }
 
     void ShrinkToFit()
@@ -235,9 +282,9 @@ public:
         const Vec3 minLooseExt = m_info.initBaseExtents * m_info.looseFactor;
         if (m_pRoot->items.empty() && m_pRoot->numItemsInTree > 0)
         {
-            OcNode* pRootNode    = m_pRoot.GetPtr();
-            OcNode* pTargetNode  = pRootNode;
-            eRegion targetRegion = eRegion::LeftBottomNear;   // 초기값은 의미 없음
+            OcNode* pRootNode   = m_pRoot;
+            OcNode* pTargetNode = pRootNode;
+            Int32   targetIndex = 0;
 
             while (pTargetNode->HasChildren())
             {
@@ -250,14 +297,14 @@ public:
 
                 // 모든 아이템을 포함하는 단일 자식 탐색
                 bool bExit = true;
-                for (const eRegion region: RangesOf<eRegion>())
+                for (Int32 i = 0; i < 8; ++i)
                 {
-                    OcNode* pChild = pTargetNode->children[region].GetPtr();
+                    OcNode* pChild = pTargetNode->children[i];
                     if (pChild->numItemsInTree == m_pRoot->numItemsInTree)
                     {
-                        pTargetNode  = pChild;
-                        targetRegion = region;
-                        bExit        = false;
+                        pTargetNode = pChild;
+                        targetIndex = i;
+                        bExit       = false;
                         break;
                     }
                     else if (pChild->numItemsInTree != 0)   // 다른 자식에도 아이템이 있으면 shrink 불가
@@ -274,15 +321,16 @@ public:
 
             if (pTargetNode != pRootNode)
             {
-                OcNodeScoped pNewRoot = std::move(pTargetNode->pParent->children[targetRegion]);
-                pNewRoot->pParent     = nullptr;
-                m_pRoot               = std::move(pNewRoot);
+                pTargetNode->pParent->children[targetIndex] = nullptr;
+                pTargetNode->pParent                        = nullptr;
+                DestroySubtree_(pRootNode);   // 대상 서브트리는 이미 분리됨. 나머지는 빈 노드
+                m_pRoot = pTargetNode;
                 UpdateDepth_();   // 깊이 다시 계산
             }
         }
 
         // 아이템이 없는 빈 노드 병합
-        MergeEmptyChildren_Recursive_(m_pRoot.GetPtr());
+        MergeEmptyChildren_Recursive_(m_pRoot);
     }
 
     // 어떤 _bv와 충돌하는 모든 Entity 탐색
@@ -290,21 +338,81 @@ public:
         requires(IsOctreeIntersectFunc<TBoundingVolume, IntersectFunc> && IsOctreeCollectFunc<T, CollectFunc>)
     void Query(const TBoundingVolume& _bv, IntersectFunc&& _intersectFunc, CollectFunc&& _collectFunc) const
     {
-        Query_Recursive_(m_pRoot.GetPtr(), _bv, std::forward<IntersectFunc>(_intersectFunc), std::forward<CollectFunc>(_collectFunc));
+        QueryClassified(
+            _bv,
+            [&](const TBoundingVolume& _volume, const Aabb& _aabb) { return _intersectFunc(_volume, _aabb) ? eContainment::Intersects : eContainment::Outside; },
+            _collectFunc);
+    }
+
+    // Inside 판정 노드는 하위 아이템을 판정 없이 모두 수집
+    template<typename TBoundingVolume, typename ClassifyFunc, typename CollectFunc>
+        requires(IsOctreeClassifyFunc<TBoundingVolume, ClassifyFunc> && IsOctreeCollectFunc<T, CollectFunc>)
+    void QueryClassified(const TBoundingVolume& _bv, ClassifyFunc&& _classifyFunc, CollectFunc&& _collectFunc) const
+    {
+        Array<const OcNode*, kQueryStackSize> stack;
+        Int32                                 top = 0;
+        stack[top++]                              = m_pRoot;
+
+        while (top > 0)
+        {
+            const OcNode* pNode = stack[--top];
+            if (pNode->numItemsInTree == 0)
+            {
+                continue;
+            }
+
+            const eContainment containment = _classifyFunc(_bv, pNode->aabb);
+            if (containment == eContainment::Outside)
+            {
+                continue;
+            }
+
+            if (containment == eContainment::Inside)
+            {
+                CollectSubtree_(pNode, _collectFunc);
+                continue;
+            }
+
+            const Int32 numItems = static_cast<Int32>(pNode->items.size());
+            for (Int32 i = 0; i < numItems; ++i)
+            {
+                if (_classifyFunc(_bv, pNode->aabbs[i]) != eContainment::Outside)
+                {
+                    _collectFunc(pNode->items[i].entity, pNode->items[i].userdata);
+                }
+            }
+
+            if (pNode->HasChildren())
+            {
+                JAM_ASSERT(top + 8 <= kQueryStackSize, "Octree query stack overflow");
+                for (OcNode* pChild: pNode->children)
+                {
+                    stack[top++] = pChild;
+                }
+            }
+        }
     }
 
     template<typename TraverseFunc>
         requires(IsOctreeTraverseFunc<T, TraverseFunc>)
     void TopDownTraverse(TraverseFunc&& _func) const
     {
-        TopDownTraverse_Recursive_(m_pRoot.GetPtr(), std::forward<TraverseFunc>(_func));
+        TopDownTraverse_Recursive_(m_pRoot, _func);
     }
 
     template<typename TraverseFunc>
         requires(IsOctreeTraverseFunc<T, TraverseFunc>)
     void BottomUpTraverse(TraverseFunc&& _func) const
     {
-        BottomUpTraverse_Recursive_(m_pRoot.GetPtr(), std::forward<TraverseFunc>(_func));
+        BottomUpTraverse_Recursive_(m_pRoot, _func);
+    }
+
+    // _func(const Aabb& _looseAabb, Int32 _depth, Int32 _numItemsInTree, bool _bLeaf)
+    template<typename TraverseFunc>
+        requires std::invocable<TraverseFunc&, const Aabb&, Int32, Int32, bool>
+    void TraverseNodes(TraverseFunc&& _func) const
+    {
+        TraverseNodes_Recursive_(m_pRoot, _func);
     }
 
     [[nodiscard]] SizeT GetNumItems() const
@@ -313,62 +421,243 @@ public:
     }
 
 private:
-    template<typename TBoundingVolume, typename IntersectFunc, typename CollectFunc>
-        requires(IsOctreeIntersectFunc<TBoundingVolume, IntersectFunc> && IsOctreeCollectFunc<T, CollectFunc>)
-    void Query_Recursive_(
-        const OcNode*          _pNode,
-        const TBoundingVolume& _bv,
-        IntersectFunc&&        _intersectFunc,
-        CollectFunc&&          _collectFunc) const
+    void Build_(
+        const BuildItem*          _pItems,
+        const Int32               _numItems,
+        Vector<OctreeItemHandle>* _pOutHandlesOrNull)
     {
-        if (_pNode->numItemsInTree == 0 || !_intersectFunc(_bv, _pNode->aabb))
+        Clear();
+        m_bEntitySlotsValid = false;
+
+        m_slots.resize(_numItems);
+
+        if (_pOutHandlesOrNull)
+        {
+            _pOutHandlesOrNull->resize(_numItems);
+        }
+
+        m_buildOrder.clear();
+        m_buildOrder.reserve(_numItems);
+        Vector<Int32> outsideRoot;
+        for (Int32 i = 0; i < _numItems; ++i)
+        {
+            JAM_ASSERT(_pItems[i].entity, "Invalid entity");
+
+            if (_pOutHandlesOrNull)
+            {
+                (*_pOutHandlesOrNull)[i] = i;
+            }
+
+            if (m_pRoot->Contains(_pItems[i].aabb))
+            {
+                m_buildOrder.push_back(i);
+            }
+            else
+            {
+                outsideRoot.push_back(i);
+            }
+        }
+
+        m_buildScratch.resize(m_buildOrder.size());
+        m_buildBucket.resize(m_buildOrder.size());
+        BuildNode_(m_pRoot, _pItems, 0, static_cast<Int32>(m_buildOrder.size()));
+
+        // 루트 밖 아이템은 일반 삽입으로 확장
+        for (const Int32 index: outsideRoot)
+        {
+            while (!m_pRoot->Contains(_pItems[index].aabb))
+            {
+                Expand_(_pItems[index].aabb);
+            }
+            InsertItem_(m_pRoot, OcItem { _pItems[index].entity, _pItems[index].userdata, index }, _pItems[index].aabb);
+        }
+
+        m_buildOrder.clear();
+        m_buildScratch.clear();
+        m_buildBucket.clear();
+    }
+
+    [[nodiscard]] bool IsValidHandle_(const OctreeItemHandle _handle) const
+    {
+        return 0 <= _handle && _handle < static_cast<Int32>(m_slots.size()) && m_slots[_handle].pNode != nullptr;
+    }
+
+    [[nodiscard]] OctreeItemHandle FindHandle_(const Entity _entity) const
+    {
+        JAM_ASSERT(_entity, "Invalid entity");
+
+        EnsureEntitySlots_();
+        const auto it = m_entitySlots.find(_entity.GetUID());
+        JAM_ASSERT(it != m_entitySlots.end(), "Entity does not exist");
+        return it->second;
+    }
+
+    // Build 이후 첫 Entity API 호출 시 Entity 맵 생성
+    void EnsureEntitySlots_() const
+    {
+        if (m_bEntitySlotsValid)
         {
             return;
         }
 
-        for (const OcItemScoped& pItem: _pNode->items)
+        m_entitySlots.clear();
+        m_entitySlots.reserve(m_pRoot->numItemsInTree);
+
+        Array<const OcNode*, kQueryStackSize> stack;
+        Int32                                 top = 0;
+        stack[top++]                              = m_pRoot;
+        while (top > 0)
         {
-            if (_intersectFunc(_bv, pItem->aabb))
+            const OcNode* pNode = stack[--top];
+            if (pNode->numItemsInTree == 0)
             {
-                _collectFunc(pItem->entity, pItem->userdata);
+                continue;
+            }
+
+            for (const OcItem& item: pNode->items)
+            {
+                const bool bInserted = m_entitySlots.emplace(item.entity.GetUID(), item.handle).second;
+                JAM_ASSERT(bInserted, "Entity already exists");
+            }
+
+            if (pNode->HasChildren())
+            {
+                for (OcNode* pChild: pNode->children)
+                {
+                    stack[top++] = pChild;
+                }
             }
         }
 
-        if (_pNode->HasChildren())
+        m_bEntitySlotsValid = true;
+    }
+
+    [[nodiscard]] OctreeItemHandle AllocSlot_()
+    {
+        if (!m_freeSlots.empty())
         {
-            for (const OcNodeScoped& pChild: _pNode->children)
+            const OctreeItemHandle handle = m_freeSlots.back();
+            m_freeSlots.pop_back();
+            return handle;
+        }
+
+        m_slots.emplace_back();
+        return static_cast<OctreeItemHandle>(m_slots.size() - 1);
+    }
+
+    void CreateRoot_()
+    {
+        const Vec3 ext = m_info.initBaseExtents * m_info.looseFactor;
+        m_pRoot        = MakeNode_(Aabb { Vec3::kZero, ext });
+        m_pRoot->depth = 0;
+    }
+
+    [[nodiscard]] OcNode* MakeNode_(const Aabb& _aabb)
+    {
+        OcNode* pNode = m_nodePool.New();
+        pNode->aabb   = _aabb;
+        return pNode;
+    }
+
+    void DestroySubtree_(OcNode* _pNode)
+    {
+        if (!_pNode)
+        {
+            return;
+        }
+
+        for (OcNode*& pChild: _pNode->children)
+        {
+            DestroySubtree_(pChild);
+            pChild = nullptr;
+        }
+        m_nodePool.Delete(_pNode);
+    }
+
+    void DestroyChildren_(OcNode* _pNode)
+    {
+        for (OcNode*& pChild: _pNode->children)
+        {
+            DestroySubtree_(pChild);
+            pChild = nullptr;
+        }
+    }
+
+    template<typename CollectFunc>
+    void CollectSubtree_(const OcNode* _pRoot, CollectFunc& _collectFunc) const
+    {
+        Array<const OcNode*, kQueryStackSize> stack;
+        Int32                                 top = 0;
+        stack[top++]                              = _pRoot;
+
+        while (top > 0)
+        {
+            const OcNode* pNode = stack[--top];
+            if (pNode->numItemsInTree == 0)
             {
-                Query_Recursive_(pChild.GetPtr(), _bv, std::forward<IntersectFunc>(_intersectFunc), std::forward<CollectFunc>(_collectFunc));
+                continue;
+            }
+
+            for (const OcItem& item: pNode->items)
+            {
+                _collectFunc(item.entity, item.userdata);
+            }
+
+            if (pNode->HasChildren())
+            {
+                JAM_ASSERT(top + 8 <= kQueryStackSize, "Octree query stack overflow");
+                for (OcNode* pChild: pNode->children)
+                {
+                    stack[top++] = pChild;
+                }
             }
         }
     }
 
     template<typename TraverseFunc>
-        requires(IsOctreeTraverseFunc<T, TraverseFunc>)
-    void TopDownTraverse_Recursive_(const OcNode* _pNode, TraverseFunc&& _func) const
+    void TopDownTraverse_Recursive_(const OcNode* _pNode, TraverseFunc& _func) const
     {
         if (_pNode->numItemsInTree == 0)
         {
             return;
         }
 
-        for (const OcItemScoped& pItem: _pNode->items)
+        const Int32 numItems = static_cast<Int32>(_pNode->items.size());
+        for (Int32 i = 0; i < numItems; ++i)
         {
-            _func(pItem->entity, pItem->aabb, pItem->userdata);
+            _func(_pNode->items[i].entity, _pNode->aabbs[i], _pNode->items[i].userdata);
         }
 
         if (_pNode->HasChildren())
         {
-            for (const OcNodeScoped& pChild: _pNode->children)
+            for (const OcNode* pChild: _pNode->children)
             {
-                TopDownTraverse_Recursive_(pChild.GetPtr(), std::forward<TraverseFunc>(_func));
+                TopDownTraverse_Recursive_(pChild, _func);
             }
         }
     }
 
     template<typename TraverseFunc>
-        requires(IsOctreeTraverseFunc<T, TraverseFunc>)
-    void BottomUpTraverse_Recursive_(const OcNode* _pNode, TraverseFunc&& _func) const
+    void TraverseNodes_Recursive_(const OcNode* _pNode, TraverseFunc& _func) const
+    {
+        if (_pNode->numItemsInTree == 0)
+        {
+            return;
+        }
+
+        _func(_pNode->aabb, _pNode->depth, _pNode->numItemsInTree, _pNode->IsLeaf());
+
+        if (_pNode->HasChildren())
+        {
+            for (const OcNode* pChild: _pNode->children)
+            {
+                TraverseNodes_Recursive_(pChild, _func);
+            }
+        }
+    }
+
+    template<typename TraverseFunc>
+    void BottomUpTraverse_Recursive_(const OcNode* _pNode, TraverseFunc& _func) const
     {
         if (_pNode->numItemsInTree == 0)
         {
@@ -377,15 +666,16 @@ private:
 
         if (_pNode->HasChildren())
         {
-            for (const OcNodeScoped& pChild: _pNode->children)
+            for (const OcNode* pChild: _pNode->children)
             {
-                BottomUpTraverse_Recursive_(pChild.GetPtr(), std::forward<TraverseFunc>(_func));
+                BottomUpTraverse_Recursive_(pChild, _func);
             }
         }
 
-        for (const OcItemScoped& pItem: _pNode->items)
+        const Int32 numItems = static_cast<Int32>(_pNode->items.size());
+        for (Int32 i = 0; i < numItems; ++i)
         {
-            _func(pItem->entity, pItem->aabb, pItem->userdata);
+            _func(_pNode->items[i].entity, _pNode->aabbs[i], _pNode->items[i].userdata);
         }
     }
 
@@ -397,40 +687,45 @@ private:
         const Vec3 childLooseExt = _pNode->GetExtents() * 0.5f;
         const Vec3 childBaseExt  = childLooseExt / m_info.looseFactor;
 
-        for (const eRegion region: RangesOf<eRegion>())
+        for (Int32 i = 0; i < 8; ++i)
         {
-            Vec3 childCenter = center;
+            const eRegion region      = static_cast<eRegion>(i);
+            Vec3          childCenter = center;
             childCenter.x += IsRight(region) ? childBaseExt.x : -childBaseExt.x;
             childCenter.y += IsTop(region) ? childBaseExt.y : -childBaseExt.y;
             childCenter.z += IsFar(region) ? childBaseExt.z : -childBaseExt.z;
 
-            const Aabb   childAabb   = { childCenter, childLooseExt };
-            OcNodeScoped pChild      = MakeNode_(childAabb);
-            pChild->pParent          = _pNode;
-            pChild->depth            = _pNode->depth + 1;
-            _pNode->children[region] = std::move(pChild);
+            OcNode* pChild      = MakeNode_(Aabb { childCenter, childLooseExt });
+            pChild->pParent     = _pNode;
+            pChild->depth       = _pNode->depth + 1;
+            _pNode->children[i] = pChild;
         }
     }
 
-    void SubdivideIfNeed_(OcNode* _pNode)
+    [[nodiscard]] bool CanSubdivide_(const OcNode* _pNode, const Int32 _numItems) const
     {
         if (!_pNode->IsLeaf())
         {
-            return;
+            return false;
         }
 
-        if (static_cast<Int32>(_pNode->items.size()) <= m_info.subdivisionThreshold)
+        if (_numItems <= m_info.subdivisionThreshold)
         {
-            return;
+            return false;
         }
 
         if (m_info.bUseMaxDepthPolicy && _pNode->depth >= m_info.maxDepth)
         {
-            return;
+            return false;
         }
 
         const Vec3 childBaseExt = (_pNode->GetExtents() * 0.5f) / m_info.looseFactor;
-        if (childBaseExt.x < m_info.minBaseExtents.x || childBaseExt.y < m_info.minBaseExtents.y || childBaseExt.z < m_info.minBaseExtents.z)
+        return childBaseExt.x >= m_info.minBaseExtents.x && childBaseExt.y >= m_info.minBaseExtents.y && childBaseExt.z >= m_info.minBaseExtents.z;
+    }
+
+    void SubdivideIfNeed_(OcNode* _pNode)
+    {
+        if (!CanSubdivide_(_pNode, static_cast<Int32>(_pNode->items.size())))
         {
             return;
         }
@@ -439,73 +734,148 @@ private:
         SplitNode_(_pNode);
 
         // 기존 노드에 있던 아이템들을 자식 노드들로 재삽입
-        Vector<OcItemScoped> existItems = std::move(_pNode->items);
-        _pNode->numItemsInTree          = 0;   // Insert_Recursive_ 에서 재계산됨
-        for (OcItemScoped& pItem: existItems)
+        Vector<Aabb>   aabbs = std::move(_pNode->aabbs);
+        Vector<OcItem> items = std::move(_pNode->items);
+        _pNode->aabbs.clear();
+        _pNode->items.clear();
+        _pNode->numItemsInTree = 0;   // InsertItem_ 에서 재계산됨
+
+        const Int32 numItems = static_cast<Int32>(items.size());
+        for (Int32 i = 0; i < numItems; ++i)
         {
-            Insert_Recursive_(_pNode, std::move(pItem));
+            InsertItem_(_pNode, std::move(items[i]), aabbs[i]);
         }
 
         // 사후조건: 분할전 Node의 아이템 수 = 분할후 Node들의 아이템 수의 합 + 현재 Node의 아이템 수
     }
 
-    void AddItemToNode_(OcNode* _pNode, OcItemScoped&& _pItem)
+    void AddItem_(OcNode* _pNode, OcItem&& _item, const Aabb& _aabb)
     {
-        m_itemCache[_pItem->entity.GetUID()] = _pItem.GetPtr();
-        _pItem->pOwner                       = _pNode;
-        PushItemToList_(_pNode->items, std::move(_pItem));
+        m_slots[_item.handle] = OcSlot { _pNode, static_cast<Int32>(_pNode->items.size()) };
+        _pNode->aabbs.push_back(_aabb);
+        _pNode->items.push_back(std::move(_item));
         SubdivideIfNeed_(_pNode);
     }
 
-    void AddItemToNode_NoSubdivision_(OcNode* _pNode, OcItemScoped&& _pItem)
+    // _pStart부터 내려가며 가장 깊은 적합 노드에 삽입. _pStart는 _aabb를 포함해야 함
+    void InsertItem_(OcNode* _pStart, OcItem&& _item, const Aabb& _aabb)
     {
-        m_itemCache[_pItem->entity.GetUID()] = _pItem.GetPtr();
-        _pItem->pOwner                       = _pNode;
-        PushItemToList_(_pNode->items, std::move(_pItem));
-    }
+        JAM_ASSERT(_pStart->Contains(_aabb), "Item does not fit in node");
 
-    void PushItemToList_(Vector<OcItemScoped>& _items, OcItemScoped&& _pItem) const
-    {
-        _pItem->index = static_cast<Int32>(_items.size());
-        _items.emplace_back(std::move(_pItem));
-    }
-
-    OcItemScoped PopItemFromList_(const OcItem* _pItem) const
-    {
-        Vector<OcItemScoped>& items   = _pItem->pOwner->items;
-        const Int32           itemIdx = _pItem->index;
-        const Int32           lastIdx = static_cast<Int32>(items.size() - 1);
-        OcItemScoped          pPopped = std::move(items[itemIdx]);
-
-        // swap and pop (삽입 순서 보장 불필요)
-        if (itemIdx != lastIdx)
+        OcNode* pNode = _pStart;
+        for (;;)
         {
-            items[itemIdx]        = std::move(items[lastIdx]);
-            items[itemIdx]->index = itemIdx;
-        }
-        items.pop_back();
+            ++pNode->numItemsInTree;   // 삽입 보장. numItemsInTree 즉시 증가.
 
-        pPopped->pOwner = nullptr;
-        pPopped->index  = -1;
-        return pPopped;
-    }
-
-    void Insert_Recursive_(OcNode* _pRoot, OcItemScoped&& _pItem)
-    {
-        JAM_ASSERT(_pRoot->Contains(_pItem->aabb), "Item does not fit in node");   // 해당 함수는 반드시 삽입을 보장해야 함.
-
-        // 삽입 보장. numItemsInTree 즉시 증가.
-        ++_pRoot->numItemsInTree;
-
-        if (_pRoot->HasChildren())
-        {
-            if (OcNode* pChild = FindBestChildNodeOrNull_(_pRoot, _pItem->aabb))
+            if (pNode->HasChildren())
             {
-                Insert_Recursive_(pChild, std::move(_pItem));
-                return;
+                if (OcNode* pChild = FindBestChild_(pNode, _aabb))
+                {
+                    pNode = pChild;
+                    continue;
+                }
             }
+            break;
         }
-        AddItemToNode_(_pRoot, std::move(_pItem));
+
+        AddItem_(pNode, std::move(_item), _aabb);
+    }
+
+    // swap and pop (삽입 순서 보장 불필요)
+    [[nodiscard]] OcItem PopItem_(const OctreeItemHandle _handle)
+    {
+        const OcSlot slot    = m_slots[_handle];
+        OcNode*      pNode   = slot.pNode;
+        const Int32  lastIdx = static_cast<Int32>(pNode->items.size()) - 1;
+        OcItem       popped  = std::move(pNode->items[slot.index]);
+
+        if (slot.index != lastIdx)
+        {
+            pNode->items[slot.index]                       = std::move(pNode->items[lastIdx]);
+            pNode->aabbs[slot.index]                       = pNode->aabbs[lastIdx];
+            m_slots[pNode->items[slot.index].handle].index = slot.index;
+        }
+        pNode->items.pop_back();
+        pNode->aabbs.pop_back();
+
+        m_slots[_handle] = OcSlot {};
+        return popped;
+    }
+
+    // [_begin, _end) 아이템을 _pNode 아래에 배치. 모두 _pNode에 들어가야 함
+    // m_buildOrder는 인덱스 순열 (키 32B 대신 인덱스 4B를 이동)
+    void BuildNode_(OcNode* _pNode, const BuildItem* _pItems, const Int32 _begin, const Int32 _end)
+    {
+        const Int32 count      = _end - _begin;
+        _pNode->numItemsInTree = count;
+
+        if (!CanSubdivide_(_pNode, count))
+        {
+            AddBuildItems_(_pNode, _pItems, _begin, _end);
+            return;
+        }
+
+        SplitNode_(_pNode);
+
+        // 카운팅 정렬. 버킷 0~7은 자식, 8은 현재 노드에 남는 아이템
+        const Vec3 center    = _pNode->aabb.center;
+        Int32      counts[9] = {};
+        for (Int32 p = _begin; p < _end; ++p)
+        {
+            const Aabb&   aabb   = _pItems[m_buildOrder[p]].aabb;
+            const eRegion region = CalcRegion(aabb.center.x > center.x, aabb.center.y > center.y, aabb.center.z > center.z);
+            const Int32   bucket = _pNode->children[static_cast<Int32>(region)]->Contains(aabb) ? static_cast<Int32>(region) : 8;
+
+            m_buildBucket[p] = static_cast<UInt8>(bucket);
+            ++counts[bucket];
+        }
+
+        Int32 starts[9] = {};
+        Int32 cursor    = _begin;
+        starts[8]       = cursor;   // 남는 아이템을 맨 앞에 둔다
+        cursor += counts[8];
+        for (Int32 b = 0; b < 8; ++b)
+        {
+            starts[b] = cursor;
+            cursor += counts[b];
+        }
+
+        Int32 writes[9];
+        for (Int32 b = 0; b < 9; ++b)
+        {
+            writes[b] = starts[b];
+        }
+        for (Int32 p = _begin; p < _end; ++p)
+        {
+            m_buildScratch[writes[m_buildBucket[p]]++] = m_buildOrder[p];
+        }
+        for (Int32 p = _begin; p < _end; ++p)
+        {
+            m_buildOrder[p] = m_buildScratch[p];
+        }
+
+        AddBuildItems_(_pNode, _pItems, starts[8], starts[8] + counts[8]);
+        for (Int32 b = 0; b < 8; ++b)
+        {
+            BuildNode_(_pNode->children[b], _pItems, starts[b], starts[b] + counts[b]);
+        }
+    }
+
+    void AddBuildItems_(OcNode* _pNode, const BuildItem* _pItems, const Int32 _begin, const Int32 _end)
+    {
+        const Int32 count = _end - _begin;
+        _pNode->aabbs.reserve(_pNode->aabbs.size() + count);
+        _pNode->items.reserve(_pNode->items.size() + count);
+
+        for (Int32 p = _begin; p < _end; ++p)
+        {
+            const Int32      index  = m_buildOrder[p];
+            const BuildItem& source = _pItems[index];
+
+            m_slots[index] = OcSlot { _pNode, static_cast<Int32>(_pNode->items.size()) };
+            _pNode->aabbs.push_back(source.aabb);
+            _pNode->items.push_back(OcItem { source.entity, source.userdata, index });
+        }
     }
 
     void Expand_(const Aabb& _aabb)
@@ -558,23 +928,22 @@ private:
             bFar = true;
         }
 
-        const Aabb   newAabb     = { newCenter, newLooseExt };
-        OcNodeScoped pNewRoot    = MakeNode_(newAabb);
+        OcNode* pNewRoot         = MakeNode_(Aabb { newCenter, newLooseExt });
         pNewRoot->depth          = 0;
         pNewRoot->numItemsInTree = m_pRoot->numItemsInTree;
 
-        SplitNode_(pNewRoot.GetPtr());   // 8개 더미 자식 생성
+        SplitNode_(pNewRoot);   // 8개 더미 자식 생성
 
         // 새 루트 슬롯의 자식을 기존 루트로 교체
-        OcNode* pOldRoot  = m_pRoot.GetPtr();
-        pOldRoot->pParent = pNewRoot.GetPtr();
-        pOldRoot->depth   = 1;
+        OcNode*     pOldRoot = m_pRoot;
+        const Int32 index    = static_cast<Int32>(CalcRegion(bRight, bTop, bFar));
+        DestroySubtree_(pNewRoot->children[index]);
+        pNewRoot->children[index] = pOldRoot;
+        pOldRoot->pParent         = pNewRoot;
+        pOldRoot->depth           = 1;
         UpdateDepth_Recursive_(pOldRoot);
 
-        // 교체
-        const eRegion region       = CalcRegion(bRight, bTop, bFar);
-        pNewRoot->children[region] = std::move(m_pRoot);
-        m_pRoot                    = std::move(pNewRoot);
+        m_pRoot = pNewRoot;
 
         // maxDepth 정책 처리
         if (m_info.bIncreaseMaxDepthOnExpand)
@@ -583,30 +952,14 @@ private:
         }
         else if (m_info.bUseMaxDepthPolicy)
         {
-            MergeTooDeepChildren_Recursive_(m_pRoot.GetPtr());
+            MergeTooDeepChildren_Recursive_(m_pRoot);
         }
-    }
-
-    [[nodiscard]] OcNodeScoped MakeNode_(const Aabb& _aabb)
-    {
-        OcNodeScoped pNode = OcNodeScoped { m_nodePool.New(), OcNodeDeletor { &m_nodePool } };
-        pNode->aabb        = _aabb;
-        return pNode;
-    }
-
-    [[nodiscard]] OcItemScoped MakeItem_(const Entity _entity, const Aabb& _aabb, const T& _userdata)
-    {
-        OcItemScoped pItem = OcItemScoped { m_itemPool.New(), OcItemDeletor { &m_itemPool } };
-        pItem->entity      = _entity;
-        pItem->aabb        = _aabb;
-        pItem->userdata    = _userdata;
-        return pItem;
     }
 
     void UpdateDepth_()
     {
         m_pRoot->depth = 0;
-        UpdateDepth_Recursive_(m_pRoot.GetPtr());
+        UpdateDepth_Recursive_(m_pRoot);
     }
 
     void UpdateDepth_Recursive_(const OcNode* _pNode)
@@ -614,10 +967,10 @@ private:
         // 부모 depth 기준으로 자식 depth 결정
         if (_pNode->HasChildren())
         {
-            for (const OcNodeScoped& pChild: _pNode->children)
+            for (OcNode* pChild: _pNode->children)
             {
                 pChild->depth = _pNode->depth + 1;
-                UpdateDepth_Recursive_(pChild.GetPtr());
+                UpdateDepth_Recursive_(pChild);
             }
         }
     }
@@ -630,22 +983,24 @@ private:
         }
 
         // 바텀-업 자식부터 먼저 처리
-        for (const OcNodeScoped& pChild: _pNode->children)
+        for (OcNode* pChild: _pNode->children)
         {
-            MergeTooDeepChildren_Recursive_(pChild.GetPtr());
+            MergeTooDeepChildren_Recursive_(pChild);
         }
 
         if (_pNode->depth >= m_info.maxDepth)
         {
-            for (const OcNodeScoped& pChild: _pNode->children)
+            for (OcNode* pChild: _pNode->children)
             {
-                Vector<OcItemScoped> childItems = std::move(pChild->items);
-                for (OcItemScoped& pItem: childItems)
+                const Int32 numItems = static_cast<Int32>(pChild->items.size());
+                for (Int32 i = 0; i < numItems; ++i)
                 {
-                    AddItemToNode_NoSubdivision_(_pNode, std::move(pItem));
+                    m_slots[pChild->items[i].handle] = OcSlot { _pNode, static_cast<Int32>(_pNode->items.size()) };
+                    _pNode->aabbs.push_back(pChild->aabbs[i]);
+                    _pNode->items.push_back(std::move(pChild->items[i]));
                 }
             }
-            _pNode->ClearChildren();
+            DestroyChildren_(_pNode);
         }
     }
 
@@ -657,37 +1012,44 @@ private:
         }
 
         // 자식부터 먼저 처리
-        for (const OcNodeScoped& pChild: _pNode->children)
+        for (OcNode* pChild: _pNode->children)
         {
-            MergeEmptyChildren_Recursive_(pChild.GetPtr());
+            MergeEmptyChildren_Recursive_(pChild);
         }
 
         const Int32 numItemsInChildren = _pNode->numItemsInTree - static_cast<Int32>(_pNode->items.size());
         if (numItemsInChildren == 0)
         {
-            _pNode->ClearChildren();
+            DestroyChildren_(_pNode);
         }
     }
 
-    [[nodiscard]] OcNode* FindBestChildNodeOrNull_(   // or nullptr
+    [[nodiscard]] OcNode* FindBestChild_(   // or nullptr
         const OcNode* _pRoot,
         const Aabb&   _aabb) const
     {
         JAM_ASSERT(_pRoot->HasChildren(), "Node has no children");
-        JAM_ASSERT(_pRoot->Contains(_aabb), "Aabb does not fit in node");
 
         const Vec3    rootCenter = _pRoot->aabb.center;
         const Vec3    center     = _aabb.center;
         const eRegion region     = CalcRegion(center.x > rootCenter.x, center.y > rootCenter.y, center.z > rootCenter.z);
-        OcNode*       pNode      = _pRoot->children[region].GetPtr();
+        OcNode*       pNode      = _pRoot->children[static_cast<Int32>(region)];
         return pNode->Contains(_aabb) ? pNode : nullptr;
     }
 
-    ObjectPool<OcItem>    m_itemPool;
-    ObjectPool<OcNode>    m_nodePool;
-    OctreeInfo            m_info      = {};
-    OcNodeScoped          m_pRoot     = nullptr;
-    HashMap<UID, OcItem*> m_itemCache = {};
+    ObjectPool<OcNode>          m_nodePool;
+    OctreeInfo                  m_info;
+    OctreeInfo                  m_initInfo;
+    OcNode*                     m_pRoot = nullptr;
+    Vector<OcSlot>              m_slots;
+    Vector<OctreeItemHandle>    m_freeSlots;
+    mutable HashMap<UID, Int32> m_entitySlots;
+    mutable bool                m_bEntitySlotsValid = true;
+
+    // Build 작업 버퍼
+    Vector<Int32> m_buildOrder;
+    Vector<Int32> m_buildScratch;
+    Vector<UInt8> m_buildBucket;
 };
 
 }   // namespace Jam

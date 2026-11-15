@@ -3,6 +3,7 @@
 #include "EnumArray.h"
 #include "Material.h"
 #include "Model.h"
+#include "SkeletonAnimation.h"
 
 namespace Assimp
 {
@@ -29,14 +30,16 @@ struct ImportedMesh
 {
     String name = {};
 
-    Vector<Vec3>           positions  = {};
-    Vector<Vec3>           normals    = {};
-    Vector<Vec3>           tangents   = {};
-    Vector<Vec3>           bitangents = {};
-    Array<Vector<Vec4>, 4> colors     = {};
-    Array<Vector<Vec2>, 4> texCoords  = {};
-    Vector<Byte>           indexData  = {};
-    bool                   bUseU32    = false;
+    Vector<Vec3>            positions  = {};
+    Vector<Vec3>            normals    = {};
+    Vector<Vec3>            tangents   = {};
+    Vector<Vec3>            bitangents = {};
+    Array<Vector<Vec4>, 4>  colors     = {};
+    Array<Vector<Vec2>, 4>  texCoords  = {};
+    Vector<Byte>            indexData  = {};
+    bool                    bUseU32    = false;
+    Vector<Array<UInt8, 4>> blendIndices;
+    Vector<Vec4>            blendWeights;
 };
 
 struct ImportedMaterial
@@ -49,12 +52,13 @@ struct ImportedMaterial
 
 struct ImportedTexture
 {
-    String       name          = {};
-    MemoryView   pixels        = {};
-    Int32        width         = 0;
-    Int32        height        = 0;
-    eImageFormat format        = {};
-    bool         bIsCompressed = false;
+    String        name          = {};
+    Vector<UInt8> storage       = {};   // pixels 원본 (복사본)
+    MemoryView    pixels        = {};
+    Int32         width         = 0;
+    Int32         height        = 0;
+    eImageFormat  format        = {};
+    bool          bIsCompressed = false;
 };
 
 enum class eAssimpImporterFlags : UInt32
@@ -69,6 +73,9 @@ enum class eAssimpImporterFlags : UInt32
     LoadMeshes    = 1 << 5,
     LoadMaterials = 1 << 6,
     LoadTextures  = 1 << 7,
+
+    GenerateSmoothNormals = 1 << 8,
+    LoadAnimations        = 1 << 9,
 };
 
 enum class eAssimpConvertToModelFlags : UInt32
@@ -93,6 +100,7 @@ public:
     [[nodiscard]] const Vector<ImportedMesh>&     GetMeshes() const;
     [[nodiscard]] const Vector<ImportedMaterial>& GetMaterials() const;
     [[nodiscard]] const Vector<ImportedTexture>&  GetTextures() const;
+    [[nodiscard]] const SkeletalAnimationData&    GetAnimationData() const;
 
     [[nodiscard]] Expect<Ref<Model>> ConvertToModel(const VertexLayout& _attribLayoutOrEmpty, Flags<eAssimpConvertToModelFlags> _flags = eAssimpConvertToModelFlags::All);
 
@@ -109,6 +117,7 @@ private:
     Error                   ImportTextures_(const aiScene* _pScene);
     void                    ImportMaterials_(const aiScene* _pScene);
     void                    ImportModelNode_(const aiScene* _pScene);
+    Error                   ImportAnimations_(const aiScene* _pScene);
     [[nodiscard]] ModelNode ImportModelNode_Recursive_(const aiScene* _pScene, const aiNode* _pNode);
 
     // convert
@@ -120,6 +129,7 @@ private:
     Vector<ImportedMesh>     m_importedMeshes    = {};
     Vector<ImportedMaterial> m_importedMaterials = {};
     Vector<ImportedTexture>  m_importedTextures  = {};
+    SkeletalAnimationData    m_animationData;
 };
 
 }   // namespace Jam

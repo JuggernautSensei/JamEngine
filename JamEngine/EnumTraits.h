@@ -296,8 +296,6 @@ template<typename TEnum>
 }
 
 // enum 값의 짧은 이름을 반환한다.
-// ex) eColor::Red → "Red"
-// 유효하지 않은 값이면 단언 실패한다.
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr StringView NameOf(const TEnum _value)
@@ -308,8 +306,6 @@ template<typename TEnum>
 }
 
 // enum 값의 스코프 포함 풀네임을 반환한다.
-// ex) eColor::Red → "eColor::Red"
-// 유효하지 않은 값이면 단언 실패한다.
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr StringView FullNameOf(const TEnum _value)
@@ -349,11 +345,6 @@ template<typename TEnum>
 
 // 기저 타입 값을 enum으로 안전하게 캐스팅한다.
 // 정의되지 않은 값이거나 [kReflectionMin, kReflectionMax] 범위 밖이면 kNullopt를 반환한다.
-//
-// 주의: 음수 underlying type은 지원하지 않는다.
-//       kReflectionMin = 0이므로 음수 _value는 SizeT 변환 시 언더플로우가 발생한다.
-//       따라서 음수 enum 값을 가진 타입에는 사용하지 않아야 한다.
-//
 // ex) CastAs<eColor>(2) == eColor::Green
 // ex) CastAs<eColor>(0) == kNullopt  (0이 정의되지 않았을 때)
 template<typename TEnum>

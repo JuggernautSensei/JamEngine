@@ -573,7 +573,7 @@ public:
 
     /////////// hash //////////
 
-    [[nodiscard]] UInt32 Hash() const
+    [[nodiscard]] UInt64 Hash() const
     {
         return ToStringView().Hash();
     }
@@ -696,8 +696,9 @@ public:
 
     void Simplify()
     {
-        TChar*      ptr = static_cast<TChar*>(JAM_STACK_ALLOC(sizeof(TChar) * Self_().GetLength()));
-        const SizeT len = CharTraits::Simplify(Self_().GetPtr(), Self_().GetLength(), ptr, Self_().GetLength());
+        const SizeT capacity = Self_().GetLength() + 2;
+        TChar*      ptr      = static_cast<TChar*>(JAM_STACK_ALLOC(sizeof(TChar) * capacity));
+        const SizeT len      = CharTraits::Simplify(Self_().GetPtr(), Self_().GetLength(), ptr, capacity);
         Set(ptr, len);
     }
 

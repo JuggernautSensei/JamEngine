@@ -61,7 +61,6 @@ namespace Jam
     return (_value & 0x0000'0000'FFFF'FFFF) ? UInt32CountRZero(static_cast<UInt32>(_value)) : UInt32CountRZero(static_cast<UInt32>(_value >> 32)) + 32;
 }
 
-
 template<typename T>
     requires std::is_integral_v<T>
 [[nodiscard]] constexpr T MakeMask(const T low, const T high)

@@ -108,7 +108,7 @@ public:
     public:
         Iterator() = default;
 
-        explicit Iterator(HandleAllocator* _pAllocator, const UInt32 _startIndex) noexcept
+        explicit Iterator(const HandleAllocator* _pAllocator, const UInt32 _startIndex) noexcept
             : m_pAllocator(_pAllocator)
             , m_index(_startIndex)
             , m_endIndex(static_cast<UInt32>(_pAllocator->m_slots.size()))
@@ -155,9 +155,9 @@ public:
             }
         }
 
-        HandleAllocator* m_pAllocator = nullptr;
-        UInt32           m_index      = 0;
-        UInt32           m_endIndex   = 0;
+        const HandleAllocator* m_pAllocator = nullptr;
+        UInt32                 m_index      = 0;
+        UInt32                 m_endIndex   = 0;
     };
 
     using ConstIterator = Iterator;
@@ -221,22 +221,22 @@ public:
 
     [[nodiscard]] Iterator Begin() noexcept
     {
-        return { this, 0 };
+        return Iterator { this, 0 };
     }
 
     [[nodiscard]] Iterator End() noexcept
     {
-        return { this, static_cast<UInt32>(m_slots.size()) };
+        return Iterator { this, static_cast<UInt32>(m_slots.size()) };
     }
 
     [[nodiscard]] ConstIterator Begin() const noexcept
     {
-        return { this, 0 };
+        return ConstIterator { this, 0 };
     }
 
     [[nodiscard]] ConstIterator End() const noexcept
     {
-        return { this, static_cast<UInt32>(m_slots.size()) };
+        return ConstIterator { this, static_cast<UInt32>(m_slots.size()) };
     }
 
 public:   // for STL

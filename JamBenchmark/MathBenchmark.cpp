@@ -16,7 +16,7 @@ const Matrix Matrix::Identity = Matrix {
 //// Vector2 Benchmarks
 //// ============================================================================
 //
-//static void BM_JamVec2Add(benchmark::State& state)
+// static void BM_JamVec2Add(benchmark::State& state)
 //{
 //    Vec2 a(1.0f, 2.0f);
 //    Vec2 b(3.0f, 4.0f);
@@ -25,9 +25,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a + b);
 //    }
 //}
-//BENCHMARK(BM_JamVec2Add)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec2Add)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec2Add(benchmark::State& state)
+// static void BM_DirectXVec2Add(benchmark::State& state)
 //{
 //    Vector2 a(1.0f, 2.0f);
 //    Vector2 b(3.0f, 4.0f);
@@ -36,9 +36,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a + b);
 //    }
 //}
-//BENCHMARK(BM_DirectXVec2Add)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec2Add)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec2Dot(benchmark::State& state)
+// static void BM_JamVec2Dot(benchmark::State& state)
 //{
 //    Vec2 a(1.0f, 2.0f);
 //    Vec2 b(3.0f, 4.0f);
@@ -47,9 +47,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Dot(b));
 //    }
 //}
-//BENCHMARK(BM_JamVec2Dot)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec2Dot)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec2Dot(benchmark::State& state)
+// static void BM_DirectXVec2Dot(benchmark::State& state)
 //{
 //    Vector2 a(1.0f, 2.0f);
 //    Vector2 b(3.0f, 4.0f);
@@ -58,9 +58,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Dot(b));
 //    }
 //}
-//BENCHMARK(BM_DirectXVec2Dot)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec2Dot)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec2Normalize(benchmark::State& state)
+// static void BM_JamVec2Normalize(benchmark::State& state)
 //{
 //    Vec2 a(3.0f, 4.0f);
 //    for (auto _: state)
@@ -68,9 +68,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Normalized());
 //    }
 //}
-//BENCHMARK(BM_JamVec2Normalize)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec2Normalize)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec2Normalize(benchmark::State& state)
+// static void BM_DirectXVec2Normalize(benchmark::State& state)
 //{
 //    Vector2 a(3.0f, 4.0f);
 //    for (auto _: state)
@@ -79,13 +79,13 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a);
 //    }
 //}
-//BENCHMARK(BM_DirectXVec2Normalize)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec2Normalize)->Unit(benchmark::kNanosecond);
 //
 //// ============================================================================
 //// Vector3 Benchmarks
 //// ============================================================================
 //
-//static void BM_JamVec3Add(benchmark::State& state)
+// static void BM_JamVec3Add(benchmark::State& state)
 //{
 //    Vec3 a(1.0f, 2.0f, 3.0f);
 //    Vec3 b(4.0f, 5.0f, 6.0f);
@@ -94,9 +94,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a + b);
 //    }
 //}
-//BENCHMARK(BM_JamVec3Add)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec3Add)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec3Add(benchmark::State& state)
+// static void BM_DirectXVec3Add(benchmark::State& state)
 //{
 //    Vector3 a(1.0f, 2.0f, 3.0f);
 //    Vector3 b(4.0f, 5.0f, 6.0f);
@@ -105,9 +105,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a + b);
 //    }
 //}
-//BENCHMARK(BM_DirectXVec3Add)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec3Add)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec3Sub(benchmark::State& state)
+// static void BM_JamVec3Sub(benchmark::State& state)
 //{
 //    Vec3 a(1.0f, 2.0f, 3.0f);
 //    Vec3 b(4.0f, 5.0f, 6.0f);
@@ -116,9 +116,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a - b);
 //    }
 //}
-//BENCHMARK(BM_JamVec3Sub)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec3Sub)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec3Sub(benchmark::State& state)
+// static void BM_DirectXVec3Sub(benchmark::State& state)
 //{
 //    Vector3 a(1.0f, 2.0f, 3.0f);
 //    Vector3 b(4.0f, 5.0f, 6.0f);
@@ -127,9 +127,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a - b);
 //    }
 //}
-//BENCHMARK(BM_DirectXVec3Sub)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec3Sub)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec3Mul(benchmark::State& state)
+// static void BM_JamVec3Mul(benchmark::State& state)
 //{
 //    Vec3 a(1.0f, 2.0f, 3.0f);
 //    Vec3 b(4.0f, 5.0f, 6.0f);
@@ -138,9 +138,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a * b);
 //    }
 //}
-//BENCHMARK(BM_JamVec3Mul)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec3Mul)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec3Mul(benchmark::State& state)
+// static void BM_DirectXVec3Mul(benchmark::State& state)
 //{
 //    Vector3 a(1.0f, 2.0f, 3.0f);
 //    Vector3 b(4.0f, 5.0f, 6.0f);
@@ -149,9 +149,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a * b);
 //    }
 //}
-//BENCHMARK(BM_DirectXVec3Mul)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec3Mul)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec3Dot(benchmark::State& state)
+// static void BM_JamVec3Dot(benchmark::State& state)
 //{
 //    Vec3 a(1.0f, 2.0f, 3.0f);
 //    Vec3 b(4.0f, 5.0f, 6.0f);
@@ -160,9 +160,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Dot(b));
 //    }
 //}
-//BENCHMARK(BM_JamVec3Dot)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec3Dot)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec3Dot(benchmark::State& state)
+// static void BM_DirectXVec3Dot(benchmark::State& state)
 //{
 //    Vector3 a(1.0f, 2.0f, 3.0f);
 //    Vector3 b(4.0f, 5.0f, 6.0f);
@@ -171,9 +171,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Dot(b));
 //    }
 //}
-//BENCHMARK(BM_DirectXVec3Dot)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec3Dot)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec3Cross(benchmark::State& state)
+// static void BM_JamVec3Cross(benchmark::State& state)
 //{
 //    Vec3 a(1.0f, 2.0f, 3.0f);
 //    Vec3 b(4.0f, 5.0f, 6.0f);
@@ -182,9 +182,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Cross(b));
 //    }
 //}
-//BENCHMARK(BM_JamVec3Cross)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec3Cross)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec3Cross(benchmark::State& state)
+// static void BM_DirectXVec3Cross(benchmark::State& state)
 //{
 //    Vector3 a(1.0f, 2.0f, 3.0f);
 //    Vector3 b(4.0f, 5.0f, 6.0f);
@@ -193,9 +193,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Cross(b));
 //    }
 //}
-//BENCHMARK(BM_DirectXVec3Cross)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec3Cross)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec3Normalize(benchmark::State& state)
+// static void BM_JamVec3Normalize(benchmark::State& state)
 //{
 //    Vec3 a(3.0f, 4.0f, 5.0f);
 //    for (auto _: state)
@@ -203,9 +203,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Normalized());
 //    }
 //}
-//BENCHMARK(BM_JamVec3Normalize)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec3Normalize)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec3Normalize(benchmark::State& state)
+// static void BM_DirectXVec3Normalize(benchmark::State& state)
 //{
 //    Vector3 a(3.0f, 4.0f, 5.0f);
 //    for (auto _: state)
@@ -214,9 +214,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a);
 //    }
 //}
-//BENCHMARK(BM_DirectXVec3Normalize)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec3Normalize)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec3Distance(benchmark::State& state)
+// static void BM_JamVec3Distance(benchmark::State& state)
 //{
 //    Vec3 a(1.0f, 2.0f, 3.0f);
 //    Vec3 b(4.0f, 5.0f, 6.0f);
@@ -225,9 +225,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Distance(b));
 //    }
 //}
-//BENCHMARK(BM_JamVec3Distance)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec3Distance)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec3Distance(benchmark::State& state)
+// static void BM_DirectXVec3Distance(benchmark::State& state)
 //{
 //    Vector3 a(1.0f, 2.0f, 3.0f);
 //    Vector3 b(4.0f, 5.0f, 6.0f);
@@ -236,13 +236,13 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(Vector3::Distance(a, b));
 //    }
 //}
-//BENCHMARK(BM_DirectXVec3Distance)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec3Distance)->Unit(benchmark::kNanosecond);
 //
 //// ============================================================================
 //// Vector4 Benchmarks
 //// ============================================================================
 //
-//static void BM_JamVec4Add(benchmark::State& state)
+// static void BM_JamVec4Add(benchmark::State& state)
 //{
 //    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
 //    Vec4 b(5.0f, 6.0f, 7.0f, 8.0f);
@@ -251,9 +251,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a + b);
 //    }
 //}
-//BENCHMARK(BM_JamVec4Add)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec4Add)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec4Add(benchmark::State& state)
+// static void BM_DirectXVec4Add(benchmark::State& state)
 //{
 //    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
 //    DirectX::SimpleMath::Vector4 b(5.0f, 6.0f, 7.0f, 8.0f);
@@ -262,9 +262,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a + b);
 //    }
 //}
-//BENCHMARK(BM_DirectXVec4Add)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec4Add)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec4Dot(benchmark::State& state)
+// static void BM_JamVec4Dot(benchmark::State& state)
 //{
 //    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
 //    Vec4 b(5.0f, 6.0f, 7.0f, 8.0f);
@@ -273,9 +273,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Dot(b));
 //    }
 //}
-//BENCHMARK(BM_JamVec4Dot)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec4Dot)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec4Dot(benchmark::State& state)
+// static void BM_DirectXVec4Dot(benchmark::State& state)
 //{
 //    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
 //    DirectX::SimpleMath::Vector4 b(5.0f, 6.0f, 7.0f, 8.0f);
@@ -284,9 +284,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a.Dot(b));
 //    }
 //}
-//BENCHMARK(BM_DirectXVec4Dot)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec4Dot)->Unit(benchmark::kNanosecond);
 //
-//static void BM_JamVec4Normalize(benchmark::State& state)
+// static void BM_JamVec4Normalize(benchmark::State& state)
 //{
 //    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
 //    for (auto _: state)
@@ -295,9 +295,9 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a);
 //    }
 //}
-//BENCHMARK(BM_JamVec4Normalize)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_JamVec4Normalize)->Unit(benchmark::kNanosecond);
 //
-//static void BM_DirectXVec4Normalize(benchmark::State& state)
+// static void BM_DirectXVec4Normalize(benchmark::State& state)
 //{
 //    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
 //    for (auto _: state)
@@ -306,7 +306,7 @@ const Matrix Matrix::Identity = Matrix {
 //        benchmark::DoNotOptimize(a);
 //    }
 //}
-//BENCHMARK(BM_DirectXVec4Normalize)->Unit(benchmark::kNanosecond);
+// BENCHMARK(BM_DirectXVec4Normalize)->Unit(benchmark::kNanosecond);
 
 // ============================================================================
 // Matrix4x4 Benchmarks

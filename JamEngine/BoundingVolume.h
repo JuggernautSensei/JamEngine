@@ -41,11 +41,18 @@ struct Ray
     Ray(float _ndcX, float _ndcY, const Mtx4& _invMtx);
     Ray(Int32 _screenX, Int32 _screenY, Int32 _screenWidth, Int32 _screenHeight, const Mtx4& _invMtx);
 
-    Vec3 dir    = Vec3::kZero;
+    Vec3 dir = Vec3::kZero;
     Vec3 pos = Vec3::kZero;
 };
 
 using Corners = EnumArray<eRegion, Vec3>;
+
+enum class eContainment
+{
+    Outside,
+    Intersects,
+    Inside,
+};
 
 struct Aabb
 {
@@ -162,7 +169,8 @@ struct Frustum
     [[nodiscard]] static Corners CalcCorners(const Mtx4& _invMtx);
     [[nodiscard]] static Corners CalcCornersInViewSpace(float _fovRad, float _aspectRatio, float _nearZ, float _farZ);
 
-    [[nodiscard]] bool Overlap(const Aabb& _box) const;
+    [[nodiscard]] bool         Overlap(const Aabb& _box) const;
+    [[nodiscard]] eContainment Classify(const Aabb& _box) const;
 
     void CalcCascadeSplitsInViewSpace(Span<CascadeSplit> _outDs, float _weight = 0.75f) const;
 

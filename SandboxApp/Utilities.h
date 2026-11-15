@@ -35,7 +35,8 @@ void LoadProgram(
 
 [[nodiscard]] Ref<Mesh> LoadMesh(
     StringView          _path,
-    const VertexLayout& _attribLayoutOrEmpty);
+    const VertexLayout& _attribLayoutOrEmpty,
+    bool                _bSmoothNormals = false);
 
 [[nodiscard]] Ref<Texture> LoadTexture(
     StringView _path);

@@ -37,7 +37,7 @@ void SpotLightComponent::Deserialize(
 
 void SpotLightComponent::DrawEditPanel(
     Scene* _pScene,
-    Entity            _entity)
+    Entity _entity)
 {
     /*if (BeginLabelValueTable("SpotLightComponent"))
     {

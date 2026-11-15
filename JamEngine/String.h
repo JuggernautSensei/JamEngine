@@ -275,7 +275,7 @@ public:
 
     void Resize(
         const SizeT _newLen,
-        const CharT _c = CharTraits::kNullChar)
+        const CharT _c = CharTraits::kNull)
     {
         Resize_<true>(_newLen, _c);
     }
@@ -283,7 +283,7 @@ public:
     void ResizeUninitialized(
         const SizeT _newLen)
     {
-        Resize_<false>(_newLen, CharTraits::kNullChar);
+        Resize_<false>(_newLen, CharTraits::kNull);
     }
 
     [[nodiscard]] bool IsEmpty() const
@@ -407,7 +407,7 @@ private:
     {
         JAM_ASSERT(IsHeap_(), "ResizeHeap_: must be in heap mode to resize heap data.");
         JAM_ASSERT(_newLen <= m_str.heapCap, "ResizeHeap_: _newLen exceeds heap capacity.");
-        m_str.heap[_newLen] = CharTraits::kNullChar;
+        m_str.heap[_newLen] = CharTraits::kNull;
         m_str.heapLen       = _newLen;
     }
 
@@ -469,7 +469,7 @@ private:
         const SizeT _len)
     {
         JAM_ASSERT(_len <= kSSOCap, "ResizeSSO_: _len exceeds sso capacity.");
-        m_str.sso[_len] = CharTraits::kNullChar;
+        m_str.sso[_len] = CharTraits::kNull;
         m_str.bit       = static_cast<Byte>(kSSOCap - _len);
     }
 

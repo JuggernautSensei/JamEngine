@@ -85,8 +85,8 @@ class ImageFilterManager
         String programName = {};
 
         // filesystem
-        String                      path   = {};
-        Vector<ShaderBinary::Macro> macros = {};
+        String              path   = {};
+        Vector<ShaderMacro> macros = {};
 
         // cbuffer
         bool bNeedParam  = false;

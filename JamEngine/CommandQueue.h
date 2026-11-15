@@ -18,9 +18,9 @@ public:
     void Execute();
 
 private:
-    std::mutex               m_mutex           = {}; // mutex for thread safety
-    Vector<Delegate<void()>> m_commands        = {}; // queue of commands
-    Vector<Delegate<void()>> m_pendingCommands = {}; // pending commands for execution
+    std::mutex               m_mutex           = {};   // mutex for thread safety
+    Vector<Delegate<void()>> m_commands        = {};   // queue of commands
+    Vector<Delegate<void()>> m_pendingCommands = {};   // pending commands for execution
 };
 
 }   // namespace Jam

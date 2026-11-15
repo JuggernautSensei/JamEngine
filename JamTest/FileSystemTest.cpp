@@ -304,7 +304,7 @@ TEST_F(FileSystemTest, GenerateUniquePath)
 
     CreateDummyFile(uniquePath2);
 
-    String uniquePath3 = Utf8::GenerateUniquePath(basePath);
+    String uniquePath3   = Utf8::GenerateUniquePath(basePath);
     String expectedPath2 = testRoot;
     expectedPath2.Join("UniqueFile (2).txt", eJoinType::File);
     EXPECT_STREQ(uniquePath3.GetPtr(), expectedPath2.GetPtr());

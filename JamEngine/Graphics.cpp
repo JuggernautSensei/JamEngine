@@ -4478,10 +4478,10 @@ ID3D11SamplerState* Graphics::GetOrCreateD3D11SamplerState_(
                                        : filter == eSamplerFlags::Filter_Anisotropic16 ? 16
                                                                                        : 1;
 
-    const Flags<eSamplerFlags> addressU = (_state & Details::kSamplerFlagsAddressUMask) << Details::kSamplerFlagsAddressUShift;
-    const Flags<eSamplerFlags> addressV = (_state & Details::kSamplerFlagsAddressVMask) << Details::kSamplerFlagsAddressVShift;
-    const Flags<eSamplerFlags> addressW = (_state & Details::kSamplerFlagsAddressWMask) << Details::kSamplerFlagsAddressWShift;
-    compareFunc <<= Details::kSamplerFlagsCompareFuncShift;
+    const Flags<eSamplerFlags> addressU = (_state & Details::kSamplerFlagsAddressUMask) >> Details::kSamplerFlagsAddressUShift;
+    const Flags<eSamplerFlags> addressV = (_state & Details::kSamplerFlagsAddressVMask) >> Details::kSamplerFlagsAddressVShift;
+    const Flags<eSamplerFlags> addressW = (_state & Details::kSamplerFlagsAddressWMask) >> Details::kSamplerFlagsAddressWShift;
+    compareFunc >>= Details::kSamplerFlagsCompareFuncShift;
 
     D3D11_SAMPLER_DESC desc = {};
     desc.Filter             = bIsComparison ? info.comparisonFilter : info.filter;
@@ -4662,12 +4662,12 @@ ID3D11BlendState* Graphics::GetOrCreateD3D11BlendStateFromCurrentBind_()
         Flags<eBlendFlags>              rtBlend = m_blendFlagsBindings[i];
         D3D11_RENDER_TARGET_BLEND_DESC& rtDesc  = desc.RenderTarget[i];
 
-        const Flags<eBlendFlags> srcBlend      = (rtBlend & Details::kBlendFlagsSrcBlendMask) << Details::kBlendFlagsSrcBlendShift;
-        const Flags<eBlendFlags> dstBlend      = (rtBlend & Details::kBlendFlagsDstBlendMask) << Details::kBlendFlagsDstBlendShift;
-        const Flags<eBlendFlags> blendOp       = (rtBlend & Details::kBlendFlagsBlendOpMask) << Details::kBlendFlagsBlendOpShift;
-        const Flags<eBlendFlags> srcBlendAlpha = (rtBlend & Details::kBlendFlagsSrcBlendAlphaMask) << Details::kBlendFlagsSrcBlendAlphaShift;
-        const Flags<eBlendFlags> dstBlendAlpha = (rtBlend & Details::kBlendFlagsDstBlendAlphaMask) << Details::kBlendFlagsDstBlendAlphaShift;
-        const Flags<eBlendFlags> blendOpAlpha  = (rtBlend & Details::kBlendFlagsBlendOpAlphaMask) << Details::kBlendFlagsBlendOpAlphaShift;
+        const Flags<eBlendFlags> srcBlend      = (rtBlend & Details::kBlendFlagsSrcBlendMask) >> Details::kBlendFlagsSrcBlendShift;
+        const Flags<eBlendFlags> dstBlend      = (rtBlend & Details::kBlendFlagsDstBlendMask) >> Details::kBlendFlagsDstBlendShift;
+        const Flags<eBlendFlags> blendOp       = (rtBlend & Details::kBlendFlagsBlendOpMask) >> Details::kBlendFlagsBlendOpShift;
+        const Flags<eBlendFlags> srcBlendAlpha = (rtBlend & Details::kBlendFlagsSrcBlendAlphaMask) >> Details::kBlendFlagsSrcBlendAlphaShift;
+        const Flags<eBlendFlags> dstBlendAlpha = (rtBlend & Details::kBlendFlagsDstBlendAlphaMask) >> Details::kBlendFlagsDstBlendAlphaShift;
+        const Flags<eBlendFlags> blendOpAlpha  = (rtBlend & Details::kBlendFlagsBlendOpAlphaMask) >> Details::kBlendFlagsBlendOpAlphaShift;
 
         rtDesc.BlendEnable    = rtBlend.IsEnabled(eBlendFlags::Enable);
         rtDesc.SrcBlend       = D3D11BlendFrom_(srcBlend.GetValue());
@@ -4722,13 +4722,13 @@ ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilStateFromCurrentB
 
     const Flags<eRenderFlags>  depthFunc           = (m_renderFlagsBinding & Details::kRenderFlagsDepthFuncMask) >> Details::kRenderFlagsDepthFuncShift;
     const Flags<eStencilFlags> fstencilFailop      = (m_fstencilBinding & Details::kStencilFlagsStencilFailOpMask);
-    const Flags<eStencilFlags> fstencilDepthFailop = (m_fstencilBinding & Details::kStencilFlagsDepthFailOpMask);
-    const Flags<eStencilFlags> fstencilPassop      = (m_fstencilBinding & Details::kStencilFlagsPassOpMask);
-    const Flags<eStencilFlags> fstencilFunc        = (m_fstencilBinding & Details::kStencilFlagsCompareFuncMask);
+    const Flags<eStencilFlags> fstencilDepthFailop = (m_fstencilBinding & Details::kStencilFlagsDepthFailOpMask) >> Details::kStencilFlagsDepthFailOpShift;
+    const Flags<eStencilFlags> fstencilPassop      = (m_fstencilBinding & Details::kStencilFlagsPassOpMask) >> Details::kStencilFlagsPassOpShift;
+    const Flags<eStencilFlags> fstencilFunc        = (m_fstencilBinding & Details::kStencilFlagsCompareFuncMask) >> Details::kStencilFlagsCompareFuncShift;
     const Flags<eStencilFlags> bstencilFailop      = (m_bstencilBinding & Details::kStencilFlagsStencilFailOpMask);
-    const Flags<eStencilFlags> bstencilDepthFailop = (m_bstencilBinding & Details::kStencilFlagsDepthFailOpMask);
-    const Flags<eStencilFlags> bstencilPassop      = (m_bstencilBinding & Details::kStencilFlagsPassOpMask);
-    const Flags<eStencilFlags> bstencilFunc        = (m_bstencilBinding & Details::kStencilFlagsCompareFuncMask);
+    const Flags<eStencilFlags> bstencilDepthFailop = (m_bstencilBinding & Details::kStencilFlagsDepthFailOpMask) >> Details::kStencilFlagsDepthFailOpShift;
+    const Flags<eStencilFlags> bstencilPassop      = (m_bstencilBinding & Details::kStencilFlagsPassOpMask) >> Details::kStencilFlagsPassOpShift;
+    const Flags<eStencilFlags> bstencilFunc        = (m_bstencilBinding & Details::kStencilFlagsCompareFuncMask) >> Details::kStencilFlagsCompareFuncShift;
 
     D3D11_DEPTH_STENCIL_DESC desc = {};
     desc.DepthEnable              = (depthFunc != eRenderFlags::None);

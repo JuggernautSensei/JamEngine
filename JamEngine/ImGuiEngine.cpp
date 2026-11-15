@@ -120,8 +120,8 @@ namespace
         const StringView _entryPoint)
     {
         ShaderCompileInfo desc = {};
-        desc.entryPoint         = _entryPoint;
-        desc.stage              = _stage;
+        desc.entryPoint        = _entryPoint;
+        desc.stage             = _stage;
 
         Expect<ShaderBinary> complier = ShaderBinary::CompileFromHLSLSource(_source, desc);
         JAM_ASSERT(complier, "Failed to compile ImGui shader. {}", complier.GetError());
@@ -174,10 +174,10 @@ ImGuiEngine::ImGuiEngine(
     m_cbh = gfx.CreateConstantBuffer(sizeof(CBImgui));
 
     // state
-    m_blendFlags = eBlendFlags::Enable
-                 | eBlendFlags::SrcBlend_SrcAlpha | eBlendFlags::DstBlend_InvSrcAlpha | eBlendFlags::BlendOp_Add
-                 | eBlendFlags::SrcBlendAlpha_SrcAlpha | eBlendFlags::DstBlendAlpha_InvSrcAlpha | eBlendFlags::BlendOpAlpha_Add
-                 | eBlendFlags::WriteMask_All;
+    m_blendFlags   = eBlendFlags::Enable
+                   | eBlendFlags::SrcBlend_SrcAlpha | eBlendFlags::DstBlend_InvSrcAlpha | eBlendFlags::BlendOp_Add
+                   | eBlendFlags::SrcBlendAlpha_SrcAlpha | eBlendFlags::DstBlendAlpha_InvSrcAlpha | eBlendFlags::BlendOpAlpha_Add
+                   | eBlendFlags::WriteMask_All;
     m_renderFlags  = eRenderFlags::CullMode_None | eRenderFlags::Scissor;
     m_samplerFlags = eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear | eSamplerFlags::AddressU_Clamp | eSamplerFlags::AddressV_Clamp;
 }

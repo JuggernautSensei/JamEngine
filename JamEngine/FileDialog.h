@@ -52,8 +52,8 @@ private:
     void SetFilters_(Span<const FileDialogFilter> _filters) const;
 
     Microsoft::WRL::ComPtr<IFileDialog> m_pfd            = nullptr;
-    Vector<String>      m_selectedPaths  = {};
-    bool                m_bIsMultiSelect = false;
+    Vector<String>                      m_selectedPaths  = {};
+    bool                                m_bIsMultiSelect = false;
 };
 
 }   // namespace Jam

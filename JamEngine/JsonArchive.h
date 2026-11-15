@@ -68,11 +68,11 @@ private:
     void                 Push_(yyjson_mut_val* _node, eMode _mode);
     void                 Pop_();
 
-    yyjson_mut_doc*          m_pDoc       = nullptr;
-    bool                     m_ownsDoc    = true;
-    StringView               m_pendingKey = {};
+    yyjson_mut_doc*         m_pDoc       = nullptr;
+    bool                    m_ownsDoc    = true;
+    StringView              m_pendingKey = {};
     Array<Frame, kMaxDepth> m_stack      = {};
-    Int32                    m_stackTop   = -1;
+    Int32                   m_stackTop   = -1;
 };
 
 enum class eJsonReadFlags : UInt32
@@ -143,10 +143,10 @@ private:
     void                      Push_(yyjson_val* _val);
     void                      Pop_();
 
-    yyjson_doc*                    m_doc       = nullptr;
+    yyjson_doc*                   m_doc       = nullptr;
     Array<yyjson_val*, kMaxDepth> m_stack     = {};
-    Int32                          m_stackTop  = -1;
-    Error                          m_lastError = Error::None;
+    Int32                         m_stackTop  = -1;
+    Error                         m_lastError = Error::None;
 };
 
 }   // namespace Jam

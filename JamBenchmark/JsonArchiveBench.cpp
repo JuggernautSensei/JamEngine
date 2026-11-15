@@ -72,8 +72,7 @@ static const SceneData& GetScene()
 // 미리 만든 JSON 문자열 (Read 벤치에서 파싱 대상)
 static const std::string& GetSceneJson_Jam()
 {
-    static std::string s = []() -> std::string
-    {
+    static std::string s = []() -> std::string {
         const SceneData& scene = GetScene();
         Jam::JsonWriter  writer;
 
@@ -204,8 +203,7 @@ static void BM_Jam_Read(benchmark::State& state)
         reader.ReadField("version", version);
 
         reader.EnterField("entities");
-        reader.ForEachArray(Bind([](Jam::SizeT, Jam::ArchiveReader& ar) -> Jam::Error
-                                 {
+        reader.ForEachArray(Bind([](Jam::SizeT, Jam::ArchiveReader& ar) -> Jam::Error {
             Jam::Int32  id     = 0;
             bool        active = false;
             double      health = 0.0;

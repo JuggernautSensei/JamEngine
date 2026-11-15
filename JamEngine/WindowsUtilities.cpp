@@ -2,7 +2,6 @@
 
 #include "WindowsUtilities.h"
 
-
 #include <comdef.h>
 
 namespace Jam
@@ -56,7 +55,7 @@ String MakeWindowsLastErrorMessage()
 }
 
 WString MakeWindowsErrorMessageW(
-    UInt32                      _errorCode,
+    UInt32                  _errorCode,
     const eWindowsErrorCode _errorType)
 {
     LPCVOID pSource = NULL;

@@ -5,8 +5,7 @@
 #include "ImageFilterManager.h"
 #include "RenderStates.h"
 #include "Utilities.h"
-#include "../JamEngine/AssimpImporter.h"
-#include "../JamEngine/EditorWidgets.h"
+#include "../JamEngine/ModelImporter.h"
 
 #define SCENE_PATH(_filepath) "Resources/DeferredScene/" _filepath
 

@@ -33,7 +33,7 @@ namespace Utf16
         const eOnExists   _onExists)
     {
         JAM_ASSERT(_dir.IsDirectory(), "directory name is must end path seperator");
-        JAM_ASSERT(_onExists == eOnExists::Overwrite, "eOnExists::Overwrite is not supported for directory creation");
+        JAM_ASSERT(_onExists != eOnExists::Overwrite, "eOnExists::Overwrite is not supported for directory creation");
 
         if (Exists(_dir))
         {
@@ -373,7 +373,8 @@ namespace Utf16
 
         WString absolute = {};
         absolute.ResizeUninitialized(len);
-        ::GetFullPathNameW(path.GetPtr(), static_cast<DWORD>(absolute.GetLength()), absolute.GetPtr(), nullptr);
+        len = ::GetFullPathNameW(path.GetPtr(), static_cast<DWORD>(absolute.GetLength()), absolute.GetPtr(), nullptr);
+        absolute.ResizeUninitialized(len);
 
         if (path.IsDirectory())
         {
@@ -386,11 +387,12 @@ namespace Utf16
 
     WString Current()
     {
-        const SizeT len = ::GetCurrentDirectoryW(0, nullptr);   // + separator for directory
+        const SizeT len = ::GetCurrentDirectoryW(0, nullptr);
 
         WString current = {};
         current.ResizeUninitialized(len);
-        ::GetCurrentDirectoryW(static_cast<DWORD>(current.GetLength()), current.GetPtr());
+        const DWORD written = ::GetCurrentDirectoryW(static_cast<DWORD>(current.GetLength()), current.GetPtr());
+        current.ResizeUninitialized(written);
         current.Append(WString::CharTraits::kPreferredSeparator);
 
         current.Simplify();
@@ -399,11 +401,19 @@ namespace Utf16
 
     WString Executable()
     {
-        const SizeT len = ::GetModuleFileNameW(NULL, nullptr, 0);
-
         WString executable = {};
-        executable.ResizeUninitialized(len);
-        ::GetModuleFileNameW(NULL, executable.GetPtr(), static_cast<DWORD>(executable.GetLength()));
+        DWORD   capacity   = MAX_PATH;
+        for (;;)
+        {
+            executable.ResizeUninitialized(capacity);
+            const DWORD written = ::GetModuleFileNameW(nullptr, executable.GetPtr(), capacity);
+            if (written < capacity)
+            {
+                executable.ResizeUninitialized(written);
+                break;
+            }
+            capacity *= 2;
+        }
 
         executable.Simplify();
         return executable;
@@ -424,8 +434,11 @@ namespace Utf16
         result.Reserve(_basePath.GetLength() + 10);   // reserve enough capacity for the result
         for (Int32 counter = 1;; ++counter)
         {
-            const wchar_t dirSep = base.IsDirectory() ? WString::CharTraits::kPreferredSeparator : L' ';
-            result.Format(L"{}{} ({}){}{}", dir, base, counter, ext, dirSep);
+            result.Format(L"{}{} ({}){}", dir, base, counter, ext);
+            if (_basePath.IsDirectory())
+            {
+                result.Append(WString::CharTraits::kPreferredSeparator);
+            }
 
             if (!Exists(result))
             {

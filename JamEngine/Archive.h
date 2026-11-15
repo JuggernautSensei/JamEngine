@@ -1,4 +1,5 @@
 #pragma once
+#include "EnumArray.h"
 
 namespace Jam
 {
@@ -263,6 +264,48 @@ Error ReadFromArchive(ArchiveReader& _ar, TEnum& _value)
 
 /////// CONTAINERS ////////
 
+template<typename TEnum>
+void WriteToArchive(ArchiveWriter& _ar, const Flags<TEnum> _flags)
+{
+    _ar.Write(static_cast<UInt64>(_flags.GetValue()));
+}
+
+template<typename TEnum>
+Error ReadFromArchive(ArchiveReader& _ar, Flags<TEnum>& _flags)
+{
+    UInt64 value = 0;
+    if (const Error err = _ar.Read(value))
+    {
+        return err;
+    }
+    _flags = Flags<TEnum> { static_cast<typename Flags<TEnum>::UnderlyingT>(value) };
+    return Error::None;
+}
+
+template<typename TEnum, typename TValue>
+void WriteToArchive(ArchiveWriter& _ar, const EnumArray<TEnum, TValue>& _values)
+{
+    _ar.BeginArray();
+    for (SizeT i = 0; i < _values.Size(); ++i)
+    {
+        _ar.WriteElement(_values[i]);
+    }
+    _ar.EndArray();
+}
+
+template<typename TEnum, typename TValue>
+Error ReadFromArchive(ArchiveReader& _ar, EnumArray<TEnum, TValue>& _values)
+{
+    if (_ar.GetSize() != _values.Size())
+    {
+        _ar.MarkError(Error::InvalidData);
+        return Error::InvalidData;
+    }
+    return _ar.ForEachArray(Bind([&](SizeT _index, ArchiveReader& _element) -> Error {
+        return _element.Read(_values[_index]);
+    }));
+}
+
 template<typename T>
 void WriteToArchive(ArchiveWriter& _ar, const Vector<T>& _vec)
 {
@@ -279,7 +322,7 @@ Error ReadFromArchive(ArchiveReader& _ar, Vector<T>& _vec)
 {
     _vec.clear();
     _vec.reserve(_ar.GetSize());
-    return _ar.ForEachArray([&](SizeT, ArchiveReader& elemAr) -> Error {
+    return _ar.ForEachArray(Bind([&](SizeT, ArchiveReader& elemAr) -> Error {
         T elem = {};
         if (const Error err = elemAr.Read(elem))
         {
@@ -287,7 +330,7 @@ Error ReadFromArchive(ArchiveReader& _ar, Vector<T>& _vec)
         }
         _vec.emplace_back(std::move(elem));
         return Error::None;
-    });
+    }));
 }
 
 template<typename TKey, typename TValue>
@@ -317,7 +360,7 @@ Error ReadFromArchive(ArchiveReader& _ar, HashMap<TKey, TValue>& _map)
 {
     _map.clear();
     _map.reserve(_ar.GetSize());
-    return _ar.ForEachObject([&](StringView key, ArchiveReader& valueAr) -> Error {
+    return _ar.ForEachObject(Bind([&](StringView key, ArchiveReader& valueAr) -> Error {
         TValue value = {};
         if (const Error err = valueAr.Read(value))
         {
@@ -325,14 +368,14 @@ Error ReadFromArchive(ArchiveReader& _ar, HashMap<TKey, TValue>& _map)
         }
         _map.emplace(key, std::move(value));
         return Error::None;
-    });
+    }));
 }
 
 template<typename TKey>
 Error ReadFromArchive(ArchiveReader& _ar, HashSet<TKey>& _set)
 {
     _set.clear();
-    return _ar.ForEachArray([&](SizeT, ArchiveReader& elemAr) -> Error {
+    return _ar.ForEachArray(Bind([&](SizeT, ArchiveReader& elemAr) -> Error {
         TKey key = {};
         if (const Error err = elemAr.Read(key))
         {
@@ -340,7 +383,7 @@ Error ReadFromArchive(ArchiveReader& _ar, HashSet<TKey>& _set)
         }
         _set.emplace(std::move(key));
         return Error::None;
-    });
+    }));
 }
 
 template<typename T, SizeT kSize>

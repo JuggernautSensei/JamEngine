@@ -119,4 +119,4 @@ void Sort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
     }
 }
 
-}   // namespace Jam
+}   // namespace Jam::RadixSort

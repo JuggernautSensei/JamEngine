@@ -8,7 +8,6 @@ class Scene;
 class SceneSerializer
 {
 public:
- 
 };
 
 }   // namespace jam

@@ -5,9 +5,7 @@
 #include "AssetManager.h"
 #include "Graphics.h"
 #include "Profile.h"
-#include "ImageBase.h"
-#include "ImageExporter.h"
-#include "ImageImporter.h"
+#include "Image.h"
 
 namespace Jam
 {
@@ -77,7 +75,7 @@ Error Texture::LoadFromFile_(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // import dds (native image format is dds.)
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path);
+    Expect<Image> importer = Image::ImportFromFile(_path);
     if (!importer)
     {
         return importer.GetError();
@@ -87,7 +85,7 @@ Error Texture::LoadFromFile_(
     CleanUp_();
 
     Graphics& gfx = GetGraphics();
-    m_texh        = gfx.CreateTexture(importer->GetImageContainer());
+    m_texh        = gfx.CreateTexture(*importer);
     m_info        = gfx.GetTextureInfo(m_texh);
     m_path        = _path;
     return Error::None;
@@ -107,7 +105,8 @@ Error Texture::Save(
         path.ReplaceExtension(kExtension);
     }
 
-    return ImageExporter::ExportToFile(m_texh, path, eImageFormat::DDS, false, _mode);
+    Graphics& gfx = GetGraphics();
+    return gfx.Capture(m_texh).ExportToFile(path, eImageFormat::DDS, _mode);
 }
 
 void Texture::SetName(

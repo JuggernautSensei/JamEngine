@@ -15,33 +15,33 @@ Float16 PackFloat32to16(const float _value)
     ci.fv = _value;
 
     const UInt32 x        = ci.ui;
-    const UInt32 sign     = x >> 31;            
-    const UInt32 exponent = (x >> 23) & 0xFF;   
-    const UInt32 mantissa = x & 0x7FFFFF;       
+    const UInt32 sign     = x >> 31;
+    const UInt32 exponent = (x >> 23) & 0xFF;
+    const UInt32 mantissa = x & 0x7FFFFF;
 
     UInt16 hf = 0;
 
     if (exponent == 0xFF)
     {
-        hf = (static_cast<UInt16>(sign) << 15)  
-           | 0x7C00                             
-           | (mantissa >> 13);                  
+        hf = (static_cast<UInt16>(sign) << 15)
+           | 0x7C00
+           | (mantissa >> 13);
     }
 
     else if (exponent > 0x8E)
     {
         hf = (static_cast<UInt16>(sign) << 15)
-           | 0x7C00; 
+           | 0x7C00;
     }
 
-    else if (exponent > 0x70)   
+    else if (exponent > 0x70)
     {
         hf = (static_cast<UInt16>(sign) << 15)
            | (static_cast<UInt16>((exponent - 112) << 10))
            | (mantissa >> 13);
     }
 
-    else if (exponent > 0x66) 
+    else if (exponent > 0x66)
     {
         UInt32 man = (0x800000 | mantissa);
 

@@ -8,6 +8,7 @@ class Texture;
 class Material;
 class FileDialog;
 class VertexLayoutEntry;
+class Transform;
 
 // helper for infinite drag behavior
 // use like this:
@@ -108,15 +109,10 @@ void Widget_Image(ImTextureProxy _texture, ImVec2 _size, ImVec2 _uv0 = { 0.f, 0.
 bool Widget_ImageButton(const char* _label, ImTextureProxy _texture, ImVec2 _size, ImVec2 _uv0 = { 0.f, 0.f }, ImVec2 _uv1 = { 1.f, 1.f }, ImVec4 _bgCol = { 0.f, 0.f, 0.f, 0.f }, ImVec4 _tintCol = { 1.f, 1.f, 1.f, 1.f });
 void Widget_ItemDescriptionTooltip(const char* _summery, const char* _desc, ImGuiKeyChord _shortcut = 0);
 
-bool Widget_VertexLayoutEntryCombo(const char* _label, Ref<VertexLayoutEntry>& _pVle);
 void Widget_Dummy(const char* _label, ImVec2 _size);
 
 // asset
-bool Widget_MeshPicker(const char* _label, Ref<Mesh>& _pMesh);
-bool Widget_MaterialPicker(const char* _label, Ref<Material>& _pMaterial);
-bool Widget_TexturePicker(const char* _label, Ref<Texture>& _pTexture, const ImVec2& _size = ImVec2 { 128.f, 128.f });
 
-bool Widget_Acroball(const char* _label, Transform& _t, ImVec2 _pos, float _length);
 bool Widget_FileDialog(const char* _label, String& _path, FileDialog& _fd);
 bool Widget_InputText(const char* _label, String& _str, ImGuiInputTextFlags _flags = 0, ImGuiInputTextCallback _callback = nullptr, void* _pUserData = nullptr);
 bool Widget_InputTextMultiline(const char* _label, String& _str, ImVec2 _size = { 0.f, 0.f }, ImGuiInputTextFlags _flags = 0, ImGuiInputTextCallback _callback = nullptr, void* _pUserData = nullptr);

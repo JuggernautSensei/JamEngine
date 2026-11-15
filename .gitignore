@@ -53,3 +53,23 @@
 *.dds
 x64/
 *.iobj
+
+# Build output and local IDE state
+/Build/
+/RegressionFiles-*/
+**/Tmp/
+**/CrashDump/
+**/Logs/
+**/Caches/
+*.vcxproj.user
+*.DotSettings.user
+*.aps
+*.ipdb
+*.sublime-workspace
+~AutoRecover.*
+**/imgui.ini
+
+# Runtime model, image, and glTF data are source assets.
+!SandboxApp/Resources/**/*.obj
+!SandboxApp/Resources/**/*.bin
+!SandboxApp/Resources/**/*.dds

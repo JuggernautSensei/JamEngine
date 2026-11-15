@@ -70,7 +70,7 @@ public:
 
     // skybox
     void                              SetSkyboxType(eSkybox _type);
-    [[nodiscard]] eSkybox         GetSkyboxType() const;
+    [[nodiscard]] eSkybox             GetSkyboxType() const;
     void                              SetSkyboxTex(const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetSkyboxTex() const;
     void                              SetSkyboxSolidColor(Vec3 _color);
@@ -99,14 +99,14 @@ public:
     [[nodiscard]] float GetFogHeightAttenuation() const;
 
     // tone mapping
-    void                           SetToneMappingEnabled(bool _bEnabled);
-    [[nodiscard]] bool             IsToneMappingEnabled() const;
-    void                           SetToneMappingType(eToneMapping _type);
+    void                       SetToneMappingEnabled(bool _bEnabled);
+    [[nodiscard]] bool         IsToneMappingEnabled() const;
+    void                       SetToneMappingType(eToneMapping _type);
     [[nodiscard]] eToneMapping GetToneMappingType() const;
-    void                           SetToneMappingExposure(float _exposure);
-    [[nodiscard]] float            GetToneMappingExposure() const;
-    void                           SetToneMappingGamma(float _gamma);
-    [[nodiscard]] float            GetToneMappingGamma() const;
+    void                       SetToneMappingExposure(float _exposure);
+    [[nodiscard]] float        GetToneMappingExposure() const;
+    void                       SetToneMappingGamma(float _gamma);
+    [[nodiscard]] float        GetToneMappingGamma() const;
 
     // bloom
     void                SetBloomEnabled(bool _bEnabled);
@@ -153,7 +153,7 @@ private:
     float        m_iblSpecularTexIntensity   = 1.f;
 
     // skybox
-    eSkybox  m_skyboxType       = eSkybox::SolidColor;
+    eSkybox      m_skyboxType       = eSkybox::SolidColor;
     Ref<Texture> m_pSkyboxTex       = nullptr;                // cubemap
     Vec3         m_skyboxSolidColor = { 0.2f, 0.2f, 0.2f };   // solid radiance
 
@@ -171,10 +171,10 @@ private:
     float m_fogHeightAttenuation = 0.1f;
 
     // tone mapping
-    bool             m_bToneMappingEnabled = false;
+    bool         m_bToneMappingEnabled = false;
     eToneMapping m_toneMappingType     = eToneMapping::Linear;
-    float            m_toneMappingExposure = 1.f;
-    float            m_toneMappingGamma    = 2.2f;
+    float        m_toneMappingExposure = 1.f;
+    float        m_toneMappingGamma    = 2.2f;
 
     // bloom
     bool  m_bBloomEnabled      = false;

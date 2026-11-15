@@ -5,35 +5,35 @@ using namespace Jam;
 
 namespace
 {
-	std::string MakePayload(const size_t len)
-	{
-		std::string s;
-		s.resize(len);
-		for (size_t i = 0; i < len; ++i)
-		{
-			s[i] = static_cast<char>('a' + (i % 26));
-		}
-		return s;
-	}
+std::string MakePayload(const size_t len)
+{
+    std::string s;
+    s.resize(len);
+    for (size_t i = 0; i < len; ++i)
+    {
+        s[i] = static_cast<char>('a' + (i % 26));
+    }
+    return s;
+}
 
-	void BuildFindData(const size_t len, std::string& source, std::string& needle)
-	{
-		source = MakePayload(len);
-		needle = "XYZW";
-		if (len < needle.size())
-		{
-			needle = "X";
-		}
+void BuildFindData(const size_t len, std::string& source, std::string& needle)
+{
+    source = MakePayload(len);
+    needle = "XYZW";
+    if (len < needle.size())
+    {
+        needle = "X";
+    }
 
-		const size_t pos = len > needle.size() ? (len / 2) - (needle.size() / 2) : 0;
-		for (size_t i = 0; i < needle.size(); ++i)
-		{
-			source[pos + i] = needle[i];
-		}
-	}
+    const size_t pos = len > needle.size() ? (len / 2) - (needle.size() / 2) : 0;
+    for (size_t i = 0; i < needle.size(); ++i)
+    {
+        source[pos + i] = needle[i];
+    }
+}
 }   // namespace
 //
-//static void BM_JamString_Construct(benchmark::State& state)
+// static void BM_JamString_Construct(benchmark::State& state)
 //{
 //	const size_t     len = static_cast<size_t>(state.range(0));
 //	const std::string src = MakePayload(len);
@@ -46,9 +46,9 @@ namespace
 //
 //	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 //}
-//BENCHMARK(BM_JamString_Construct)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_JamString_Construct)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_StdString_Construct(benchmark::State& state)
+// static void BM_StdString_Construct(benchmark::State& state)
 //{
 //	const size_t     len = static_cast<size_t>(state.range(0));
 //	const std::string src = MakePayload(len);
@@ -61,9 +61,9 @@ namespace
 //
 //	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 //}
-//BENCHMARK(BM_StdString_Construct)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_StdString_Construct)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_JamString_Append(benchmark::State& state)
+// static void BM_JamString_Append(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string baseStd = MakePayload(len);
@@ -81,9 +81,9 @@ namespace
 //
 //	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * (len + addStd.size())));
 //}
-//BENCHMARK(BM_JamString_Append)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_JamString_Append)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_StdString_Append(benchmark::State& state)
+// static void BM_StdString_Append(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string base = MakePayload(len);
@@ -98,116 +98,116 @@ namespace
 //
 //	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * (len + add.size())));
 //}
-//BENCHMARK(BM_StdString_Append)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_StdString_Append)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 
 static void BM_JamString_Find(benchmark::State& state)
 {
-	const size_t len = static_cast<size_t>(state.range(0));
-	std::string  source;
-	std::string  needle;
-	BuildFindData(len, source, needle);
+    const size_t len = static_cast<size_t>(state.range(0));
+    std::string  source;
+    std::string  needle;
+    BuildFindData(len, source, needle);
 
-	const Jam::StringView sourceView(source.c_str(), static_cast<Jam::SizeT>(source.size()));
-	const Jam::StringView needleView(needle.c_str(), static_cast<Jam::SizeT>(needle.size()));
+    const Jam::StringView sourceView(source.c_str(), static_cast<Jam::SizeT>(source.size()));
+    const Jam::StringView needleView(needle.c_str(), static_cast<Jam::SizeT>(needle.size()));
 
-	for (auto _: state)
-	{
-		const CharResult result = sourceView.Find(needleView);
-		benchmark::DoNotOptimize(result.pos);
-	}
+    for (auto _: state)
+    {
+        const CharResult result = sourceView.Find(needleView);
+        benchmark::DoNotOptimize(result.pos);
+    }
 
-	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 }
 BENCHMARK(BM_JamString_Find)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 
 static void BM_StdString_Find(benchmark::State& state)
 {
-	const size_t len = static_cast<size_t>(state.range(0));
-	std::string  source;
-	std::string  needle;
-	BuildFindData(len, source, needle);
+    const size_t len = static_cast<size_t>(state.range(0));
+    std::string  source;
+    std::string  needle;
+    BuildFindData(len, source, needle);
 
-	for (auto _: state)
-	{
-		const auto pos = source.find(needle);
-		benchmark::DoNotOptimize(pos);
-	}
+    for (auto _: state)
+    {
+        const auto pos = source.find(needle);
+        benchmark::DoNotOptimize(pos);
+    }
 
-	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 }
 BENCHMARK(BM_StdString_Find)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 
 static void BM_JamString_FindChar(benchmark::State& state)
 {
-	const size_t     len = static_cast<size_t>(state.range(0));
-	const std::string src = MakePayload(len);
-	const Jam::StringView view(src.c_str(), static_cast<Jam::SizeT>(src.size()));
-	const char target = 'm';
+    const size_t          len = static_cast<size_t>(state.range(0));
+    const std::string     src = MakePayload(len);
+    const Jam::StringView view(src.c_str(), static_cast<Jam::SizeT>(src.size()));
+    const char            target = 'm';
 
-	for (auto _: state)
-	{
-		const CharResult result = view.Find(target);
-		benchmark::DoNotOptimize(result.pos);
-	}
+    for (auto _: state)
+    {
+        const CharResult result = view.Find(target);
+        benchmark::DoNotOptimize(result.pos);
+    }
 
-	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 }
 BENCHMARK(BM_JamString_FindChar)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 
 static void BM_StdString_FindChar(benchmark::State& state)
 {
-	const size_t     len = static_cast<size_t>(state.range(0));
-	const std::string src = MakePayload(len);
-	const char target = 'm';
+    const size_t      len    = static_cast<size_t>(state.range(0));
+    const std::string src    = MakePayload(len);
+    const char        target = 'm';
 
-	for (auto _: state)
-	{
-		const auto pos = src.find(target);
-		benchmark::DoNotOptimize(pos);
-	}
+    for (auto _: state)
+    {
+        const auto pos = src.find(target);
+        benchmark::DoNotOptimize(pos);
+    }
 
-	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 }
 BENCHMARK(BM_StdString_FindChar)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 
 static void BM_JamString_RFind(benchmark::State& state)
 {
-	const size_t len = static_cast<size_t>(state.range(0));
-	std::string  source;
-	std::string  needle;
-	BuildFindData(len, source, needle);
+    const size_t len = static_cast<size_t>(state.range(0));
+    std::string  source;
+    std::string  needle;
+    BuildFindData(len, source, needle);
 
-	const Jam::StringView sourceView(source.c_str(), static_cast<Jam::SizeT>(source.size()));
-	const Jam::StringView needleView(needle.c_str(), static_cast<Jam::SizeT>(needle.size()));
+    const Jam::StringView sourceView(source.c_str(), static_cast<Jam::SizeT>(source.size()));
+    const Jam::StringView needleView(needle.c_str(), static_cast<Jam::SizeT>(needle.size()));
 
-	for (auto _: state)
-	{
-		const CharResult result = sourceView.RFind(needleView);
-		benchmark::DoNotOptimize(result.pos);
-	}
+    for (auto _: state)
+    {
+        const CharResult result = sourceView.RFind(needleView);
+        benchmark::DoNotOptimize(result.pos);
+    }
 
-	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 }
 BENCHMARK(BM_JamString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 
 static void BM_StdString_RFind(benchmark::State& state)
 {
-	const size_t len = static_cast<size_t>(state.range(0));
-	std::string  source;
-	std::string  needle;
-	BuildFindData(len, source, needle);
+    const size_t len = static_cast<size_t>(state.range(0));
+    std::string  source;
+    std::string  needle;
+    BuildFindData(len, source, needle);
 
-	for (auto _: state)
-	{
-		const auto pos = source.rfind(needle);
-		benchmark::DoNotOptimize(pos);
-	}
+    for (auto _: state)
+    {
+        const auto pos = source.rfind(needle);
+        benchmark::DoNotOptimize(pos);
+    }
 
-	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 }
 BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_JamString_StartsWith(benchmark::State& state)
+// static void BM_JamString_StartsWith(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string source = MakePayload(len);
@@ -222,9 +222,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //		benchmark::DoNotOptimize(ok);
 //	}
 //}
-//BENCHMARK(BM_JamString_StartsWith)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_JamString_StartsWith)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_StdString_StartsWith(benchmark::State& state)
+// static void BM_StdString_StartsWith(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string source = MakePayload(len);
@@ -236,9 +236,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //		benchmark::DoNotOptimize(ok);
 //	}
 //}
-//BENCHMARK(BM_StdString_StartsWith)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_StdString_StartsWith)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_JamString_EndsWith(benchmark::State& state)
+// static void BM_JamString_EndsWith(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string source = MakePayload(len);
@@ -253,9 +253,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //		benchmark::DoNotOptimize(ok);
 //	}
 //}
-//BENCHMARK(BM_JamString_EndsWith)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_JamString_EndsWith)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_StdString_EndsWith(benchmark::State& state)
+// static void BM_StdString_EndsWith(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string source = MakePayload(len);
@@ -268,9 +268,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //		benchmark::DoNotOptimize(ok);
 //	}
 //}
-//BENCHMARK(BM_StdString_EndsWith)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_StdString_EndsWith)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_JamString_CompareEqual(benchmark::State& state)
+// static void BM_JamString_CompareEqual(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string a = MakePayload(len);
@@ -287,9 +287,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
 //	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 //}
-//BENCHMARK(BM_JamString_CompareEqual)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_JamString_CompareEqual)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_StdString_CompareEqual(benchmark::State& state)
+// static void BM_StdString_CompareEqual(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string a = MakePayload(len);
@@ -303,9 +303,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
 //	state.SetBytesProcessed(static_cast<int64_t>(state.iterations() * len));
 //}
-//BENCHMARK(BM_StdString_CompareEqual)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_StdString_CompareEqual)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_JamString_Compare(benchmark::State& state)
+// static void BM_JamString_Compare(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string a = MakePayload(len);
@@ -321,9 +321,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //		benchmark::DoNotOptimize(cmp);
 //	}
 //}
-//BENCHMARK(BM_JamString_Compare)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_JamString_Compare)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_StdString_Compare(benchmark::State& state)
+// static void BM_StdString_Compare(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string a = MakePayload(len);
@@ -336,9 +336,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //		benchmark::DoNotOptimize(cmp);
 //	}
 //}
-//BENCHMARK(BM_StdString_Compare)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_StdString_Compare)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_JamString_InsertErase(benchmark::State& state)
+// static void BM_JamString_InsertErase(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string base = MakePayload(len);
@@ -356,9 +356,9 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //		benchmark::DoNotOptimize(s.GetLength());
 //	}
 //}
-//BENCHMARK(BM_JamString_InsertErase)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_JamString_InsertErase)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //
-//static void BM_StdString_InsertErase(benchmark::State& state)
+// static void BM_StdString_InsertErase(benchmark::State& state)
 //{
 //	const size_t      len = static_cast<size_t>(state.range(0));
 //	const std::string base = MakePayload(len);
@@ -373,4 +373,4 @@ BENCHMARK(BM_StdString_RFind)->Arg(16)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
 //		benchmark::DoNotOptimize(s.size());
 //	}
 //}
-//BENCHMARK(BM_StdString_InsertErase)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);
+// BENCHMARK(BM_StdString_InsertErase)->Arg(64)->Arg(256)->Arg(1024)->Arg(4096);

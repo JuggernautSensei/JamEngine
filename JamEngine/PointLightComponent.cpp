@@ -35,34 +35,34 @@ void PointLightComponent::DrawEditPanel(
     Scene*,
     Entity)
 {
-   /* if (BeginLabelValueTable("PointLightComponent"))
-    {
-        ImGui::TableNextColumn();
-        Widget_Text("radiance", true);
-        ImGui::TableNextColumn();
-        SetNextItemToAvailWidth();
-        ImGui::ColorEdit3("##PointlightRadiance", &radiance.x);
+    /* if (BeginLabelValueTable("PointLightComponent"))
+     {
+         ImGui::TableNextColumn();
+         Widget_Text("radiance", true);
+         ImGui::TableNextColumn();
+         SetNextItemToAvailWidth();
+         ImGui::ColorEdit3("##PointlightRadiance", &radiance.x);
 
-        ImGui::TableNextColumn();
-        Widget_Text("intensity", true);
-        ImGui::TableNextColumn();
-        SetNextItemToAvailWidth();
-        Widget_DragFloat("##PointlightIntensity", intensity, 0.01f, 0.f, Limits<float>::kMax);
+         ImGui::TableNextColumn();
+         Widget_Text("intensity", true);
+         ImGui::TableNextColumn();
+         SetNextItemToAvailWidth();
+         Widget_DragFloat("##PointlightIntensity", intensity, 0.01f, 0.f, Limits<float>::kMax);
 
-        ImGui::TableNextColumn();
-        Widget_Text("fall off start", true);
-        ImGui::TableNextColumn();
-        SetNextItemToAvailWidth();
-        Widget_DragFloat("##PointlightFallOffStart", fallOffStart, 0.01f, 0.f, fallOffEnd, "%.3fm");
+         ImGui::TableNextColumn();
+         Widget_Text("fall off start", true);
+         ImGui::TableNextColumn();
+         SetNextItemToAvailWidth();
+         Widget_DragFloat("##PointlightFallOffStart", fallOffStart, 0.01f, 0.f, fallOffEnd, "%.3fm");
 
-        ImGui::TableNextColumn();
-        Widget_Text("fall off end", true);
-        ImGui::TableNextColumn();
-        SetNextItemToAvailWidth();
-        Widget_DragFloat("##PointlightFallOffEnd", fallOffEnd, 0.01f, fallOffStart, Camera::kMaxZ, "%.3fm");
+         ImGui::TableNextColumn();
+         Widget_Text("fall off end", true);
+         ImGui::TableNextColumn();
+         SetNextItemToAvailWidth();
+         Widget_DragFloat("##PointlightFallOffEnd", fallOffEnd, 0.01f, fallOffStart, Camera::kMaxZ, "%.3fm");
 
-        ImGui::EndTable();
-    }*/
+         ImGui::EndTable();
+     }*/
 }
 
 }   // namespace Jam

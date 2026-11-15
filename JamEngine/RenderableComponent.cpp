@@ -32,26 +32,26 @@ void RenderableComponent::DrawEditPanel(
     Scene*,
     Entity)
 {
-    //ImGui::SeparatorText("mesh");
-    //if (BeginLabelValueTable("RenderableComponent"))
+    // ImGui::SeparatorText("mesh");
+    // if (BeginLabelValueTable("RenderableComponent"))
     //{
-    //    // Mesh
-    //    ImGui::TableNextColumn();
-    //    Widget_Text("mesh", true);
-    //    ImGui::TableNextColumn();
-    //    Widget_MeshPicker("##MeshSelector", pMesh);
+    //     // Mesh
+    //     ImGui::TableNextColumn();
+    //     Widget_Text("mesh", true);
+    //     ImGui::TableNextColumn();
+    //     Widget_MeshPicker("##MeshSelector", pMesh);
 
     //    ImGui::EndTable();
     //}
 
-    //ImGui::SeparatorText("material");
-    //if (BeginLabelValueTable("RenderableComponent"))
+    // ImGui::SeparatorText("material");
+    // if (BeginLabelValueTable("RenderableComponent"))
     //{
-    //    // Material
-    //    ImGui::TableNextColumn();
-    //    Widget_Text("material", true);
-    //    ImGui::TableNextColumn();
-    //    Widget_MaterialPicker("##MaterialSelector", pMaterial);
+    //     // Material
+    //     ImGui::TableNextColumn();
+    //     Widget_Text("material", true);
+    //     ImGui::TableNextColumn();
+    //     Widget_MaterialPicker("##MaterialSelector", pMaterial);
 
     //    //// todo indent?
 

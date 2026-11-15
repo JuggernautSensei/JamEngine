@@ -45,7 +45,7 @@ struct CharEncoder<TChar, TChar>
             return _len;
         }
 
-        JAM_ASSERT(_bufCap > _len, "CharEncoder<TChar, TChar::Encode: _bufCap is smaller than _len");
+        JAM_ASSERT(_bufCap >= _len, "CharEncoder<TChar, TChar>::Encode: _bufCap is smaller than _len");
         CharTraits<TChar>::Runtime::MemCpy(_pOutBuf, _str, _len);
         return _len;
     }

@@ -16,7 +16,6 @@ enum class eAppInitFlags : UInt32
     Subsystem_SceneManager = 1 << 0,
     Subsystem_AssetManager = 1 << 1,
     Subsystem_ImGuiEngine  = 1 << 2,
-    Subsystem_Editor       = 1 << 3,
 
     // graphics
     Graphics_TripleBuffering    = 1 << 4,
@@ -34,7 +33,6 @@ enum class eAppInitFlags : UInt32
 };
 
 constexpr Flags<eAppInitFlags> kDefaultAppInitFlags = eAppInitFlags::Subsystem_SceneManager | eAppInitFlags::Subsystem_AssetManager | eAppInitFlags::Subsystem_ImGuiEngine;
-constexpr Flags<eAppInitFlags> kEditorAppInitFlags  = kDefaultAppInitFlags | eAppInitFlags::Subsystem_Editor;
 
 class Application
 {

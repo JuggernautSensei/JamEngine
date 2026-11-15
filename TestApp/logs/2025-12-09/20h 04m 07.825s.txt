@@ -1,4 +1,0 @@
-[2025-12-09 20:04:07.832] [debug] [thread 198040] log initialized successfully.
-[2025-12-09 20:04:08.182] [trace] [thread 198040] Application 'jam engine application' started.
-[2025-12-09 20:05:06.537] [trace] [thread 198040] application 'jam engine application' shutdown.
-[2025-12-09 20:05:06.613] [debug] [thread 198040] log shutdown.

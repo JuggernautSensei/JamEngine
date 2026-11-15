@@ -45,6 +45,7 @@ private:
         {
             m_handle       = other.m_handle;
             m_path         = std::move(other.m_path);
+            m_dir          = std::move(other.m_dir);
             other.m_handle = INVALID_HANDLE_VALUE;
         }
 
@@ -55,6 +56,7 @@ private:
                 Close_();
                 m_handle       = other.m_handle;
                 m_path         = std::move(other.m_path);
+                m_dir          = std::move(other.m_dir);
                 other.m_handle = INVALID_HANDLE_VALUE;
             }
             return *this;
@@ -122,6 +124,8 @@ private:
                 }
             }
 
+            m_dir = _dir;
+
             // update path
             UpdatePath_(data);
             return Error::None;
@@ -145,7 +149,7 @@ private:
 
         void UpdatePath_(const WIN32_FIND_DATAW& _data)
         {
-            m_path = m_path.GetDirectory();
+            m_path = m_dir;
             m_path.AppendEncode(_data.cFileName);
             if (_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
             {
@@ -155,6 +159,7 @@ private:
 
         HANDLE  m_handle = INVALID_HANDLE_VALUE;
         StringT m_path   = {};
+        StringT m_dir    = {};
     };
 
 public:

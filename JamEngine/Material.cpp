@@ -66,8 +66,8 @@ Expect<Ref<Material>> Material::LoadFromFile(
 }
 
 Error Material::Save(
-    const StringView                 _path,
-    const bool                       _bReplaceExtension,
+    const StringView _path,
+    const bool       _bReplaceExtension,
     const eFileWrite _mode) const
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);

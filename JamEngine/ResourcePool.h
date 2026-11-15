@@ -20,7 +20,7 @@ public:
 
         ConstIterator() = default;
 
-        explicit ConstIterator(ResourcePool* _pPool, HandleIteratorT _handleIter) noexcept
+        explicit ConstIterator(const ResourcePool* _pPool, HandleIteratorT _handleIter) noexcept
             : m_pPool(_pPool)
             , m_handleIter(_handleIter)
         {
@@ -51,8 +51,8 @@ public:
         }
 
     protected:
-        ResourcePool*   m_pPool      = nullptr;
-        HandleIteratorT m_handleIter = {};
+        const ResourcePool* m_pPool      = nullptr;
+        HandleIteratorT     m_handleIter = {};
     };
 
     class Iterator : public ConstIterator
@@ -60,12 +60,23 @@ public:
         using Base = ConstIterator;
 
     public:
+        Iterator() = default;
+
+        explicit Iterator(ResourcePool* _pPool, typename Base::HandleIteratorT _handleIter) noexcept
+            : Base(_pPool, _handleIter)
+            , m_pMutablePool(_pPool)
+        {
+        }
+
         [[nodiscard]] std::pair<HandleT, T&> operator*() noexcept
         {
             JAM_ASSERT(this->m_pPool, "Iterator not initialized");
-            const HandleT handle = Base::m_handleIter;
-            return { handle, Base::m_pPool->GetResource(handle) };
+            const HandleT handle = *Base::m_handleIter;
+            return { handle, m_pMutablePool->GetResource(handle) };
         }
+
+    private:
+        ResourcePool* m_pMutablePool = nullptr;
     };
 
 public:
@@ -142,12 +153,12 @@ public:
 
     [[nodiscard]] Iterator Begin() noexcept
     {
-        return { this, m_handleAlloc.Begin() };
+        return Iterator { this, m_handleAlloc.Begin() };
     }
 
     [[nodiscard]] Iterator End() noexcept
     {
-        return { this, m_handleAlloc.End() };
+        return Iterator { this, m_handleAlloc.End() };
     }
 
     [[nodiscard]] ConstIterator Begin() const noexcept

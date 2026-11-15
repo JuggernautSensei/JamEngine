@@ -78,6 +78,8 @@ public:
     LogSystem& operator=(LogSystem&&)      = delete;
 
     [[nodiscard]] static LogSystem& GetInstance();
+    static void                     CreateInstance();
+    static void                     DestroyInstance();
 
     [[nodiscard]] const Ref<LogChannel>& GetCoreChannel() const;
     void                                 SetCoreChannel(const Ref<LogChannel>& _pChannel);
@@ -132,9 +134,6 @@ public:
 private:
     LogSystem();
     ~LogSystem();
-
-    static void CreateInstance();
-    static void DestroyInstance();
 
     Ref<LogChannel> m_pCoreLogger = nullptr;
 

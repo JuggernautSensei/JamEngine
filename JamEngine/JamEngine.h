@@ -3,6 +3,7 @@
 #include "pch.h"
 
 // system
+#include "Application.h"
 #include "WindowsPlatform.h"
 #include "Input.h"
 
@@ -24,6 +25,7 @@
 #include "Material.h"
 #include "Texture.h"
 #include "Model.h"
+#include "SkeletonAnimation.h"
 
 // entity, components
 #include "Entity.h"

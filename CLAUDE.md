@@ -4,38 +4,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 빌드
 
-Visual Studio 2022 솔루션 기반 (MSBuild). CMake 사용 안 함.
+Visual Studio 2026 (v145) 솔루션 기반 (MSBuild). CMake 사용 안 함.
 
 ```
 JamEngine.sln          # 메인 솔루션
 ```
 
 **빌드 구성:**
-- `Debug|x64`, `Debug_Editor|x64`
-- `Release|x64`, `Release_Editor|x64`
+- `Debug|x64`
+- `Release|x64`
 
-**빌드 출력 경로:** `$(ProjectDir)Bin\$(Configuration)\`
+**빌드 출력 경로:** `Build/x64/$(Configuration)/$(MSBuildProjectName)/`
 
 ## 프로젝트 구성
 
 | 프로젝트 | 역할 |
 |----------|------|
 | `JamEngine` | 엔진 정적 라이브러리 |
-| `ExampleApp` | 사용 예제 | 그러나 이 프로젝트는 폐기 상태
 | `SandboxApp` | 샌드박스 |
-| `JamTest` | Google Test 기반 테스트 |
-| `JamShader` | HLSL 셰이더 컴파일 도구 |
-| `JamBenchmark` | 성능 벤치마크 |
+| `JamTest` | Google Test 기반 단위 및 회귀 테스트 |
+| `JamBenchmark` | Google Benchmark 기반 수학 연산 벤치마크 |
 
 ## 테스트 실행
 
-`JamTest` 프로젝트를 빌드 후 실행. `Application`을 상속하며 `Update()`에서 `RUN_ALL_TESTS()`를 호출한다.
+`JamTest` 프로젝트를 빌드한 후 `Build/x64/Debug/JamTest/JamTest.exe`를 실행한다. 그래픽 창 없이 `RUN_ALL_TESTS()`를 호출하며 실패 시 종료 코드로 알린다.
+
+전체 빌드 및 실행 명령은 [README.md](README.md)를 참고한다. 예제 실행 검증은 `scripts/Test-Examples.ps1 -Configuration Debug`로 수행한다. 기본값은 스크립트의 `$devScenes`(개발 중인 장면)만 검사하며, 공용 코드를 바꿨거나 배포 전에는 `-All`로 Debug와 Release 전체를 검증한다.
 
 ## 아키텍처 개요
 
 ### Graphics (D3D11 백엔드)
 - [GraphicsBase.h](JamEngine/GraphicsBase.h) — 핸들, 플래그, 상수 정의
-- [Gfx.h](JamEngine/Gfx.h) / [GfxBase.h](JamEngine/GfxBase.h) — 저수준 D3D11 래퍼
 - [Graphics.h](JamEngine/Graphics.h) — 고수준 렌더링 API. `ePipelineDirtyFlags`(64비트) 기반 Dirty Flag로 파이프라인 상태를 관리한다.
 
 ### RenderGraph
@@ -50,11 +49,11 @@ JamEngine.sln          # 메인 솔루션
 
 ### Asset Management
 - [AssetManager.h](JamEngine/AssetManager.h) — 텍스처, 메시, 머티리얼, 모델 로딩/캐싱
-- [AssimpImporter.h](JamEngine/AssimpImporter.h) — Assimp 기반 모델 임포트
+- [ModelImporter.h](JamEngine/ModelImporter.h) — Assimp 기반 모델 임포트
 - [FileWatcher.cpp](JamEngine/FileWatcher.cpp) — 자산 변경 감지 및 핫 리로딩
 
 ### Environment & Lighting
-`Environment` 구조체는 서브 구조체로 구성된다 ([REFACTOR_GUIDE.md](REFACTOR_GUIDE.md) 참고):
+`Environment` 구조체는 다음 서브 구조체로 구성된다:
 ```
 env.dirLight.*      // 방향광 + CSM 섀도우
 env.ibl.*           // Image-Based Lighting

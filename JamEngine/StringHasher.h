@@ -70,8 +70,7 @@ public:
     }
 
     constexpr void Mix(
-        const TChar* _str
-    )
+        const TChar* _str)
     {
         for (; *_str; ++_str)
         {

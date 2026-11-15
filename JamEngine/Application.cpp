@@ -14,7 +14,6 @@
 #include "Events.h"
 #include "FileSystem.h"
 #include "SceneDatabase.h"
-// #include "Editor.h"
 
 namespace Jam
 {
@@ -34,7 +33,6 @@ Int32 Application::Run(
     m_timer.Start();
 
     WindowsPlatform& win   = GetWindowsPlatform();
-    ImGuiEngine&     imgui = GetImGuiEngine();
     Graphics&        gfx   = GetGraphics();
     Input&           input = GetInput();
 
@@ -49,9 +47,13 @@ Int32 Application::Run(
             Update(dtSec);
             Render();
 
-            imgui.BeginFrame();
-            ImGuiRender();
-            imgui.EndFrame();
+            if (m_flags & eAppInitFlags::Subsystem_ImGuiEngine)
+            {
+                ImGuiEngine& imgui = GetImGuiEngine();
+                imgui.BeginFrame();
+                ImGuiRender();
+                imgui.EndFrame();
+            }
 
             gfx.Frame();      // present
             input.Update();   // update input
@@ -91,12 +93,6 @@ void Application::DispatchEvent(Event& _event)
     {
         AssetManager& am = GetAssetManager();
         am.OnEvent(_event);
-    }
-
-    if (m_flags & eAppInitFlags::Subsystem_Editor)
-    {
-        // Editor& editor = GetEditor();
-        // editor.OnEvent(_event);
     }
 
     if (m_flags & eAppInitFlags::Subsystem_SceneManager)
@@ -165,48 +161,26 @@ Application::Application(
 
 void Application::Update(const float _dt)
 {
-    if (m_flags & eAppInitFlags::Subsystem_Editor)
+    if (m_flags & eAppInitFlags::Subsystem_SceneManager)
     {
-        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        //  Editor& editor = GetEditor();
-        //  editor.Update(_dt);
-    }
-    else
-    {
-        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-        SceneManager& sm = GetSceneManager();
-        sm.Update(_dt);
+        GetSceneManager().Update(_dt);
     }
 }
 
 void Application::Render()
 {
-    if (m_flags & eAppInitFlags::Subsystem_Editor)
+    if (m_flags & eAppInitFlags::Subsystem_SceneManager)
     {
-        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        // Editor& editor = GetEditor();
-        // editor.Render();
-    }
-    else
-    {
-        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-        SceneManager& sm = GetSceneManager();
-        sm.RenderRuntime();
+        GetSceneManager().RenderRuntime();
     }
 }
 
 void Application::ImGuiRender()
 {
-    if (m_flags & eAppInitFlags::Subsystem_Editor)
+    if (m_flags & eAppInitFlags::Subsystem_SceneManager)
     {
-        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        // Editor& editor = GetEditor();
-        // editor.ImGuiRender();
+        GetSceneManager().ImGuiRender();
     }
-
-    JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-    SceneManager& sm = GetSceneManager();
-    sm.ImGuiRender();
 }
 
 void Application::Init(
@@ -302,17 +276,6 @@ void Application::CoreInit()
         ImGuiEngine::CreateInstance(win.GetPlatformHandle());
     }
 
-    // init editor if need
-    if (m_flags & eAppInitFlags::Subsystem_Editor)
-    {
-        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to initialize editor system.");
-        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to initialize editor system.");
-        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_ImGuiEngine, "Editor subsystem requires ImGuiEngine subsystem.");
-
-        //     Editor::CreateInstance();
-        m_flags |= eAppInitFlags::Subsystem_Editor;
-    }
-
     // init done
     m_bInited      = true;
     m_bRunning     = true;
@@ -327,12 +290,6 @@ void Application::CoreShutdown()
     // destroy db
     ComponentDatabase::DestroyInstance();
     SceneDatabase::DestroyInstance();
-
-    // shutdown editor
-    if (m_flags & eAppInitFlags::Subsystem_Editor)
-    {
-        //  Editor::DestroyInstance();
-    }
 
     // shutdown imgui glue
     if (m_flags & eAppInitFlags::Subsystem_ImGuiEngine)

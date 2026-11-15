@@ -7,7 +7,7 @@
 #include "RandomGenerator.h"
 #include "Utilities.h"
 #include "../JamEngine/Algorithm.h"
-#include "../JamEngine/EditorWidgets.h"
+#include "../JamEngine/Image.h"
 #include "../JamEngine/FileDialog.h"
 #include "../JamEngine/Filter.h"
 #include "../JamEngine/ImGuiEngine.h"
@@ -17,6 +17,15 @@
 
 ComputeScene::ComputeScene()
 {
+}
+
+void ComputeScene::RunDemo(
+    const Int32 _index)
+{
+    JAM_ASSERT(_index >= 0 && _index < CountOf(s_demos), "Invalid compute demo index.");
+    m_selectedDemo = _index;
+    RunSelectedDemo_();
+    m_bBool0 = true;
 }
 
 void ComputeScene::OnUpdate(
@@ -541,9 +550,9 @@ void ComputeScene::InitDemo6_GrayScale_()
 
     Graphics& gfx = GetGraphics();
 
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(SCENE_PATH("Image0.jpg"));
+    Expect<Image> importer = Image::ImportFromFile(SCENE_PATH("Image0.jpg"));
     JAM_ASSERT(importer, "Failed to load image.");
-    const TextureHandle texh = gfx.CreateTexture(importer->GetImageContainer());
+    const TextureHandle texh = gfx.CreateTexture(*importer);
     const TextureInfo   texi = gfx.GetTextureInfo(texh);
     m_int0                   = texi.width;
     m_int1                   = texi.height;
@@ -844,9 +853,9 @@ void ComputeScene::InitDemo11_Negative_()
 
     Graphics& gfx = GetGraphics();
 
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(SCENE_PATH("Image1.jpg"));
+    Expect<Image> importer = Image::ImportFromFile(SCENE_PATH("Image1.jpg"));
     JAM_ASSERT(importer, "Failed to load image.");
-    const TextureHandle texh = gfx.CreateTexture(importer->GetImageContainer());
+    const TextureHandle texh = gfx.CreateTexture(*importer);
     const TextureInfo   texi = gfx.GetTextureInfo(texh);
     m_int0                   = texi.width;
     m_int1                   = texi.height;
@@ -912,9 +921,9 @@ void ComputeScene::InitDemo12_Thresholding_()
 
     Graphics& gfx = GetGraphics();
 
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(SCENE_PATH("Image2.jpg"));
+    Expect<Image> importer = Image::ImportFromFile(SCENE_PATH("Image2.jpg"));
     JAM_ASSERT(importer, "Failed to load image.");
-    const TextureHandle texh = gfx.CreateTexture(importer->GetImageContainer());
+    const TextureHandle texh = gfx.CreateTexture(*importer);
     const TextureInfo   texi = gfx.GetTextureInfo(texh);
     m_int0                   = texi.width;
     m_int1                   = texi.height;
@@ -984,9 +993,9 @@ void ComputeScene::InitDemo13_1DBoxBlur_()
 
     Graphics& gfx = GetGraphics();
 
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(SCENE_PATH("Image3.jpg"));
+    Expect<Image> importer = Image::ImportFromFile(SCENE_PATH("Image3.jpg"));
     JAM_ASSERT(importer, "Failed to load image.");
-    const TextureHandle texh = gfx.CreateTexture(importer->GetImageContainer());
+    const TextureHandle texh = gfx.CreateTexture(*importer);
     const TextureInfo   texi = gfx.GetTextureInfo(texh);
     m_int0                   = texi.width;
     m_int1                   = texi.height;
@@ -1224,9 +1233,9 @@ void ComputeScene::InitDemo16_GaussianBlur_()
 
     Graphics& gfx = GetGraphics();
 
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(SCENE_PATH("Image4.jpg"));
+    Expect<Image> importer = Image::ImportFromFile(SCENE_PATH("Image4.jpg"));
     JAM_ASSERT(importer, "Failed to load image.");
-    const TextureHandle texh = gfx.CreateTexture(importer->GetImageContainer());
+    const TextureHandle texh = gfx.CreateTexture(*importer);
     const TextureInfo   texi = gfx.GetTextureInfo(texh);
     m_int0                   = texi.width;
     m_int1                   = texi.height;
@@ -1315,9 +1324,9 @@ void ComputeScene::InitDemo17_GrayScaleHistogram_()
     Graphics& gfx = GetGraphics();
 
     // import image
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(SCENE_PATH("Image4.jpg"));
+    Expect<Image> importer = Image::ImportFromFile(SCENE_PATH("Image4.jpg"));
     JAM_ASSERT(importer, "Failed to load image.");
-    const TextureHandle texh = gfx.CreateTexture(importer->GetImageContainer());
+    const TextureHandle texh = gfx.CreateTexture(*importer);
     const TextureInfo   texi = gfx.GetTextureInfo(texh);
     m_int0                   = texi.width;
     m_int1                   = texi.height;
@@ -1452,9 +1461,10 @@ void ComputeScene::ExportTextureWithDialog_(
     FileDialog fd { fdi };
     if (fd.Open())
     {
-        const StringView    path = fd.GetFirstSelectedPath();
+        String              path = fd.GetFirstSelectedPath();
         const TextureHandle texh = m_graph.GetTexture(_name);
-        if (ImageExporter::ExportToFile(texh, path, eImageFormat::PNG, true))
+        path.ReplaceExtension(".png");
+        if (gfx.Capture(texh).ExportToFile(path, eImageFormat::PNG))
         {
             JAM_ASSERT(0, "Failed to export image.");
         }

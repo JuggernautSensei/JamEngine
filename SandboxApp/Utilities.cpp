@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Utilities.h"
 
-#include "../JamEngine/AssimpImporter.h"
+#include "../JamEngine/ModelImporter.h"
 #include "../JamEngine/RenderGraph.h"
 
 ProgramHandle LoadProgram(
@@ -22,59 +22,59 @@ ProgramHandle LoadProgram(
     ShaderHandle csh = kInvalidHandle;
 
     ShaderCompileInfo sci = {};
-    sci.macros             = _macrosOrEmpty;
-    sci.flags              = eShaderCompileFlags::Default;
+    sci.macros            = _macrosOrEmpty;
+    sci.flags             = eShaderCompileFlags::Default;
 
     if (_flags & eShaderFlags::Vertex)
     {
-        sci.stage                  = eShader::VertexShader;
-        sci.entryPoint             = "VSMain";
-        Expect<ShaderBinary> vsc = ShaderBinary::CompileHLSLFile(_path, sci);
+        sci.stage                = eShader::VertexShader;
+        sci.entryPoint           = "VSMain";
+        Expect<ShaderBinary> vsc = ShaderBinary::CompileFromHLSLFile(_path, sci);
         JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
         vsh = gfx.CreateShader(vsc->GetBytecode());
     }
 
     if (_flags & eShaderFlags::Pixel)
     {
-        sci.stage          = eShader::PixelShader;
-        sci.entryPoint     = "PSMain";
-        Expect<ShaderBinary> psc = ShaderBinary::CompileHLSLFile(_path, sci);
+        sci.stage                = eShader::PixelShader;
+        sci.entryPoint           = "PSMain";
+        Expect<ShaderBinary> psc = ShaderBinary::CompileFromHLSLFile(_path, sci);
         JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
         psh = gfx.CreateShader(psc->GetBytecode());
     }
 
     if (_flags & eShaderFlags::Geometry)
     {
-        sci.stage          = eShader::GeometryShader;
-        sci.entryPoint     = "GSMain";
-        Expect<ShaderBinary> gsc = ShaderBinary::CompileHLSLFile(_path, sci);
+        sci.stage                = eShader::GeometryShader;
+        sci.entryPoint           = "GSMain";
+        Expect<ShaderBinary> gsc = ShaderBinary::CompileFromHLSLFile(_path, sci);
         JAM_ASSERT(gsc, "Geometry shader compilation failed: {}", gsc.GetError());
         gsh = gfx.CreateShader(gsc->GetBytecode());
     }
 
     if (_flags & eShaderFlags::Hull)
     {
-        sci.stage          = eShader::HullShader;
-        sci.entryPoint     = "HSMain";
-        Expect<ShaderBinary> hsc = ShaderBinary::CompileHLSLFile(_path, sci);
+        sci.stage                = eShader::HullShader;
+        sci.entryPoint           = "HSMain";
+        Expect<ShaderBinary> hsc = ShaderBinary::CompileFromHLSLFile(_path, sci);
         JAM_ASSERT(hsc, "Hull shader compilation failed: {}", hsc.GetError());
         hsh = gfx.CreateShader(hsc->GetBytecode());
     }
 
     if (_flags & eShaderFlags::Domain)
     {
-        sci.stage          = eShader::DomainShader;
-        sci.entryPoint     = "DSMain";
-        Expect<ShaderBinary> dsc = ShaderBinary::CompileHLSLFile(_path, sci);
+        sci.stage                = eShader::DomainShader;
+        sci.entryPoint           = "DSMain";
+        Expect<ShaderBinary> dsc = ShaderBinary::CompileFromHLSLFile(_path, sci);
         JAM_ASSERT(dsc, "Domain shader compilation failed: {}", dsc.GetError());
         dsh = gfx.CreateShader(dsc->GetBytecode());
     }
 
     if (_flags & eShaderFlags::Compute)
     {
-        sci.stage          = eShader::ComputeShader;
-        sci.entryPoint     = "CSMain";
-        Expect<ShaderBinary> csc = ShaderBinary::CompileHLSLFile(_path, sci);
+        sci.stage                = eShader::ComputeShader;
+        sci.entryPoint           = "CSMain";
+        Expect<ShaderBinary> csc = ShaderBinary::CompileFromHLSLFile(_path, sci);
         JAM_ASSERT(csc, "Compute shader compilation failed: {}", csc.GetError());
         csh = gfx.CreateShader(csc->GetBytecode());
     }
@@ -102,12 +102,13 @@ void LoadProgram(
 
 Ref<Mesh> LoadMesh(
     const StringView    _path,
-    const VertexLayout& _attribLayoutOrEmpty)
+    const VertexLayout& _attribLayoutOrEmpty,
+    const bool          _bSmoothNormals)
 {
     Flags<eAssimpImporterFlags> flags = eAssimpImporterFlags::LoadMeshes;
     if (_attribLayoutOrEmpty.Has(eVertexAttribute::Normal))
     {
-        flags |= eAssimpImporterFlags::GenerateNormals;
+        flags |= _bSmoothNormals ? eAssimpImporterFlags::GenerateSmoothNormals : eAssimpImporterFlags::GenerateNormals;
     }
     if (_attribLayoutOrEmpty.Has(eVertexAttribute::Tangent) || _attribLayoutOrEmpty.Has(eVertexAttribute::Bitangent))
     {

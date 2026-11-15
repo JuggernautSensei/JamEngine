@@ -1,63 +1,75 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="pch.h" />
+    <Filter Include="00. Entry">
+      <UniqueIdentifier>{017e43db-697a-4080-8241-fdc64fdcdb0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Base">
+      <UniqueIdentifier>{7beaf0d7-ef59-4147-8a1a-123011d6ba2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Math">
+      <UniqueIdentifier>{6cc59b4c-aaf0-4082-b7fa-56dad2910b87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Scene">
+      <UniqueIdentifier>{9d6bc815-a798-47e8-9e5c-cead7b6bf4c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Animation">
+      <UniqueIdentifier>{4a8d8ea3-503e-45da-9676-e606d4b64c3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="StringTest.cpp">
-      <Filter>Test</Filter>
+    <ClInclude Include="pch.h">
+      <Filter>00. Entry</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp">
+      <Filter>00. Entry</Filter>
     </ClCompile>
-    <ClCompile Include="CheckOverflowTest.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
-    <ClCompile Include="NameOfTest.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
-    <ClCompile Include="EnumUtilitiesTest.cpp">
-      <Filter>Test</Filter>
+    <ClCompile Include="pch.cpp">
+      <Filter>00. Entry</Filter>
     </ClCompile>
     <ClCompile Include="AdvStringTest.cpp">
-      <Filter>Test</Filter>
+      <Filter>01. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreRegressionTest.cpp">
+      <Filter>01. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumUtilitiesTest.cpp">
+      <Filter>01. Base</Filter>
     </ClCompile>
     <ClCompile Include="FileSystemTest.cpp">
-      <Filter>Test</Filter>
+      <Filter>01. Base</Filter>
     </ClCompile>
     <ClCompile Include="FileWriterTest2.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneNodeTest.cpp">
-      <Filter>GameTest</Filter>
-    </ClCompile>
-    <ClCompile Include="OctreeTest.cpp">
-      <Filter>GameTest</Filter>
+      <Filter>01. Base</Filter>
     </ClCompile>
     <ClCompile Include="JsonArchiveTest.cpp">
-      <Filter>Test</Filter>
+      <Filter>01. Base</Filter>
     </ClCompile>
-    <ClCompile Include="MathTest.cpp">
-      <Filter>Test\Math</Filter>
+    <ClCompile Include="NameOfTest.cpp">
+      <Filter>01. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="StringTest.cpp">
+      <Filter>01. Base</Filter>
     </ClCompile>
     <ClCompile Include="BoundingVolumeTest.cpp">
-      <Filter>Test\Math</Filter>
+      <Filter>02. Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathTest.cpp">
+      <Filter>02. Math</Filter>
+    </ClCompile>
+    <ClCompile Include="OctreeTest.cpp">
+      <Filter>02. Math</Filter>
     </ClCompile>
     <ClCompile Include="QuaternionTest.cpp">
-      <Filter>Test\Math</Filter>
+      <Filter>02. Math</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".clang-format" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Test">
-      <UniqueIdentifier>{fb94dceb-1274-45cb-b1be-6508714ad630}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GameTest">
-      <UniqueIdentifier>{2c3a0772-6a7c-41f8-a856-abebf6ffbad1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Test\Math">
-      <UniqueIdentifier>{138e0b41-da24-4d51-90f3-3b823b68562c}</UniqueIdentifier>
-    </Filter>
+    <ClCompile Include="SceneNodeTest.cpp">
+      <Filter>03. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationTest.cpp">
+      <Filter>04. Animation</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

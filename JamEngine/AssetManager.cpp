@@ -11,7 +11,6 @@
 #include "Texture.h"
 #include "Model.h"
 
-
 namespace Jam
 {
 

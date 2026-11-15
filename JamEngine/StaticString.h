@@ -24,7 +24,7 @@ public:
     BasicStaticString()
         : m_len(0)
     {
-        m_str[0] = CharTraits::kNullChar;
+        m_str[0] = CharTraits::kNull;
     }
 
     ~BasicStaticString() = default;
@@ -123,18 +123,18 @@ public:
         JAM_ASSERT(_pos + _count <= GetLength(), "Erase count exceeds string length from position.");
         ::memmove(m_str + _pos, m_str + _pos + _count, (GetLength() - (_pos + _count)) * sizeof(TChar));
         m_len -= _count;
-        m_str[m_len] = CharTraits::kNullChar;   // null terminate after erase
+        m_str[m_len] = CharTraits::kNull;   // null terminate after erase
     }
 
     void Clear()
     {
         m_len    = 0;
-        m_str[0] = CharTraits::kNullChar;
+        m_str[0] = CharTraits::kNull;
     }
 
     void Resize(
         const SizeT _newLen,
-        const CharT _c = CharTraits::kNullChar)
+        const CharT _c = CharTraits::kNull)
     {
         JAM_ASSERT(_newLen <= kCap, "Resize length exceeds stack string capacity.");
         if (_newLen > GetLength())
@@ -143,7 +143,7 @@ public:
         }
 
         m_len        = _newLen;
-        m_str[m_len] = CharTraits::kNullChar;   // null terminate after resize
+        m_str[m_len] = CharTraits::kNull;   // null terminate after resize
     }
 
     [[nodiscard]] SizeT GetLength() const

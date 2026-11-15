@@ -765,6 +765,23 @@ bool Frustum::Overlap(
     return true;
 }
 
+eContainment Frustum::Classify(
+    const Aabb& _box) const
+{
+    bool bIntersects = false;
+    for (const Plane& p: planes)
+    {
+        const float d = p.x * _box.center.x + p.y * _box.center.y + p.z * _box.center.z + p.w;
+        const float r = Abs(p.x) * _box.extents.x + Abs(p.y) * _box.extents.y + Abs(p.z) * _box.extents.z;
+        if (d < -r)
+        {
+            return eContainment::Outside;
+        }
+        bIntersects |= d < r;
+    }
+    return bIntersects ? eContainment::Intersects : eContainment::Inside;
+}
+
 void Frustum::CalcCascadeSplitsInViewSpace(
     const Span<CascadeSplit> _outDs,
     const float              _weight) const

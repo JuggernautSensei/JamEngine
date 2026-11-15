@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "DebugNormalScene.h"
 
-#include "../JamEngine/AssimpImporter.h"
+#include "../JamEngine/ModelImporter.h"
 
 DebugNormalScene::DebugNormalScene()
 {
@@ -129,7 +129,7 @@ void DebugNormalScene::InitMeshes_()
     m_sphereTrans.SetTranslationX(-1.f);
 
     // bunny mesh
-    Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunnyPBR/StanfordBunnyPBR.gltf", eAssimpImporterFlags::GenerateNormals);
+    Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunnyPBR/StanfordBunnyPBR.gltf", eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals);
     JAM_ASSERT(importer.HasValue(), "Failed to load bunny model. {}", importer.GetError());
     m_pBunny = importer->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
     m_bunnyTrans.SetTranslationX(1.f);
@@ -262,8 +262,8 @@ void DebugNormalScene::AddProgram_VP_(
     constexpr ShaderCompileInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
     constexpr ShaderCompileInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
 
-    const Expect<ShaderBinary> vsc = ShaderBinary::CompileHLSLFile(_path, kVsInfo);
-    const Expect<ShaderBinary> psc = ShaderBinary::CompileHLSLFile(_path, kPsInfo);
+    const Expect<ShaderBinary> vsc = ShaderBinary::CompileFromHLSLFile(_path, kVsInfo);
+    const Expect<ShaderBinary> psc = ShaderBinary::CompileFromHLSLFile(_path, kPsInfo);
     JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
     JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
 
@@ -283,9 +283,9 @@ void DebugNormalScene::AddProgram_VPG_(
     constexpr ShaderCompileInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
     constexpr ShaderCompileInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
 
-    const Expect<ShaderBinary> vsc = ShaderBinary::CompileHLSLFile(_path, kVsInfo);
-    const Expect<ShaderBinary> psc = ShaderBinary::CompileHLSLFile(_path, kPsInfo);
-    const Expect<ShaderBinary> gsc = ShaderBinary::CompileHLSLFile(_path, kGsInfo);
+    const Expect<ShaderBinary> vsc = ShaderBinary::CompileFromHLSLFile(_path, kVsInfo);
+    const Expect<ShaderBinary> psc = ShaderBinary::CompileFromHLSLFile(_path, kPsInfo);
+    const Expect<ShaderBinary> gsc = ShaderBinary::CompileFromHLSLFile(_path, kGsInfo);
     JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
     JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
     JAM_ASSERT(gsc, "Geometry shader compilation failed: {}", gsc.GetError());

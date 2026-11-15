@@ -43,32 +43,32 @@ TEST(NameOfTest, CustomTypes)
 // --- 3. NameOf: Pointer and Reference Types ---
 TEST(NameOfTest, PointerAndReferenceTypes)
 {
-    EXPECT_TRUE(NameOf<int*>().Find("int").IsSucceeded());
-    EXPECT_TRUE(NameOf<const int*>().Find("int").IsSucceeded());
-    EXPECT_TRUE(NameOf<int&>().Find("int").IsSucceeded());
-    EXPECT_TRUE(NameOf<const int&>().Find("int").IsSucceeded());
+    EXPECT_TRUE(NameOf<int*>().Find("int").HasValue());
+    EXPECT_TRUE(NameOf<const int*>().Find("int").HasValue());
+    EXPECT_TRUE(NameOf<int&>().Find("int").HasValue());
+    EXPECT_TRUE(NameOf<const int&>().Find("int").HasValue());
 }
 
 // --- 4. NameOf: Const and Volatile ---
 TEST(NameOfTest, CvQualifiers)
 {
-    EXPECT_TRUE(NameOf<const int>().Find("int").IsSucceeded());
-    EXPECT_TRUE(NameOf<volatile int>().Find("int").IsSucceeded());
-    EXPECT_TRUE(NameOf<const volatile int>().Find("int").IsSucceeded());
+    EXPECT_TRUE(NameOf<const int>().Find("int").HasValue());
+    EXPECT_TRUE(NameOf<volatile int>().Find("int").HasValue());
+    EXPECT_TRUE(NameOf<const volatile int>().Find("int").HasValue());
 }
 
 // --- 5. NameOf: Array Types ---
 TEST(NameOfTest, ArrayTypes)
 {
-    EXPECT_TRUE(NameOf<int[10]>().Find("int").IsSucceeded());
-    EXPECT_TRUE(NameOf<char[5]>().Find("char").IsSucceeded());
+    EXPECT_TRUE(NameOf<int[10]>().Find("int").HasValue());
+    EXPECT_TRUE(NameOf<char[5]>().Find("char").HasValue());
 }
 
 // --- 6. NameOf: Template Types ---
 TEST(NameOfTest, TemplateTypes)
 {
-    EXPECT_TRUE(NameOf<Jam::Vector<int>>().Find("vector").IsSucceeded());
-    EXPECT_TRUE(NameOf<Jam::Vector<int>>().Find("int").IsSucceeded());
+    EXPECT_TRUE(NameOf<Jam::Vector<int>>().Find("vector").HasValue());
+    EXPECT_TRUE(NameOf<Jam::Vector<int>>().Find("int").HasValue());
 }
 
 // --- 7. NameOf: Constexpr ---
@@ -86,8 +86,8 @@ TEST(NameOfTest, ConstexprEvaluation)
 // --- 8. HashOf: Type Hashing ---
 TEST(NameOfTest, HashOfBasics)
 {
-    constexpr UInt32 intHash   = HashOf<int>();
-    constexpr UInt32 floatHash = HashOf<float>();
+    constexpr UInt64 intHash   = HashOf<int>();
+    constexpr UInt64 floatHash = HashOf<float>();
 
     EXPECT_NE(intHash, 0u);
     EXPECT_NE(floatHash, 0u);
@@ -110,11 +110,11 @@ TEST(NameOfTest, HashOfConstexpr)
 TEST(NameOfTest, HashOfCollision)
 {
     // Different types should (very likely) have different hashes
-    UInt32 hash1 = HashOf<int>();
-    UInt32 hash2 = HashOf<float>();
-    UInt32 hash3 = HashOf<double>();
-    UInt32 hash4 = HashOf<TestClass>();
-    UInt32 hash5 = HashOf<eTestEnum>();
+    UInt64 hash1 = HashOf<int>();
+    UInt64 hash2 = HashOf<float>();
+    UInt64 hash3 = HashOf<double>();
+    UInt64 hash4 = HashOf<TestClass>();
+    UInt64 hash5 = HashOf<eTestEnum>();
 
     EXPECT_NE(hash1, hash2);
     EXPECT_NE(hash1, hash3);

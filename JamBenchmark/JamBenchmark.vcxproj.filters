@@ -1,48 +1,51 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="pch.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="OctreeBenchmark.cpp">
-      <Filter>Benchmark\BoundingVolume</Filter>
+    <Filter Include="00. Entry">
+      <UniqueIdentifier>{e0399e6c-be72-49e2-8fa4-a4ac8b8d70b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Math">
+      <UniqueIdentifier>{de4492f2-18f7-4b2f-b43e-55728f7496a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Base">
+      <UniqueIdentifier>{43fa555c-8d07-40db-be3f-3ac7e9538d30}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h">
+      <Filter>00. Entry</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp">
+      <Filter>00. Entry</Filter>
     </ClCompile>
-    <ClCompile Include="JsonArchiveBench.cpp">
-      <Filter>Benchmark</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryViewZeroOverheadBench.cpp">
-      <Filter>Benchmark</Filter>
-    </ClCompile>
-    <ClCompile Include="MathBenchmark.cpp">
-      <Filter>Benchmark\Math</Filter>
+    <ClCompile Include="pch.cpp">
+      <Filter>00. Entry</Filter>
     </ClCompile>
     <ClCompile Include="BoundingVolumeBenchmark.cpp">
-      <Filter>Benchmark\Math</Filter>
+      <Filter>01. Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathBenchmark.cpp">
+      <Filter>01. Math</Filter>
+    </ClCompile>
+    <ClCompile Include="OctreeBenchmark.cpp">
+      <Filter>01. Math</Filter>
     </ClCompile>
     <ClCompile Include="SRTMatrixBenchmark.cpp">
-      <Filter>Benchmark\Math</Filter>
+      <Filter>01. Math</Filter>
     </ClCompile>
     <ClCompile Include="DelegateBenchmark.cpp">
-      <Filter>Benchmark</Filter>
+      <Filter>02. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonArchiveBench.cpp">
+      <Filter>02. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryViewZeroOverheadBench.cpp">
+      <Filter>02. Base</Filter>
     </ClCompile>
     <ClCompile Include="StringBenchmark.cpp">
-      <Filter>Benchmark</Filter>
+      <Filter>02. Base</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="pch.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".clang-format" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Benchmark">
-      <UniqueIdentifier>{68cb61b8-8159-4a18-b584-69f3f5592034}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Benchmark\BoundingVolume">
-      <UniqueIdentifier>{8dd409d0-c6f9-4729-8faa-586ddd3f1c62}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Benchmark\Math">
-      <UniqueIdentifier>{b717f66b-a85b-4ed6-85be-98ef3f9a330b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

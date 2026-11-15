@@ -659,8 +659,7 @@ TEST_F(JsonReaderTest, ForEach_Array_VisitsAllElements)
     ASSERT_EQ(reader->EnterField("tags"), Error::None);
 
     std::vector<std::string> tags;
-    Error                    err = reader->ForEachArray(Bind([&](SizeT, ArchiveReader& ar) -> Error
-                                     {
+    Error                    err = reader->ForEachArray(Bind([&](SizeT, ArchiveReader& ar) -> Error {
         std::string s;
         Error       e = ar.Read(s);
         if (!e) tags.push_back(s);
@@ -681,8 +680,7 @@ TEST_F(JsonReaderTest, ForEach_EmptyArray_CallbackNeverInvoked)
 
     ASSERT_EQ(reader->EnterField("arr"), Error::None);
     SizeT count = 0;
-    Error err   = reader->ForEachArray(Bind([&](SizeT, ArchiveReader&) -> Error
-                                     {
+    Error err   = reader->ForEachArray(Bind([&](SizeT, ArchiveReader&) -> Error {
         ++count;
         return Error::None; }));
     EXPECT_EQ(err, Error::None);
@@ -695,8 +693,7 @@ TEST_F(JsonReaderTest, ForEach_OnObject_ReturnsTypeMismatch)
     auto reader = JsonReader::Parse(kSimpleJson);
     ASSERT_TRUE(reader);
 
-    Error err = reader->ForEachArray(Bind([](SizeT, ArchiveReader&) -> Error
-                                     { return Error::None; }));
+    Error err = reader->ForEachArray(Bind([](SizeT, ArchiveReader&) -> Error { return Error::None; }));
     EXPECT_EQ(err, Error::TypeMismatch);
 }
 
@@ -710,8 +707,7 @@ TEST_F(JsonReaderTest, ForEachField_Object_VisitsAllFields)
     ASSERT_EQ(reader->EnterField("address"), Error::None);
 
     std::vector<std::string> keys;
-    reader->ForEachObject(Bind([&](StringView key, ArchiveReader&) -> Error
-                              {
+    reader->ForEachObject(Bind([&](StringView key, ArchiveReader&) -> Error {
         keys.emplace_back(key.GetPtr(), key.GetLength());
         return Error::None; }));
 
@@ -728,8 +724,7 @@ TEST_F(JsonReaderTest, ForEachField_EmptyObject_CallbackNeverInvoked)
 
     ASSERT_EQ(reader->EnterField("obj"), Error::None);
     SizeT count = 0;
-    Error err   = reader->ForEachObject(Bind([&](StringView, ArchiveReader&) -> Error
-                                          {
+    Error err   = reader->ForEachObject(Bind([&](StringView, ArchiveReader&) -> Error {
         ++count;
         return Error::None; }));
     EXPECT_EQ(err, Error::None);
@@ -743,8 +738,7 @@ TEST_F(JsonReaderTest, ForEachField_OnArray_ReturnsTypeMismatch)
     ASSERT_TRUE(reader);
 
     ASSERT_EQ(reader->EnterField("tags"), Error::None);
-    Error err = reader->ForEachObject(Bind([](StringView, ArchiveReader&) -> Error
-                                          { return Error::None; }));
+    Error err = reader->ForEachObject(Bind([](StringView, ArchiveReader&) -> Error { return Error::None; }));
     EXPECT_EQ(err, Error::TypeMismatch);
     reader->Exit();
 }
@@ -887,8 +881,7 @@ TEST_F(JsonRoundTripTest, RoundTrip_Array)
     EXPECT_EQ(reader->GetSize(), 5u);
 
     SizeT visitCount = 0;
-    reader->ForEachArray(Bind([&](SizeT idx, ArchiveReader& ar) -> Error
-                         {
+    reader->ForEachArray(Bind([&](SizeT idx, ArchiveReader& ar) -> Error {
         Int32 v = -1;
         Error e = ar.Read(v);
         EXPECT_EQ(v, static_cast<Int32>(idx));
@@ -917,8 +910,7 @@ TEST_F(JsonRoundTripTest, RoundTrip_EmptyArray)
     EXPECT_EQ(reader->GetSize(), 0u);
 
     SizeT count = 0;
-    reader->ForEachArray(Bind([&](SizeT, ArchiveReader&) -> Error
-                         { ++count; return Error::None; }));
+    reader->ForEachArray(Bind([&](SizeT, ArchiveReader&) -> Error { ++count; return Error::None; }));
     EXPECT_EQ(count, 0u);
     reader->Exit();
 }
@@ -1002,8 +994,7 @@ TEST_F(JsonRoundTripTest, RoundTrip_ArrayOfObjects)
     ASSERT_EQ(reader->EnterField("items"), Error::None);
     EXPECT_EQ(reader->GetSize(), 3u);
 
-    reader->ForEachArray(Bind([](SizeT idx, ArchiveReader& ar) -> Error
-                         {
+    reader->ForEachArray(Bind([](SizeT idx, ArchiveReader& ar) -> Error {
         Int32 id = -1;
         EXPECT_EQ(ar.ReadField("id", id), Error::None);
         EXPECT_EQ(id, static_cast<Int32>(idx));
@@ -1057,9 +1048,7 @@ TEST_F(JsonRoundTripTest, RoundTrip_ArrayInsideArray)
     ASSERT_EQ(reader->EnterField("mat"), Error::None);
     EXPECT_EQ(reader->GetSize(), 2u);
 
-    reader->ForEachArray(Bind([](SizeT row, ArchiveReader& rowAr) -> Error
-                         { return rowAr.ForEachArray(Bind([row](SizeT col, ArchiveReader& ar) -> Error
-                                                     {
+    reader->ForEachArray(Bind([](SizeT row, ArchiveReader& rowAr) -> Error { return rowAr.ForEachArray(Bind([row](SizeT col, ArchiveReader& ar) -> Error {
             Int32 v = -1;
             EXPECT_EQ(ar.Read(v), Error::None);
             EXPECT_EQ(v, static_cast<Int32>(row * 2 + col));
@@ -1111,4 +1100,3 @@ TEST_F(JsonFileTest, ParseFromFile_NonExistentFile_ReturnsError)
     auto reader = JsonReader::ParseFromFile("/tmp/does_not_exist_12345.json");
     EXPECT_FALSE(reader);
 }
-

@@ -95,16 +95,14 @@ static OctreeDesc MakeWorldDesc()
 // ---- 교차 판정 람다 ----
 static auto AabbIntersect()
 {
-    return [](const Aabb& _bv, const Aabb& _node) -> bool
-    {
+    return [](const Aabb& _bv, const Aabb& _node) -> bool {
         return _bv.Intersects(_node);
     };
 }
 
 static auto FrustumIntersect()
 {
-    return [](const Frustum& _f, const Aabb& _node) -> bool
-    {
+    return [](const Frustum& _f, const Aabb& _node) -> bool {
         return _f.Intersects(_node) != ePlaneIntersectType::Outside;
     };
 }
@@ -206,8 +204,7 @@ static void BM_AABB_Octree(benchmark::State& state)
     {
         const Aabb& q    = queries[qi++ % kQueryCount];
         int         hits = 0;
-        octree.Query(q, AabbIntersect(), [&](Entity, const std::monostate&)
-                     { ++hits; });
+        octree.Query(q, AabbIntersect(), [&](Entity, const std::monostate&) { ++hits; });
         benchmark::DoNotOptimize(hits);
         totalHits += hits;
     }
@@ -311,8 +308,7 @@ static void BM_Frustum_Octree(benchmark::State& state)
     {
         const Frustum& f    = frustums[qi++ % kQueryCount];
         int            hits = 0;
-        octree.Query(f, FrustumIntersect(), [&](Entity, const std::monostate&)
-                     { ++hits; });
+        octree.Query(f, FrustumIntersect(), [&](Entity, const std::monostate&) { ++hits; });
         benchmark::DoNotOptimize(hits);
         totalHits += hits;
     }
@@ -473,7 +469,7 @@ BENCHMARK(BM_Octree_PartialUpdate)
     ->Unit(benchmark::kMillisecond);
 
 /*
- 
+
 [ 디버그 ]
 
 2026-03-20T12:05:30+09:00

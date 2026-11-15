@@ -436,4 +436,3 @@ struct fmt::formatter<Jam::Error, wchar_t>
         return fmt::format_to(_ctx.out(), L"Error {}: {}", _error.ToErrorNameW(), _error.ToErrorMessageW());
     }
 };
-

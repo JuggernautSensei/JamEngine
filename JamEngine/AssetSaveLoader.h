@@ -18,7 +18,7 @@ class AssetSaver
 {
 public:
     static Expect<AssetSaver> Open(
-        const StringView      _path,
+        const StringView _path,
         const eFileWrite _mode)
     {
         JAM_ASSERT(_mode != eFileWrite::Append, "WriteElement mode is not supported for AssetSaver.");

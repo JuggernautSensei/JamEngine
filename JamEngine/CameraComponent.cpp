@@ -30,12 +30,12 @@ void CameraComponent::DrawEditPanel(
     Scene*,
     Entity)
 {
-    //if (BeginLabelValueTable("CameraComponent"))
+    // if (BeginLabelValueTable("CameraComponent"))
     //{
-    //    eProjection proj     = camera.GetProjection();
-    //    Vec2        nearFarZ = { camera.GetNearZ(), camera.GetFarZ() };
-    //    float       fovYRad  = camera.GetFovYRad();
-    //    Vec2        res      = { camera.GetWidth(), camera.GetHeight() };
+    //     eProjection proj     = camera.GetProjection();
+    //     Vec2        nearFarZ = { camera.GetNearZ(), camera.GetFarZ() };
+    //     float       fovYRad  = camera.GetFovYRad();
+    //     Vec2        res      = { camera.GetWidth(), camera.GetHeight() };
 
     //    // projection
     //    ImGui::TableNextColumn();

@@ -6,7 +6,7 @@
 #include "RandomGenerator.h"
 #include "RenderStates.h"
 #include "Utilities.h"
-#include "../JamEngine/AssimpImporter.h"
+#include "../JamEngine/ModelImporter.h"
 #include "../JamEngine/Filter.h"
 #include "../JamEngine/Random.h"
 

@@ -135,14 +135,7 @@ Scene* SceneManager::GetActiveSceneOrNull() const
     return m_pScene ? m_pScene.GetPtr() : nullptr;
 }
 
-SceneManager::SceneManager()
-{
-    Application& app = GetApp();
-    if (app.GetInitFlags() & eAppInitFlags::Subsystem_Editor)
-    {
-        m_bManageSceneResize = false;   // 에디터에서는 씬 메니저가 아닌, 에디터가 창 크기 변경 이벤트를 받아서 씬의 Resize 함수를 호출하도록 함
-    }
-}
+SceneManager::SceneManager() = default;
 
 SceneManager::~SceneManager()
 {
@@ -167,15 +160,9 @@ void SceneManager::DestroyInstance()
 void SceneManager::OnEvent(
     Event& _event)
 {
-    const Application&         app  = GetApp();
-    const Flags<eAppInitFlags> flag = app.GetInitFlags();
-    if (flag.IsDisabled(eAppInitFlags::Subsystem_Editor))   // runtime mode
-    {
-        // handle window events in runtime mode
-        EventDispatcher dispatcher { _event };
-        dispatcher.Dispatch<WindowResizedEvent>(this, &SceneManager::OnWindowResizedEvent_);
-        dispatcher.Dispatch<WindowMaximizedEvent>(this, &SceneManager::OnWindowMaximizeEvent_);
-    }
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<WindowResizedEvent>(this, &SceneManager::OnWindowResizedEvent_);
+    dispatcher.Dispatch<WindowMaximizedEvent>(this, &SceneManager::OnWindowMaximizeEvent_);
 
     if (m_pScene)
     {

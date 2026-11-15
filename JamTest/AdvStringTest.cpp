@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "../JamEngine/FileSystem.h"
 
 /**
  * @brief 파일 시스템 관련 유틸리티 및 String/StringView의 경로 처리 기능을 테스트합니다.
@@ -75,8 +76,7 @@ TEST(AdvString, PathExtraction)
 // 3. 경로 단순화 테스트 (Simplify) - 핵심 로직
 TEST(AdvString, PathSimplify)
 {
-    auto simplify = [](const char* input)
-    {
+    auto simplify = [](const char* input) {
         String s(input);
         s.Simplify();
         return std::string(s.GetPtr());
@@ -222,16 +222,16 @@ TEST(AdvString, PathComplexityStress)
 TEST(AdvString, WinApiDependent)
 {
     // Absolutize 테스트
-    String rel = Absolute("test.txt");
+    String rel = FS::Absolute("test.txt");
     EXPECT_TRUE(rel.IsAbsolute());
 
     // 현재 경로 획득
-    String cur = Current();
+    String cur = FS::Current();
     EXPECT_FALSE(cur.IsEmpty());
     EXPECT_TRUE(cur.IsAbsolute());
 
     // 실행 파일 경로
-    String exe = Executable();
+    String exe = FS::Executable();
     EXPECT_TRUE(exe.IsAbsolute());
     EXPECT_TRUE(exe.EndsWith(".exe") || exe.IsFile());
 }

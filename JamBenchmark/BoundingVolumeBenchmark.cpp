@@ -271,7 +271,7 @@ static void BM_Dx_AabbTransform(benchmark::State& state)
 {
     const DirectX::XMMATRIX m = DirectX::XMMatrixScaling(2.f, 2.f, 2.f)
                               * DirectX::XMMatrixTranslation(5.f, 0.f, 0.f);
-    DirectX::BoundingBox out;
+    DirectX::BoundingBox    out;
     for (auto _: state)
     {
         g_dx.bbA.Transform(out, m);

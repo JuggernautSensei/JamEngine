@@ -30,11 +30,11 @@ enum class eSparseEnum
 
 namespace NestedNamespace
 {
-    enum class eNestedEnum
-    {
-        Alpha = 0,
-        Beta  = 1
-    };
+enum class eNestedEnum
+{
+    Alpha = 0,
+    Beta  = 1
+};
 }   // namespace NestedNamespace
 
 // --- 1. UnderlyingFrom: Convert enum to underlying type ---

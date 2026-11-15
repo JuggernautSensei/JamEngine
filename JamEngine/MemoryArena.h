@@ -56,9 +56,9 @@ private:
         Head* pPrevHead = nullptr;
     };
 
-    Head*  m_pCurHead          = {};
-    Byte*  m_pCur              = nullptr;
-    Byte*  m_pEnd              = nullptr;
+    Head* m_pCurHead          = {};
+    Byte* m_pCur              = nullptr;
+    Byte* m_pEnd              = nullptr;
     SizeT m_byteWidthPerArena = 0;
 };
 

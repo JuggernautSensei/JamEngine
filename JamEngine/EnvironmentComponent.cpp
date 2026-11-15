@@ -29,12 +29,12 @@ void EnvironmentComponent::DrawEditPanel(
     Scene*,
     Entity)
 {
-    //ImGui::SeparatorText("directional light");
-    //if (BeginLabelValueTable("EnvironmentComponent_DirLight"))
+    // ImGui::SeparatorText("directional light");
+    // if (BeginLabelValueTable("EnvironmentComponent_DirLight"))
     //{
-    //    // row: enabled
-    //    {
-    //        bool bEnabled = environment.IsDirectionalLightEnabled();
+    //     // row: enabled
+    //     {
+    //         bool bEnabled = environment.IsDirectionalLightEnabled();
 
     //        ImGui::TableNextColumn();
     //        Widget_Text("enabled", true);
@@ -142,21 +142,21 @@ void EnvironmentComponent::DrawEditPanel(
     //    ImGui::EndTable();
     //}
 
-    //ImGui::SeparatorText("image based lighting");
-    //if (BeginLabelValueTable("EnvironmentComponent_IBL"))
+    // ImGui::SeparatorText("image based lighting");
+    // if (BeginLabelValueTable("EnvironmentComponent_IBL"))
     //{
-    //    // row: irradiance texture
-    //    {
-    //        Ref<Texture> pTexture = environment.GetIblIrradianceTex();
-    //        ImGui::TableNextColumn();
-    //        Widget_Text("irradiance texture", true);
-    //        ImGui::TableNextColumn();
-    //        SetNextItemToAvailWidth();
-    //        if (Widget_TexturePicker("##IBLIrradianceTexture", pTexture))
-    //        {
-    //            environment.SetIblIrradianceTex(pTexture);
-    //        }
-    //    }
+    //     // row: irradiance texture
+    //     {
+    //         Ref<Texture> pTexture = environment.GetIblIrradianceTex();
+    //         ImGui::TableNextColumn();
+    //         Widget_Text("irradiance texture", true);
+    //         ImGui::TableNextColumn();
+    //         SetNextItemToAvailWidth();
+    //         if (Widget_TexturePicker("##IBLIrradianceTexture", pTexture))
+    //         {
+    //             environment.SetIblIrradianceTex(pTexture);
+    //         }
+    //     }
 
     //    // row: irradiance texture intensity
     //    {
@@ -217,10 +217,10 @@ void EnvironmentComponent::DrawEditPanel(
     //    ImGui::EndTable();
     //}
 
-    //ImGui::SeparatorText("skybox");
-    //if (BeginLabelValueTable("EnvironmentComponent_Skybox"))
+    // ImGui::SeparatorText("skybox");
+    // if (BeginLabelValueTable("EnvironmentComponent_Skybox"))
     //{
-    //    eSkybox type = environment.GetSkyboxType();
+    //     eSkybox type = environment.GetSkyboxType();
 
     //    // row: type
     //    {
@@ -266,20 +266,20 @@ void EnvironmentComponent::DrawEditPanel(
     //}
 
     //// ssao
-    //ImGui::SeparatorText("ssao");
-    //if (BeginLabelValueTable("EnvironmentComponent_SSAO"))
+    // ImGui::SeparatorText("ssao");
+    // if (BeginLabelValueTable("EnvironmentComponent_SSAO"))
     //{
-    //    // row: enabled
-    //    {
-    //        bool bEnabled = environment.IsSsaoEnabled();
-    //        ImGui::TableNextColumn();
-    //        Widget_Text("enabled", true);
-    //        ImGui::TableNextColumn();
-    //        if (ImGui::Checkbox("##SSAOEnabled", &bEnabled))
-    //        {
-    //            environment.SetSsaoEnabled(bEnabled);
-    //        }
-    //    }
+    //     // row: enabled
+    //     {
+    //         bool bEnabled = environment.IsSsaoEnabled();
+    //         ImGui::TableNextColumn();
+    //         Widget_Text("enabled", true);
+    //         ImGui::TableNextColumn();
+    //         if (ImGui::Checkbox("##SSAOEnabled", &bEnabled))
+    //         {
+    //             environment.SetSsaoEnabled(bEnabled);
+    //         }
+    //     }
 
     //    // row: radius
     //    {
@@ -310,20 +310,20 @@ void EnvironmentComponent::DrawEditPanel(
     //    ImGui::EndTable();
     //}
 
-    //ImGui::SeparatorText("height fog");
-    //if (BeginLabelValueTable("EnvironmentComponent_Fog"))
+    // ImGui::SeparatorText("height fog");
+    // if (BeginLabelValueTable("EnvironmentComponent_Fog"))
     //{
-    //    // row: enabled
-    //    {
-    //        bool bEnabled = environment.IsFogEnabled();
-    //        ImGui::TableNextColumn();
-    //        Widget_Text("enabled", true);
-    //        ImGui::TableNextColumn();
-    //        if (ImGui::Checkbox("##FogEnabled", &bEnabled))
-    //        {
-    //            environment.SetFogEnabled(bEnabled);
-    //        }
-    //    }
+    //     // row: enabled
+    //     {
+    //         bool bEnabled = environment.IsFogEnabled();
+    //         ImGui::TableNextColumn();
+    //         Widget_Text("enabled", true);
+    //         ImGui::TableNextColumn();
+    //         if (ImGui::Checkbox("##FogEnabled", &bEnabled))
+    //         {
+    //             environment.SetFogEnabled(bEnabled);
+    //         }
+    //     }
 
     //    // row: radiance
     //    {
@@ -394,20 +394,20 @@ void EnvironmentComponent::DrawEditPanel(
     //}
 
     //// tonemap
-    //ImGui::SeparatorText("tone mapping");
-    //if (BeginLabelValueTable("EnvironmentComponent_ToneMap"))
+    // ImGui::SeparatorText("tone mapping");
+    // if (BeginLabelValueTable("EnvironmentComponent_ToneMap"))
     //{
-    //    // row: enabled
-    //    {
-    //        bool bEnabled = environment.IsToneMappingEnabled();
-    //        ImGui::TableNextColumn();
-    //        Widget_Text("enabled", true);
-    //        ImGui::TableNextColumn();
-    //        if (ImGui::Checkbox("##ToneMappingEnabled", &bEnabled))
-    //        {
-    //            environment.SetToneMappingEnabled(bEnabled);
-    //        }
-    //    }
+    //     // row: enabled
+    //     {
+    //         bool bEnabled = environment.IsToneMappingEnabled();
+    //         ImGui::TableNextColumn();
+    //         Widget_Text("enabled", true);
+    //         ImGui::TableNextColumn();
+    //         if (ImGui::Checkbox("##ToneMappingEnabled", &bEnabled))
+    //         {
+    //             environment.SetToneMappingEnabled(bEnabled);
+    //         }
+    //     }
 
     //    // row: type
     //    {
@@ -452,20 +452,20 @@ void EnvironmentComponent::DrawEditPanel(
     //}
 
     //// bloom
-    //ImGui::SeparatorText("bloom");
-    //if (BeginLabelValueTable("EnvironmentComponent_Bloom"))
+    // ImGui::SeparatorText("bloom");
+    // if (BeginLabelValueTable("EnvironmentComponent_Bloom"))
     //{
-    //    // row: enabled
-    //    {
-    //        bool bEnabled = environment.IsBloomEnabled();
-    //        ImGui::TableNextColumn();
-    //        Widget_Text("enabled", true);
-    //        ImGui::TableNextColumn();
-    //        if (ImGui::Checkbox("##BloomEnabled", &bEnabled))
-    //        {
-    //            environment.SetBloomEnabled(bEnabled);
-    //        }
-    //    }
+    //     // row: enabled
+    //     {
+    //         bool bEnabled = environment.IsBloomEnabled();
+    //         ImGui::TableNextColumn();
+    //         Widget_Text("enabled", true);
+    //         ImGui::TableNextColumn();
+    //         if (ImGui::Checkbox("##BloomEnabled", &bEnabled))
+    //         {
+    //             environment.SetBloomEnabled(bEnabled);
+    //         }
+    //     }
 
     //    // row: blur radius
     //    {
@@ -510,20 +510,20 @@ void EnvironmentComponent::DrawEditPanel(
     //}
 
     //// fxaa
-    //ImGui::SeparatorText("fxaa");
-    //if (BeginLabelValueTable("EnvironmentComponent_FXAA"))
+    // ImGui::SeparatorText("fxaa");
+    // if (BeginLabelValueTable("EnvironmentComponent_FXAA"))
     //{
-    //    // row: enabled
-    //    {
-    //        bool bEnabled = environment.IsFxaaEnabled();
-    //        ImGui::TableNextColumn();
-    //        Widget_Text("enabled", true);
-    //        ImGui::TableNextColumn();
-    //        if (ImGui::Checkbox("##FXAAEnabled", &bEnabled))
-    //        {
-    //            environment.SetFxaaEnabled(bEnabled);
-    //        }
-    //    }
+    //     // row: enabled
+    //     {
+    //         bool bEnabled = environment.IsFxaaEnabled();
+    //         ImGui::TableNextColumn();
+    //         Widget_Text("enabled", true);
+    //         ImGui::TableNextColumn();
+    //         if (ImGui::Checkbox("##FXAAEnabled", &bEnabled))
+    //         {
+    //             environment.SetFxaaEnabled(bEnabled);
+    //         }
+    //     }
 
     //    // row: quality
     //    {

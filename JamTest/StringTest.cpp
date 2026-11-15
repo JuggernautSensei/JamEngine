@@ -346,8 +346,8 @@ TEST(StringViewHash, Hash64_IgnoreCase)
 
 TEST(StringViewHash, EmptyString_NoCrash)
 {
-    EXPECT_NO_FATAL_FAILURE(StringView("").Hash());
-    EXPECT_NO_FATAL_FAILURE(StringView("").Hash());
+    EXPECT_NO_FATAL_FAILURE((void)StringView("").Hash());
+    EXPECT_NO_FATAL_FAILURE((void)StringView("").IgnoreCaseHash());
 }
 
 // ─────────────────────────────────────────────
@@ -550,7 +550,6 @@ TEST(StringViewStdGlue, RangeFor)
     EXPECT_EQ(collected, "abc");
 }
 
-
 // =============================================================================
 // BasicString — 생성 / 소멸
 // =============================================================================
@@ -654,7 +653,7 @@ TEST(StringSSO, ExactlyAtCapacity_StaysSSO)
     String      s(data.c_str());
     EXPECT_EQ(s.GetLength(), k_SSOCap);
     EXPECT_EQ(s.GetCapacity(), k_SSOCap);
-    EXPECT_EQ(s.ToStdString(), data);
+    EXPECT_EQ(std::string(s.GetPtr(), static_cast<size_t>(s.GetLength())), data);
 }
 
 TEST(StringSSO, OneBeyondCapacity_GoesHeap)
@@ -663,7 +662,7 @@ TEST(StringSSO, OneBeyondCapacity_GoesHeap)
     String      s(data.c_str());
     EXPECT_EQ(s.GetLength(), k_SSOCap + 1);
     EXPECT_GT(s.GetCapacity(), k_SSOCap);
-    EXPECT_EQ(s.ToStdString(), data);
+    EXPECT_EQ(std::string(s.GetPtr(), static_cast<size_t>(s.GetLength())), data);
 }
 
 TEST(StringSSO, SSOToHeap_OnAppend)
@@ -739,7 +738,7 @@ TEST(StringMutation, Append_Multiple_CrossSSO)
         s.Append("hello");
         expected += "hello";
     }
-    EXPECT_EQ(s.ToStdString(), expected);
+    EXPECT_EQ(std::string(s.GetPtr(), static_cast<size_t>(s.GetLength())), expected);
 }
 
 TEST(StringMutation, Insert_AtBeginning)
@@ -777,7 +776,7 @@ TEST(StringMutation, Insert_InHeapMode)
     s.Insert(k_SSOCap / 2, "XXX");
     std::string expected = data;
     expected.insert(k_SSOCap / 2, "XXX");
-    EXPECT_EQ(s.ToStdString(), expected);
+    EXPECT_EQ(std::string(s.GetPtr(), static_cast<size_t>(s.GetLength())), expected);
 }
 
 TEST(StringMutation, Erase_Middle)
@@ -808,7 +807,7 @@ TEST(StringMutation, Erase_InHeapMode)
     s.Erase(5, 3);
     std::string expected = data;
     expected.erase(5, 3);
-    EXPECT_EQ(s.ToStdString(), expected);
+    EXPECT_EQ(std::string(s.GetPtr(), static_cast<size_t>(s.GetLength())), expected);
 }
 
 // ─────────────────────────────────────────────
@@ -861,7 +860,7 @@ TEST(StringResize, Resize_Grow_DefaultFill)
 TEST(StringResize, Resize_Grow_WithChar)
 {
     String s("hi");
-    s.Resize_(5, 'x');
+    s.Resize(5, 'x');
     EXPECT_EQ(s, StringView("hixxx"));
 }
 
@@ -997,16 +996,16 @@ TEST(StringFormat, Formatted_Static)
 
 TEST(StringConvert, ConvertedFrom_Int)
 {
-    EXPECT_EQ(String::ConvertedFrom(42), StringView("42"));
-    EXPECT_EQ(String::ConvertedFrom(-1), StringView("-1"));
-    EXPECT_EQ(String::ConvertedFrom(0), StringView("0"));
+    EXPECT_EQ(String::Formatted("{}", 42), StringView("42"));
+    EXPECT_EQ(String::Formatted("{}", -1), StringView("-1"));
+    EXPECT_EQ(String::Formatted("{}", 0), StringView("0"));
 }
 
 TEST(StringConvert, ConvertedFrom_Float_ContainsDot)
 {
-    String s = String::ConvertedFrom(3.14f);
+    String s = String::Formatted("{}", 3.14f);
     EXPECT_FALSE(s.IsEmpty());
-    EXPECT_TRUE(s.Find('.').IsSucceeded());
+    EXPECT_TRUE(s.Find('.').HasValue());
 }
 
 TEST(StringConvert, ParseAs_Int32)
@@ -1300,16 +1299,6 @@ TEST(StringStdGlue, push_back)
     EXPECT_EQ(s, StringView("hello!"));
 }
 
-TEST(StringStdGlue, ToStdString)
-{
-    EXPECT_EQ(String("hello").ToStdString(), std::string("hello"));
-}
-
-TEST(StringStdGlue, ToStdStringView)
-{
-    EXPECT_EQ(String("hello").ToStdStringView(), std::string_view("hello"));
-}
-
 TEST(StringStdGlue, ToStringView_Offset)
 {
     EXPECT_EQ(String("hello world").ToStringView(6), StringView("world"));
@@ -1518,7 +1507,7 @@ TEST(EdgeCase, LargeString_1000Appends)
         expected += "ab";
     }
     EXPECT_EQ(s.GetLength(), 2000u);
-    EXPECT_EQ(s.ToStdString(), expected);
+    EXPECT_EQ(std::string(s.GetPtr(), static_cast<size_t>(s.GetLength())), expected);
 }
 
 TEST(EdgeCase, EmptyAppend_NoChange)

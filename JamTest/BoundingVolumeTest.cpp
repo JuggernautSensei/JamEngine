@@ -125,14 +125,14 @@ namespace
 
     TEST(BoundingVolumeTest, Aabb_CornerPoints_Count)
     {
-        const Aabb         aabb    = Aabb(Vec3 { 0.f, 0.f, 0.f }, Vec3 { 1.f, 1.f, 1.f });
+        const Aabb    aabb    = Aabb(Vec3 { 0.f, 0.f, 0.f }, Vec3 { 1.f, 1.f, 1.f });
         const Corners corners = aabb.CalcCorners();
         EXPECT_EQ(corners.Size(), 8u);
     }
 
     TEST(BoundingVolumeTest, Aabb_CornerPoints_Values)
     {
-        const Aabb         aabb    = Aabb(Vec3 { 0.f, 0.f, 0.f }, Vec3 { 1.f, 1.f, 1.f });
+        const Aabb    aabb    = Aabb(Vec3 { 0.f, 0.f, 0.f }, Vec3 { 1.f, 1.f, 1.f });
         const Corners corners = aabb.CalcCorners();
 
         EXPECT_FLOAT_EQ(corners[eRegion::LeftBottomNear].x, -1.f);
@@ -468,13 +468,13 @@ namespace
 
     TEST(BoundingVolumeTest, Frustum_GetCornerPoints_Count)
     {
-        const Plane        nearP(Vec3 { 0.f, 0.f, 1.f }, -1.f);
-        const Plane        farP(Vec3 { 0.f, 0.f, -1.f }, 10.f);
-        const Plane        left(Vec3 { 1.f, 0.f, 0.f }, 1.f);
-        const Plane        right(Vec3 { -1.f, 0.f, 0.f }, 1.f);
-        const Plane        bottom(Vec3 { 0.f, 1.f, 0.f }, 1.f);
-        const Plane        top(Vec3 { 0.f, -1.f, 0.f }, 1.f);
-        const Frustum      frustum(left, right, bottom, top, nearP, farP);
+        const Plane   nearP(Vec3 { 0.f, 0.f, 1.f }, -1.f);
+        const Plane   farP(Vec3 { 0.f, 0.f, -1.f }, 10.f);
+        const Plane   left(Vec3 { 1.f, 0.f, 0.f }, 1.f);
+        const Plane   right(Vec3 { -1.f, 0.f, 0.f }, 1.f);
+        const Plane   bottom(Vec3 { 0.f, 1.f, 0.f }, 1.f);
+        const Plane   top(Vec3 { 0.f, -1.f, 0.f }, 1.f);
+        const Frustum frustum(left, right, bottom, top, nearP, farP);
         const Corners corners = frustum.CalcCorners();
 
         EXPECT_EQ(corners.Size(), 8u);

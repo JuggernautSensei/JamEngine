@@ -155,8 +155,8 @@ Error Model::LoadFromFile_(
 }
 
 Error Model::Save(
-    const StringView                 _path,
-    const bool                       _bReplaceExtension,
+    const StringView _path,
+    const bool       _bReplaceExtension,
     const eFileWrite _mode) const
 {
     JAM_FUNCTION_PROFILE();

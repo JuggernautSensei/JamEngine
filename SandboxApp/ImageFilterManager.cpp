@@ -263,8 +263,8 @@ ProgramHandle ImageFilterManager::GetOrLoadProgram_(
     pscInfo.flags             = eShaderCompileFlags::Default;
 
     constexpr ShaderCompileInfo kVscInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    const Expect<ShaderBinary>  vsc      = ShaderBinary::CompileHLSLFile(pci.path, kVscInfo);
-    const Expect<ShaderBinary>  psc      = ShaderBinary::CompileHLSLFile(pci.path, pscInfo);
+    const Expect<ShaderBinary>  vsc      = ShaderBinary::CompileFromHLSLFile(pci.path, kVscInfo);
+    const Expect<ShaderBinary>  psc      = ShaderBinary::CompileFromHLSLFile(pci.path, pscInfo);
     JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
     JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
 

@@ -71,8 +71,7 @@ BENCHMARK(BM_Delegate_Method);
 static void BM_Delegate_Lambda_NoCapture(benchmark::State& state)
 {
     Delegate<int(int)> d;
-    d.Connect([](int x)
-              { return x + 1; });
+    d.Connect([](int x) { return x + 1; });
     int r = 0;
     for (auto _: state)
     {
@@ -87,8 +86,7 @@ static void BM_Delegate_Lambda_Capture_SBO(benchmark::State& state)
 {
     Derived            obj;
     Delegate<int(int)> d;
-    d.Connect([&obj](int x)
-              { return x + obj.value + 1; });
+    d.Connect([&obj](int x) { return x + obj.value + 1; });
     int r = 0;
     for (auto _: state)
     {
@@ -103,8 +101,7 @@ static void BM_Delegate_Lambda_Capture_Heap(benchmark::State& state)
 {
     Derived            obj1, obj2, obj3;
     Delegate<int(int)> d;
-    d.Connect([&obj1, &obj2, &obj3](int x)
-              { return x + obj1.value + obj2.value + obj3.value + 1; });
+    d.Connect([&obj1, &obj2, &obj3](int x) { return x + obj1.value + obj2.value + obj3.value + 1; });
     int r = 0;
     for (auto _: state)
     {
@@ -139,4 +136,3 @@ static void BM_FunctionPointer(benchmark::State& state)
     }
 }
 BENCHMARK(BM_FunctionPointer);
-

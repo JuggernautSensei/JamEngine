@@ -23,6 +23,7 @@ class ComputeScene : public Scene
 
 public:
     ComputeScene();
+    void RunDemo(Int32 _index);
 
     void OnUpdate(float _deltaSec) override;
     void OnRender(const RenderView& _view) override;
@@ -99,7 +100,6 @@ private:
     void InitDemo17_GrayScaleHistogram_();
     void Demo17_Executor_();
     void Demo17_ImGui_();
-
 
     void ExportTextureWithDialog_(StringView _name) const;
 

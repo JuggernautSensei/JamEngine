@@ -61,7 +61,7 @@ void DialogStack::ShowDialogs_Recursive_(
     else
     {
         m_dialogs[_index].bClosed = true;
-        m_bAnyDialogClosed      = true;
+        m_bAnyDialogClosed        = true;
     }
 }
 

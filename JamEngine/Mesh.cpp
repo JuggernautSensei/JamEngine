@@ -34,7 +34,7 @@ namespace Dto
     struct VertexLayout
     {
         Array<VertexElement, CountOf<eVertexAttribute>()> elems    = {};
-        Int32                                                   numElems = 0;
+        Int32                                             numElems = 0;
     };
 
     struct Mesh
@@ -349,8 +349,8 @@ Error Mesh::Save(
         for (const VertexElement& e: vl.GetElements())
         {
             Dto::VertexElement& elem = mesh.attribLayout.elems[index++];
-            elem.format                    = e.format;
-            elem.attrib                    = e.attrib;
+            elem.format              = e.format;
+            elem.attrib              = e.attrib;
         }
 
         // attrib data

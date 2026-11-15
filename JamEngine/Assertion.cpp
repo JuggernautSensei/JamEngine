@@ -80,17 +80,23 @@ void ReportCrash__(
     spdlog::shutdown();   // immediately flush and close all loggers to release file handles, etc.
 
     // crash dump
-    const TimeStamp ts   = TimeStamp::Current();
-    const String    path = String::Formatted("CrashDump/{:04}-{:02}-{:02} {:02}-{:02}-{:02}.{:03}.txt", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
-    if (Expect<FileWriter> writer = FileWriter::Open(path))
+    const TimeStamp ts       = TimeStamp::Current();
+    const String    path     = String::Formatted("CrashDump/{:04}-{:02}-{:02} {:02}-{:02}-{:02}.{:03}.txt", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
+    const WString   dumpPath = WString::Encoded(path.ToStringView());
+    ::CreateDirectoryW(L"CrashDump", nullptr);
+    FILE* pFile = nullptr;
+    if (::_wfopen_s(&pFile, dumpPath.GetPtr(), L"wb") == 0 && pFile)
     {
-        writer->Write(msg);
-        writer->Flush();
+        ::fwrite(msg.GetPtr(), 1, static_cast<size_t>(msg.GetLength()), pFile);
+        ::fclose(pFile);
     }
 
     // alert
     const WString mbMsg = WString::Encoded(msg.ToStringView());
-    ::MessageBoxW(nullptr, mbMsg.GetPtr(), L"Fatal Error", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
+    if (::GetEnvironmentVariableW(L"JAM_NO_ERROR_DIALOG", nullptr, 0) == 0)
+    {
+        ::MessageBoxW(nullptr, mbMsg.GetPtr(), L"Fatal Error", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
+    }
 }
 
 void ReportHRESULTFailure_(

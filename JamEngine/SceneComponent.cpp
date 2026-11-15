@@ -19,9 +19,9 @@ void SceneComponent::Serialize(
 }
 
 void SceneComponent::Deserialize(
-    ArchiveReader&    _reader,
-    Scene* _pScene,
-    const Entity      _owner)
+    ArchiveReader& _reader,
+    Scene*         _pScene,
+    const Entity   _owner)
 {
     // transform
     Mtx4 localMtx = Mtx4::kIdentity;
@@ -55,16 +55,16 @@ void SceneComponent::Deserialize(
 
 void SceneComponent::DrawEditPanel(
     Scene* _pScene,
-    Entity            _owner)
+    Entity _owner)
 {
-    //if (BeginLabelValueTable("SceneComponent"))
+    // if (BeginLabelValueTable("SceneComponent"))
     //{
-    //    // coordinate space
-    //    enum class eCoordinate
-    //    {
-    //        World,
-    //        Local
-    //    };
+    //     // coordinate space
+    //     enum class eCoordinate
+    //     {
+    //         World,
+    //         Local
+    //     };
 
     //    // static variables
     //    static eCoordinate s_coord = eCoordinate::World;

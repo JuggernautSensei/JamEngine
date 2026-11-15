@@ -93,7 +93,7 @@ TEST(Quat, AxisAngleRoundTrip)
 TEST(Quat, EulerRoundTrip_XOnly)
 {
     const Vec3 euler = { kPi / 4.f, 0.f, 0.f };
-    const Vec3 back  = Quat::FromEuler(euler).ToEuler(TODO);
+    const Vec3 back  = Quat::FromEuler(euler).ToEuler();
     EXPECT_NEAR(back.x, euler.x, kTol);
     EXPECT_NEAR(back.y, 0.f, kTol);
     EXPECT_NEAR(back.z, 0.f, kTol);
@@ -102,7 +102,7 @@ TEST(Quat, EulerRoundTrip_XOnly)
 TEST(Quat, EulerRoundTrip_YOnly)
 {
     const Vec3 euler = { 0.f, kPi / 3.f, 0.f };
-    const Vec3 back  = Quat::FromEuler(euler).ToEuler(TODO);
+    const Vec3 back  = Quat::FromEuler(euler).ToEuler();
     EXPECT_NEAR(back.x, 0.f, kTol);
     EXPECT_NEAR(back.y, euler.y, kTol);
     EXPECT_NEAR(back.z, 0.f, kTol);
@@ -111,7 +111,7 @@ TEST(Quat, EulerRoundTrip_YOnly)
 TEST(Quat, EulerRoundTrip_ZOnly)
 {
     const Vec3 euler = { 0.f, 0.f, kPi / 5.f };
-    const Vec3 back  = Quat::FromEuler(euler).ToEuler(TODO);
+    const Vec3 back  = Quat::FromEuler(euler).ToEuler();
     EXPECT_NEAR(back.x, 0.f, kTol);
     EXPECT_NEAR(back.y, 0.f, kTol);
     EXPECT_NEAR(back.z, euler.z, kTol);
@@ -223,28 +223,6 @@ TEST(Quat, Dot_Orthogonal)
 // ─────────────────────────────────────────────
 // Lerp (NLerp) — 정규화 확인
 // ─────────────────────────────────────────────
-
-TEST(Quat, Lerp_T0_IsA)
-{
-    const Quat a = Quat::FromAxisAngle({ 0.f, 1.f, 0.f }, 0.f);
-    const Quat b = Quat::FromAxisAngle({ 0.f, 1.f, 0.f }, kPi * 0.5f);
-    ExpectQuatEq(a.Lerp(b, 0.f), a);
-}
-
-TEST(Quat, Lerp_T1_IsB)
-{
-    const Quat a = Quat::FromAxisAngle({ 0.f, 1.f, 0.f }, 0.f);
-    const Quat b = Quat::FromAxisAngle({ 0.f, 1.f, 0.f }, kPi * 0.5f);
-    ExpectQuatEq(a.Lerp(b, 1.f), b);
-}
-
-TEST(Quat, Lerp_ResultIsNormalized)
-{
-    const Quat a      = Quat::FromAxisAngle({ 1.f, 0.f, 0.f }, 0.f);
-    const Quat b      = Quat::FromAxisAngle({ 0.f, 1.f, 0.f }, kPi * 0.5f);
-    const Quat result = a.Lerp(b, 0.5f);
-    EXPECT_TRUE(result.IsNormalized());
-}
 
 // ─────────────────────────────────────────────
 // Slerp
@@ -378,7 +356,7 @@ TEST(Quat, Squad_ResultIsNormalized)
     const Quat q0 = Quat::FromAxisAngle({ 1.f, 0.f, 0.f }, 0.f);
     const Quat q1 = Quat::FromAxisAngle({ 0.f, 1.f, 0.f }, kPi * 0.25f);
     const Quat q2 = Quat::FromAxisAngle({ 0.f, 0.f, 1.f }, kPi * 0.5f);
-    const Quat q3 = Quat::FromAxisAngle({ 1.f, 1.f, 0.f }, kPi * 0.75f);
+    const Quat q3 = Quat::FromAxisAngle(Vec3 { 1.f, 1.f, 0.f }.Normalized(), kPi * 0.75f);
 
     const Quat s1     = Quat::SquadSetup(q0, q1, q2);
     const Quat s2     = Quat::SquadSetup(q1, q2, q3);

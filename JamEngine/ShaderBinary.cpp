@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "ShaderBlob.h"
+#include "ShaderBinary.h"
 #include "WindowsUtilities.h"
 
 #include <d3dcompiler.h>
@@ -139,6 +139,12 @@ Expect<ShaderBinary> ShaderBinary::CompileFromHLSLSource(
 Expect<ShaderBinary> ShaderBinary::FromCSOFile(
     const StringView _path)
 {
+    ShaderBinary binary = {};
+    if (const Error err = binary.LoadFromCSOFile_(_path))
+    {
+        return err;
+    }
+    return binary;
 }
 
 ShaderBinary::ShaderBinary(

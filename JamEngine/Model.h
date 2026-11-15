@@ -31,7 +31,7 @@ public:
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
-    [[nodiscard]] UInt64 GetTypeHash() const override;
+    [[nodiscard]] UInt64     GetTypeHash() const override;
     [[nodiscard]] StringView GetPath() const override;
     [[nodiscard]] StringView GetName() const override;
     [[nodiscard]] StringView GetExtension() const override;
@@ -45,7 +45,7 @@ public:
     void SetMaterials(Vector<Ref<Material>>&& _materials);
 
     [[nodiscard]] const ModelNode&             GetRootNode() const;
-    [[nodiscard]] const Vector<Ref<Mesh>>&   GetMeshes() const;
+    [[nodiscard]] const Vector<Ref<Mesh>>&     GetMeshes() const;
     [[nodiscard]] const Vector<Ref<Material>>& GetMaterials() const;
 
     static constexpr StringView kTypeName  = NameOf<Model>();
@@ -64,7 +64,7 @@ private:
     bool   m_bValid = false;
 
     ModelNode             m_root      = {};
-    Vector<Ref<Mesh>>   m_meshes    = {};
+    Vector<Ref<Mesh>>     m_meshes    = {};
     Vector<Ref<Material>> m_materials = {};
 };
 

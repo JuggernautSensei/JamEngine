@@ -1,30 +1,10 @@
 #include "pch.h"
 
-class TestApp : public Application
+int main(int _argc, char** _argv)
 {
-public:
-    TestApp(
-        const StringView           _appName,
-        const Flags<eAppInitFlags> _subSystems)
-        : Application(_appName, _subSystems)
-    {
-    }
-
-    void Init(Int32 _argc, char** _argv) override
-    {
-        ::testing::InitGoogleTest(&_argc, _argv);
-    }
-
-    void Update(float _dt) override
-    {
-        int ret = RUN_ALL_TESTS();
-        JAM_ASSERT(ret == 0, "Some tests failed. Check the test results for details.");
-        Quit();
-    }
-};
-
-int main(const Int32 _argc, char** _argv)
-{
-    TestApp app { "JamAppTest", kDefaultAppInitFlags };
-    return app.Run(_argc, _argv);
+    ::testing::InitGoogleTest(&_argc, _argv);
+    LogSystem::CreateInstance();
+    const Int32 result = RUN_ALL_TESTS();
+    LogSystem::DestroyInstance();
+    return result;
 }

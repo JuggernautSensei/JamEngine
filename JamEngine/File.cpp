@@ -129,7 +129,7 @@ Expect<FileWriter> FileWriter::Open(
     const eFileWrite _mode)
 {
     // Handle file name collision based on the specified policy.
-    if (_mode == eFileWrite::Rename && _mode == eFileWrite::FailIfExists && FS::Exists(_path))
+    if ((_mode == eFileWrite::Rename || _mode == eFileWrite::FailIfExists) && FS::Exists(_path))
     {
         switch (_mode)
         {
@@ -154,9 +154,10 @@ Expect<FileWriter> FileWriter::Open(
         }
     }
 
-    const char* mode  = (_mode == eFileWrite::Append) ? "ab" : "wb";
-    FILE*       pFile = nullptr;
-    if (::fopen_s(&pFile, _path.GetPtr(), mode) != 0)
+    const wchar_t* mode  = (_mode == eFileWrite::Append) ? L"ab" : L"wb";
+    const WString  path  = WString::Encoded(_path);
+    FILE*          pFile = nullptr;
+    if (::_wfopen_s(&pFile, path.GetPtr(), mode) != 0)
     {
         return Error::OpenFailed;
     }
@@ -191,8 +192,9 @@ FileWriter::FileWriter(FILE* _pFile)
 Expect<FileReader> FileReader::Open(
     StringView _path)
 {
-    FILE* pFile = nullptr;
-    if (::fopen_s(&pFile, _path.GetPtr(), "rb") != 0)
+    FILE*         pFile = nullptr;
+    const WString path  = WString::Encoded(_path);
+    if (::_wfopen_s(&pFile, path.GetPtr(), L"rb") != 0)
     {
         JAM_LOG_ERROR("Failed to open file '{}'.", _path);
         return Error::OpenFailed;

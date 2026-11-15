@@ -4,5 +4,4 @@
 namespace Jam
 {
 
-
 }   // namespace Jam

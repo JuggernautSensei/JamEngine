@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <JamDebugSuffix Condition="$(Configuration.StartsWith('Debug'))">d</JamDebugSuffix>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>DirectXTex.lib;DirectXMesh.lib;EASTL.lib;efsw.lib;lunasvg.lib;yyjson.lib;fmt$(JamDebugSuffix).lib;spdlog$(JamDebugSuffix).lib;assimp-vc145-mt$(JamDebugSuffix).lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Target Name="CopySandboxResources" AfterTargets="Build" Condition="'$(MSBuildProjectName)' == 'SandboxApp'">
+    <ItemGroup>
+      <JamSampleResource Include="$(ProjectDir)Resources\**\*" Exclude="$(ProjectDir)Resources\**\imgui.ini" />
+    </ItemGroup>
+    <Copy SourceFiles="@(JamSampleResource)" DestinationFiles="@(JamSampleResource->'$(OutDir)Resources\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+  <ItemDefinitionGroup Condition="'$(MSBuildProjectName)' == 'JamTest'">
+    <Link>
+      <AdditionalDependencies>gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(MSBuildProjectName)' == 'JamBenchmark'">
+    <Link>
+      <AdditionalDependencies>benchmark.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>
