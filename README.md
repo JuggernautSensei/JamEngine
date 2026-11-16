@@ -122,13 +122,6 @@ Studio, Courtyard, Church 환경을 선택할 수 있으며, 배경 표시도 �
 ### DeferredScene
 
 표면의 색상과 노멀, 깊이를 먼저 저장하고, 저장한 정보를 이용해 조명을 계산하는 디퍼드 렌더링 테스트입니다.
-
-![최종 렌더링과 Albedo·Normal·Lighting 버퍼](Samples/DeferredScene/images/color-buffers.png)
-
-오른쪽에는 위에서부터 Albedo, Normal, Lighting 버퍼를 표시했습니다.
-Albedo는 표면의 색상, Normal은 표면의 방향, Lighting은 조명 계산 결과입니다.
-저장한 노멀과 깊이로 조명을 계산하고, 마지막에 표면 색상과 조명 결과를 합성합니다.
-
 Scissor Rect를 이용해 각 광원의 영향 범위를 둘러싼 화면 영역에서만 픽셀을 처리하도록 최적화했습니다.
 광원의 영향이 화면 일부에만 미칠 때 불필요한 조명 계산을 줄일 수 있습니다.
 
@@ -137,11 +130,13 @@ Scissor Rect를 이용해 각 광원의 영향 범위를 둘러싼 화면 영역
 | ![512개 점광원의 조명 결과](Samples/DeferredScene/images/point-lights-512.png) | ![26개 점광원의 Scissor Rect](Samples/DeferredScene/images/scissor-rects.png) |
 
 왼쪽은 점광원 512개의 조명 결과이고, 오른쪽은 점광원 26개의 Scissor Rect를 표시한 화면입니다.
-색 사각형은 각 광원의 픽셀 처리 범위를 나타냅니다.
+색 사각형은 각 광원의 픽셀 처리 범위를 나타냅니다. Albedo, Normal, Lighting 버퍼도 ImGui에서 따로 볼 수 있습니다.
 
-점광원 2,048개에 Scissor Rect를 적용한 상태에서 약 240 FPS를 유지했습니다. 아래 화면의 평균 FPS는 239.84입니다.
+| 컬러 버퍼 시각화 | 점광원 2,048개 렌더링 |
+|:---:|:---:|
+| ![Albedo·Normal·Lighting 버퍼 시각화](Samples/DeferredScene/images/color-buffers.png) | ![점광원 2,048개 렌더링 성능](Samples/DeferredScene/images/benchmark-2048-lights.png) |
 
-![점광원 2,048개 렌더링 성능: 평균 239.84 FPS](Samples/DeferredScene/images/benchmark-2048-lights.png)
+점광원 2,048개에 Scissor Rect를 적용한 상태에서 약 240 FPS를 유지했습니다.
 
 ### ShadowScene
 
