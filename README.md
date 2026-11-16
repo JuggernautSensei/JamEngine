@@ -65,9 +65,6 @@ SandboxApp의 예제들도 이 인터페이스를 사용하므로, 씬을 바꾸
 
 ## 렌더링 샘플
 
-각 씬에서 사용한 기술과 렌더링 결과입니다.
-[씬별 문서 목록](Samples/README.md)에서 개별 문서로 이동하거나, [SceneReadMeDraft.md](Samples/SceneReadMeDraft.md)에서 씬 설명만 모아 볼 수 있습니다.
-
 ### SimpleScene
 
 기본적인 렌더링 테스트입니다. 스탠포드 버니 모델과 큐브, 구를 렌더링합니다.
