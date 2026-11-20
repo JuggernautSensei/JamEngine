@@ -1,17 +1,15 @@
-<div align="center">
+<h1 align="center">JamEngine</h1>
 
-# JamEngine
+<p align="center">D3D11 기반 C++20 게임 엔진 프레임워크</p>
 
-**D3D11 기반 C++20 게임 엔진 프레임워크**
-
-![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white)
-![Windows x64](https://img.shields.io/badge/Windows-x64-0078D4)
-![Direct3D 11](https://img.shields.io/badge/Direct3D-11-5E9C36)
-![HLSL](https://img.shields.io/badge/Shader-HLSL-8055A2)
+<p align="center">
+  <img src="https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white" alt="C++20">
+  <img src="https://img.shields.io/badge/Windows-x64-0078D4" alt="Windows x64">
+  <img src="https://img.shields.io/badge/Direct3D-11-5E9C36" alt="Direct3D 11">
+  <img src="https://img.shields.io/badge/Shader-HLSL-8055A2" alt="HLSL">
+</p>
 
 <p align="center"><img src="Samples/PBRScene/images/overview.png" alt="IBL과 다양한 재질을 적용한 PBR 렌더링 장면" width="960"></p>
-
-</div>
 
 ## Contents
 
@@ -20,16 +18,9 @@
 - [렌더링 샘플](#렌더링-샘플)
 - [빌드 및 실행](#빌드-및-실행)
 
-<br>
-
 ## 프로젝트 소개
 
-부경대학교 캡스톤디자인 경진대회 출품을 위해 9개월간 개발한 **D3D11 기반 C++20 게임 엔진 프레임워크**입니다.
-이 저장소는 Jam Engine 프로젝트의 메인 저장소로, 게임 개발에 필요한 범용 도구와 렌더링 기능을 포함합니다.
-
-특히 렌더링 구현에 중점을 두었으며, `SandboxApp`에 다양한 그래픽스 기법을 적용한 예제를 담았습니다.
-
-<br>
+부경대학교 캡스톤디자인 경진대회 출품을 위해 9개월간 개발한 D3D11 기반 C++20 게임 엔진 프레임워크입니다. 렌더링 구현에 중점을 두었고, `SandboxApp`에 그래픽스 기법 15개를 적용한 예제 씬을 담았습니다.
 
 ## 프레임워크 구성
 
@@ -60,8 +51,6 @@ SandboxApp의 예제들도 이 인터페이스를 사용하므로, 씬을 바꾸
 각 패스에 셰이더, 출력 대상, 읽고 쓸 자원과 실행 함수를 지정합니다.
 디퍼드 조명이나 화면 공간 후처리처럼 앞 단계의 결과를 다음 단계에서 읽는 작업을 연결할 수 있습니다.
 
-<br>
-
 ## 렌더링 샘플
 
 ### SimpleScene
@@ -79,8 +68,8 @@ SandboxApp의 예제들도 이 인터페이스를 사용하므로, 씬을 바꾸
 
 ![65,536개 큐브의 인스턴싱 렌더링](Samples/InstancingScene/images/cubes.png)
 
-큐브 65,536개 기준 인스턴싱 사용 시 550–600 FPS, 미사용 시 190–210 FPS입니다.
-각 범위의 중간값으로 비교하면 약 187.5%의 FPS 향상입니다.
+큐브 65,536개 기준 인스턴싱 미사용 시 190–210 FPS, 사용 시 550–600 FPS입니다.
+각 범위의 중간값으로 비교하면 200 FPS에서 575 FPS로 약 2.9배입니다.
 
 ### MultiVertexStreamScene
 
@@ -112,9 +101,20 @@ IBL(Image-Based Lighting)을 적용해 주변 환경의 조명도 재질에 반�
 확산광에는 Irradiance 맵을 사용하고, 정반사는 Roughness에 따라 필터링된 환경맵과 BRDF LUT로 근사합니다.
 아래 사진처럼 환경이 바뀌면 같은 모델에서도 반사되는 색과 밝기가 달라집니다.
 
-| 밝은 환경광 | 따뜻한 환경광 |
-|:---:|:---:|
-| ![밝은 환경에서의 동상 반사](Samples/PBRScene/images/statue-bright-environment.png) | ![따뜻한 환경에서의 동상 반사](Samples/PBRScene/images/statue-warm-environment.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">밝은 환경광</th>
+      <th align="center">따뜻한 환경광</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/PBRScene/images/statue-bright-environment.png" alt="밝은 환경에서의 동상 반사" width="100%"></td>
+      <td align="center"><img src="Samples/PBRScene/images/statue-warm-environment.png" alt="따뜻한 환경에서의 동상 반사" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 Studio, Courtyard, Church 환경을 선택할 수 있으며, 배경 표시도 따로 조절할 수 있습니다.
 
@@ -124,16 +124,38 @@ Studio, Courtyard, Church 환경을 선택할 수 있으며, 배경 표시도 �
 Scissor Rect를 이용해 각 광원의 영향 범위를 둘러싼 화면 영역에서만 픽셀을 처리하도록 최적화했습니다.
 광원의 영향이 화면 일부에만 미칠 때 불필요한 조명 계산을 줄일 수 있습니다.
 
-| 다수의 점광원 | Scissor Rect 시각화 |
-|:---:|:---:|
-| ![512개 점광원의 조명 결과](Samples/DeferredScene/images/point-lights-512.png) | ![26개 점광원의 Scissor Rect](Samples/DeferredScene/images/scissor-rects.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">다수의 점광원</th>
+      <th align="center">Scissor Rect 시각화</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/DeferredScene/images/point-lights-512.png" alt="512개 점광원의 조명 결과" width="100%"></td>
+      <td align="center"><img src="Samples/DeferredScene/images/scissor-rects.png" alt="26개 점광원의 Scissor Rect" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 왼쪽은 점광원 512개의 조명 결과이고, 오른쪽은 점광원 26개의 Scissor Rect를 표시한 화면입니다.
 색 사각형은 각 광원의 픽셀 처리 범위를 나타냅니다. Albedo, Normal, Lighting 버퍼도 ImGui에서 따로 볼 수 있습니다.
 
-| 컬러 버퍼 시각화 | 점광원 2,048개 렌더링 |
-|:---:|:---:|
-| ![Albedo·Normal·Lighting 버퍼 시각화](Samples/DeferredScene/images/color-buffers.png) | ![점광원 2,048개 렌더링 성능](Samples/DeferredScene/images/benchmark-2048-lights.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">컬러 버퍼 시각화</th>
+      <th align="center">점광원 2,048개 렌더링</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/DeferredScene/images/color-buffers.png" alt="Albedo·Normal·Lighting 버퍼 시각화" width="100%"></td>
+      <td align="center"><img src="Samples/DeferredScene/images/benchmark-2048-lights.png" alt="점광원 2,048개 렌더링 성능" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 점광원 2,048개에 Scissor Rect를 적용한 상태에서 약 240 FPS를 유지했습니다.
 
@@ -142,9 +164,20 @@ Scissor Rect를 이용해 각 광원의 영향 범위를 둘러싼 화면 영역
 광원에서 바라본 깊이를 저장한 뒤, 표면의 깊이와 비교하는 섀도 매핑을 구현했습니다.
 광원과 해당 표면 사이에 다른 물체가 있으면 해당 위치를 그림자로 처리합니다.
 
-| 기둥과 동상의 그림자 | 모델 주변의 그림자 경계 |
-|:---:|:---:|
-| ![기둥과 동상이 드리운 그림자](Samples/ShadowScene/images/columns-and-statues.png) | ![구와 용 모델의 그림자](Samples/ShadowScene/images/shadow-detail.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">기둥과 동상의 그림자</th>
+      <th align="center">모델 주변의 그림자 경계</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/ShadowScene/images/columns-and-statues.png" alt="기둥과 동상이 드리운 그림자" width="100%"></td>
+      <td align="center"><img src="Samples/ShadowScene/images/shadow-detail.png" alt="구와 용 모델의 그림자" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 점광원에는 여섯 방향의 깊이를 2D 텍스처 배열에 저장하는 Omni Shadow Mapping을 사용합니다.
 스팟라이트는 광원 시점의 깊이를 한 장 저장합니다.
@@ -159,9 +192,20 @@ VSM은 깊이와 깊이의 제곱을 저장하고, 두 값으로 구한 분산�
 스텐실 버퍼를 이용한 평면 반사와 아웃라인 테스트입니다.
 스텐실에 기록한 값을 조건으로 사용해 오브젝트가 그려지는 영역을 제한합니다.
 
-| 평면 반사와 아웃라인 | 모델의 외곽선 |
-|:---:|:---:|
-| ![바닥에 반사된 오브젝트와 아웃라인](Samples/StencilScene/images/reflection-and-outline.png) | ![버니 모델의 아웃라인과 반사](Samples/StencilScene/images/bunny-outline.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">평면 반사와 아웃라인</th>
+      <th align="center">모델의 외곽선</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/StencilScene/images/reflection-and-outline.png" alt="바닥에 반사된 오브젝트와 아웃라인" width="100%"></td>
+      <td align="center"><img src="Samples/StencilScene/images/bunny-outline.png" alt="버니 모델의 아웃라인과 반사" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 평면 반사는 y=0 기준의 반사 행렬로 오브젝트를 한 번 더 렌더링합니다.
 거울 영역에 스텐실을 기록해 반사된 오브젝트가 그 안에서만 보이도록 합니다.
@@ -183,12 +227,29 @@ VSM은 깊이와 깊이의 제곱을 저장하고, 두 값으로 구한 분산�
 오브젝트 20만 개를 대상으로 컬링 미사용, 선형 검사, 옥트리를 비교했습니다.
 아래 평균 FPS는 각 측정 화면의 Avg. Frame Rate 값입니다.
 
-| 컬링 미사용 | 선형 검사 | 옥트리 |
-|:---:|:---:|:---:|
-| ![컬링 미사용 측정 화면](Samples/CullingScene/images/benchmark-none.png) | ![선형 컬링 측정 화면](Samples/CullingScene/images/benchmark-linear.png) | ![옥트리 컬링 측정 화면](Samples/CullingScene/images/benchmark-octree.png) |
-| **71.44 FPS** | **86.92 FPS** | **97.20 FPS** |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">컬링 미사용</th>
+      <th align="center">선형 검사</th>
+      <th align="center">옥트리</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/CullingScene/images/benchmark-none.png" alt="컬링 미사용 측정 화면" width="100%"></td>
+      <td align="center"><img src="Samples/CullingScene/images/benchmark-linear.png" alt="선형 컬링 측정 화면" width="100%"></td>
+      <td align="center"><img src="Samples/CullingScene/images/benchmark-octree.png" alt="옥트리 컬링 측정 화면" width="100%"></td>
+    </tr>
+    <tr>
+      <td align="center">71.44 FPS</td>
+      <td align="center">86.92 FPS</td>
+      <td align="center">97.20 FPS</td>
+    </tr>
+  </tbody>
+</table>
 
-옥트리 적용 시 미사용 대비 약 36.1%, 선형 검사 대비 약 11.8%의 FPS 향상이 나타났습니다.
+옥트리를 적용하면 미사용 71.44 FPS에서 97.20 FPS(약 1.36배)로, 선형 검사 86.92 FPS에서 97.20 FPS(약 1.12배)로 올랐습니다.
 
 ### TerrainScene
 
@@ -201,18 +262,40 @@ CPU에서 높이맵을 만들고, 버텍스 셰이더에서 높이를 읽어 격
 높이와 경사에 따라 풀, 바위, 눈, 흙 텍스처를 섞습니다.
 높이와 노멀을 따로 표시하면 지형의 형태와 조명에 사용하는 데이터를 살펴볼 수 있습니다.
 
-| 높이 시각화 | 노멀 시각화 |
-|:---:|:---:|
-| ![높이를 명암으로 표시한 지형](Samples/TerrainScene/images/height.png) | ![노멀 방향을 색상으로 표시한 지형](Samples/TerrainScene/images/normals.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">높이 시각화</th>
+      <th align="center">노멀 시각화</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/TerrainScene/images/height.png" alt="높이를 명암으로 표시한 지형" width="100%"></td>
+      <td align="center"><img src="Samples/TerrainScene/images/normals.png" alt="노멀 방향을 색상으로 표시한 지형" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 ### SSAOScene
 
 깊이와 노멀 버퍼로 주변광 차폐를 계산하는 SSAO(Screen Space Ambient Occlusion) 테스트입니다.
 주변 표면에 의해 빛이 덜 닿는 부분을 어둡게 만들어 틈과 접촉 부위의 음영을 표현합니다.
 
-| 최종 장면 | AO 결과 |
-|:---:|:---:|
-| ![SSAO가 적용된 Sponza 장면](Samples/SSAOScene/images/scene.png) | ![Sponza의 AO만 표시한 화면](Samples/SSAOScene/images/ambient-occlusion.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">최종 장면</th>
+      <th align="center">AO 결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/SSAOScene/images/scene.png" alt="SSAO가 적용된 Sponza 장면" width="100%"></td>
+      <td align="center"><img src="Samples/SSAOScene/images/ambient-occlusion.png" alt="Sponza의 AO만 표시한 화면" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 깊이에서 현재 픽셀의 뷰 공간 위치를 복원하고, 노멀 방향의 반구 안에 샘플을 배치합니다.
 샘플을 화면에 투영해 깊이와 비교하며 주변 표면에 가려지는 정도를 구합니다.
@@ -223,9 +306,20 @@ CPU에서 높이맵을 만들고, 버텍스 셰이더에서 높이를 읽어 격
 화면에 렌더링한 정보를 이용해 반사를 만드는 SSR(Screen Space Reflection) 테스트입니다.
 반사 표면에서 레이를 진행시키며 깊이 버퍼와 교차하는 위치를 찾고, 해당 위치의 색상을 반사색으로 사용합니다.
 
-| 바닥과 구의 반사 | 다른 시점의 반사 |
-|:---:|:---:|
-| ![바닥과 구에 적용한 화면 공간 반사](Samples/SSRScene/images/reflections.png) | ![위에서 바라본 모델과 바닥의 반사](Samples/SSRScene/images/reflections-overhead.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">바닥과 구의 반사</th>
+      <th align="center">다른 시점의 반사</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/SSRScene/images/reflections.png" alt="바닥과 구에 적용한 화면 공간 반사" width="100%"></td>
+      <td align="center"><img src="Samples/SSRScene/images/reflections-overhead.png" alt="위에서 바라본 모델과 바닥의 반사" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 교차 후보의 표면 방향을 검사하고, 색상을 섞을 때 깊이와 노멀을 함께 확인해 다른 물체의 색이 섞이는 현상을 줄입니다.
 화면 가장자리와 교차가 불확실한 부분에서는 반사를 약하게 처리합니다.
@@ -239,9 +333,20 @@ Fallback을 켜면 반사를 찾지 못한 부분을 하늘·지면 방향에 �
 RWStructuredBuffer에 파티클의 위치, 속도, 회전, 수명을 저장하고 GPU에서 병렬로 갱신합니다.
 버텍스 셰이더가 같은 버퍼를 읽어 렌더링하므로 시뮬레이션 결과를 CPU로 가져올 필요가 없습니다.
 
-| 눈 | 색종이 |
-|:---:|:---:|
-| ![눈 파티클](Samples/ParticleScene/images/snow.png) | ![색종이 파티클](Samples/ParticleScene/images/confetti.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">눈</th>
+      <th align="center">색종이</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/ParticleScene/images/snow.png" alt="눈 파티클" width="100%"></td>
+      <td align="center"><img src="Samples/ParticleScene/images/confetti.png" alt="색종이 파티클" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 파티클 하나는 두 삼각형으로 만든 사각형이며, 전체 파티클을 인스턴싱으로 렌더링합니다.
 정점 번호로 사각형의 모양을 만들고, 인스턴스 번호로 해당 파티클의 데이터를 읽습니다.
@@ -255,9 +360,20 @@ RWStructuredBuffer에 파티클의 위치, 속도, 회전, 수명을 저장하�
 색상과 ID를 서로 다른 렌더 타깃에 동시에 기록하고, 클릭한 위치의 ID 한 픽셀만 CPU로 읽어 선택합니다.
 ID는 R32_UInt 형식으로 저장하며, 배경과 바닥의 ID는 0으로 두어 클릭 시 선택이 해제되도록 합니다.
 
-| 오브젝트 ID 시각화 | 선택한 오브젝트의 아웃라인 |
-|:---:|:---:|
-| ![오브젝트마다 다른 색으로 표시한 ID 버퍼](Samples/MousePickingScene/images/object-ids.png) | ![선택한 구의 금색 아웃라인](Samples/MousePickingScene/images/selection-outline.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">오브젝트 ID 시각화</th>
+      <th align="center">선택한 오브젝트의 아웃라인</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/MousePickingScene/images/object-ids.png" alt="오브젝트마다 다른 색으로 표시한 ID 버퍼" width="100%"></td>
+      <td align="center"><img src="Samples/MousePickingScene/images/selection-outline.png" alt="선택한 구의 금색 아웃라인" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 아웃라인은 후처리에서 ID 버퍼를 읽어 그립니다.
 선택된 ID의 픽셀 중 주변에 다른 ID가 있는 픽셀을 금색으로 칠하므로, 외곽선은 물체의 안쪽 경계에 생깁니다.
@@ -268,12 +384,40 @@ ID는 R32_UInt 형식으로 저장하며, 배경과 바닥의 ID는 0으로 두�
 선형 블렌딩 스키닝을 이용한 캐릭터 애니메이션 테스트입니다.
 Idle, Walk, Slash를 재생하고, 상태가 바뀔 때 이전 자세와 새 자세를 블렌딩해 자연스럽게 연결합니다.
 
-| 캐릭터 애니메이션 | 자세에 따른 메시 변형 |
-|:---:|:---:|
-| ![여러 캐릭터의 애니메이션 재생](Samples/SkinningScene/images/animation.png) | ![서로 다른 자세의 캐릭터](Samples/SkinningScene/images/poses.png) |
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center">캐릭터 애니메이션</th>
+      <th align="center">자세에 따른 메시 변형</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/SkinningScene/images/animation.png" alt="여러 캐릭터의 애니메이션 재생" width="100%"></td>
+      <td align="center"><img src="Samples/SkinningScene/images/poses.png" alt="서로 다른 자세의 캐릭터" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
 CPU에서 조인트별 스키닝 행렬을 계산해 상수버퍼로 전달합니다.
 버텍스 셰이더에서는 정점마다 저장된 조인트 번호와 가중치로 행렬을 섞어 메시를 변형합니다.
 WASD로 이동하고 Space로 Slash를 재생합니다.
 
-<br>
+## 빌드 및 실행
+
+Windows x64에서 C++20으로 빌드합니다. Visual Studio 2026의 "C++를 사용한 데스크톱 개발" 워크로드가 필요하고, 프로젝트 도구 집합은 `v145`입니다. entt, fmt, DirectXTex, unordered_dense는 저장소에 포함되어 있지 않으며, 프로젝트 파일이 vcpkg 설정(`Vcpkg` 속성)을 사용합니다.
+
+1. 저장소를 받습니다.
+
+   ```powershell
+   git clone https://github.com/JuggernautSensei/JamEngine.git
+   ```
+
+2. `JamEngine.sln`을 Visual Studio로 열고 `SandboxApp`을 시작 프로젝트로 지정합니다.
+3. 구성을 `x64`로 두고 빌드한 뒤 실행합니다. 명령줄에서는 `scripts/Build.ps1`로 빌드할 수 있습니다.
+
+   ```powershell
+   powershell -NoProfile -File scripts/Build.ps1 -Configuration Release
+   ```
+
+실행하면 ImGui의 Scenes 창에서 샘플 씬을 고를 수 있고, 카메라는 W, A, S, D, Q, E 키로 움직입니다.
