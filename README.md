@@ -1,6 +1,6 @@
 <h1 align="center">JamEngine</h1>
 
-<p align="center">D3D11 기반 C++20 게임 엔진 프레임워크</p>
+<p align="center">D3D11 기반 C++20 게임 개발 프레임워크</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/C++-20-00599C?logo=cplusplus&logoColor=white" alt="C++20">
