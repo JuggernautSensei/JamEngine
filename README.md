@@ -145,6 +145,10 @@ Metallic·Roughness 워크플로의 PBR에 IBL을 적용했습니다. 디퓨즈�
 
 ### DeferredScene
 
+![G-buffer의 알베도, 노멀과 조명 누적 결과를 디버그 창으로 표시한 화면](Samples/DeferredScene/images/color-buffers.png)
+
+지오메트리 패스에서 알베도, 노멀, 깊이를 G-buffer에 기록하고, 라이팅 패스에서 이를 읽어 광원마다 조명을 누적합니다. 오른쪽 디버그 창은 위에서부터 알베도(`T_GColor`), 노멀(`T_GNormal`), 조명 누적 결과(`T_Light`)입니다.
+
 <table width="100%">
   <tbody>
     <tr>
@@ -154,7 +158,7 @@ Metallic·Roughness 워크플로의 PBR에 IBL을 적용했습니다. 디퓨즈�
   </tbody>
 </table>
 
-G-buffer에 색상, 노멀, 깊이를 기록한 뒤 광원마다 조명을 누적합니다. 점광원의 영향 범위를 화면에 투영해 Scissor Rect를 지정하고, 그 안의 픽셀만 조명을 계산합니다. 화면 밖에 있는 광원은 건너뜁니다. 오른쪽 그림의 색 사각형이 광원별 계산 영역입니다. 점광원 2,048개에서 약 240 FPS입니다.
+광원이 많아지면 광원마다 화면 전체를 처리하는 비용이 커집니다. 점광원은 영향 반경이 정해져 있으므로 그 범위를 화면에 투영해 Scissor Rect로 지정하고, 사각형 안의 픽셀만 조명을 계산합니다. 화면 밖에 있는 광원은 건너뜁니다. 왼쪽은 점광원 512개의 조명 결과, 오른쪽은 광원별 계산 영역을 색 사각형으로 표시한 화면입니다. 점광원 2,048개에서 약 240 FPS입니다.
 
 ### ShadowScene
 
@@ -200,9 +204,16 @@ G-buffer에 색상, 노멀, 깊이를 기록한 뒤 광원마다 조명을 누�
 
 ### MousePickingScene
 
-![선택한 구의 금색 아웃라인](Samples/MousePickingScene/images/selection-outline.png)
+<table width="100%">
+  <tbody>
+    <tr>
+      <td align="center"><img src="Samples/MousePickingScene/images/object-ids.png" alt="오브젝트마다 다른 색으로 표시한 ID 버퍼" width="100%"></td>
+      <td align="center"><img src="Samples/MousePickingScene/images/selection-outline.png" alt="선택한 구의 금색 아웃라인" width="100%"></td>
+    </tr>
+  </tbody>
+</table>
 
-MRT로 색상과 오브젝트 ID(`R32_UINT`)를 동시에 기록합니다. 클릭한 위치의 ID 한 픽셀만 CPU로 읽어 오브젝트를 선택합니다. 아웃라인은 후처리에서 ID 버퍼를 읽어, 선택된 ID와 다른 ID가 맞닿은 경계 픽셀을 칠해 그립니다.
+MRT로 색상과 오브젝트 ID(`R32_UINT`)를 동시에 기록합니다. 왼쪽 그림은 ID 버퍼를 오브젝트마다 다른 색으로 시각화한 화면입니다. 클릭한 위치의 ID 한 픽셀만 CPU로 읽어 오브젝트를 선택합니다. 아웃라인은 후처리에서 ID 버퍼를 읽어, 선택된 ID와 다른 ID가 맞닿은 경계 픽셀을 칠해 그립니다(오른쪽).
 
 ### 기타 샘플
 
