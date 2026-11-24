@@ -211,13 +211,21 @@ Metallic·Roughness 워크플로의 물리 기반 렌더링(PBR)을 구현했습
 <table width="100%">
   <tbody>
     <tr>
-      <td align="center"><img src="Samples/SSAOScene/images/scene.png" alt="SSAO를 적용한 Sponza 장면" width="100%"></td>
-      <td align="center"><img src="Samples/SSAOScene/images/ambient-occlusion.png" alt="Sponza에서 AO 값만 표시한 화면" width="100%"></td>
+      <td align="center"><img src="Samples/SSAOScene/images/ssao-off.webp" alt="SSAO를 끈 Sponza 장면" width="100%"></td>
+      <td align="center"><img src="Samples/SSAOScene/images/ssao-on.webp" alt="SSAO를 켠 Sponza 장면" width="100%"></td>
+    </tr>
+    <tr>
+      <td align="center">SSAO 끔</td>
+      <td align="center">SSAO 켬</td>
     </tr>
   </tbody>
 </table>
 
-깊이 버퍼로 뷰 공간 위치를 복원하고, 노멀 방향 반구에 샘플을 뿌려 주변 지오메트리에 가려지는 비율로 차폐를 구합니다. 노이즈 텍스처로 샘플 커널을 회전시키고, 블러를 거친 결과를 앰비언트 조명에 적용합니다. 왼쪽은 SSAO를 적용한 장면, 오른쪽은 AO 값만 출력한 화면으로, 기둥과 벽이 맞닿는 곳이 어둡게 나타납니다.
+깊이 버퍼로 뷰 공간 위치를 복원하고, 노멀 방향 반구에 샘플을 뿌려 주변 지오메트리에 가려지는 비율로 차폐를 구합니다. 노이즈 텍스처로 샘플 커널을 회전시키고, 블러를 거친 결과를 앰비언트 조명에 적용합니다. SSAO를 켜면 기둥과 벽, 화분과 바닥이 맞닿는 곳에 차폐가 생겨 물체의 형태와 깊이감이 또렷해집니다.
+
+<p align="center"><img src="Samples/SSAOScene/images/ao-only.webp" alt="같은 장면에서 AO 값만 출력한 화면"></p>
+
+위 그림은 같은 장면에서 AO 값만 출력한 화면입니다. 모서리와 접촉면일수록 어둡게 나타납니다.
 
 ### SSRScene
 
