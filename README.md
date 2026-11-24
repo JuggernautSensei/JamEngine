@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Shader-HLSL-8055A2" alt="HLSL">
 </p>
 
-![IBL과 다양한 재질을 적용한 PBR 렌더링 장면](Samples/PBRScene/images/overview.png)
+<p align="center"><img src="Samples/PBRScene/images/overview.png" alt="IBL과 다양한 재질을 적용한 PBR 렌더링 장면"></p>
 
 ## Contents
 
