@@ -29,6 +29,10 @@
 - 렌더 그래프가 패스 간 자원 의존성을 분석해 바인딩과 해제를 자동으로 처리합니다.
 - `SandboxApp`에서 PBR, 디퍼드 조명, 그림자, SSAO, SSR, GPU 파티클 등 렌더링 샘플을 실행할 수 있습니다.
 
+### 엔진 구성
+
+엔진은 아래 다섯 모듈을 중심으로 구성됩니다. `Application`이 메인 루프를 돌리며 활성 씬을 갱신하고, 씬은 엔티티와 컴포넌트를, `AssetManager`는 씬에서 쓰는 모델과 텍스처를 관리합니다. 렌더링은 `Graphics`가 D3D11 리소스를 핸들로 감싸고, 그 위에서 `RenderGraph`가 패스를 구성하는 두 층 구조입니다.
+
 | 모듈 | 역할 |
 | --- | --- |
 | [`Application`](JamEngine/Application.h), [`SceneManager`](JamEngine/SceneManager.h) | 창과 서브시스템 초기화, 메인 루프, 씬 전환 |
