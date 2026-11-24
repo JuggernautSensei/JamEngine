@@ -124,6 +124,12 @@ m_graph.AddRenderPass("Pass_Ssao")
 
 SandboxApp의 Scenes 창에서 샘플을 선택합니다. 모든 샘플은 같은 `Scene` 인터페이스를 구현하며, 멀티 패스 샘플은 렌더 그래프로 구성했습니다.
 
+### InstancingScene
+
+![65,536개 큐브의 인스턴싱 렌더링](Samples/InstancingScene/images/cubes.png)
+
+큐브 65,536개의 월드 행렬을 인스턴스 버퍼에 모아 드로우 콜 한 번으로 그립니다. 큐브마다 드로우 콜을 호출할 때 190–210 FPS였고, 인스턴싱 적용 후 550–600 FPS로 약 2.9배 빨라졌습니다.
+
 ### PBRScene
 
 <table width="100%">
@@ -162,6 +168,18 @@ G-buffer에 색상, 노멀, 깊이를 기록한 뒤 광원마다 조명을 누�
 
 필터는 Hard, PCF(3×3, 5×5, 7×7), VSM 중에서 선택할 수 있습니다.
 
+### CullingScene
+
+![옥트리의 공간 분할과 탑뷰의 카메라 프러스텀](Samples/CullingScene/images/spatial-partition-04.png)
+
+오브젝트 20만 개를 옥트리에 넣고, 프러스텀 밖에 있는 노드는 하위 오브젝트까지 한 번에 제외합니다.
+
+| 컬링 방식 | 평균 FPS | 프레임 시간 |
+| --- | ---: | ---: |
+| 컬링 없음 | 71.44 | 14.0 ms |
+| 오브젝트별 선형 검사 | 86.92 | 11.5 ms |
+| 옥트리 | 97.20 | 10.3 ms |
+
 ### SSAOScene
 
 ![Sponza에서 AO만 표시한 화면. 기둥과 벽이 맞닿는 곳이 어둡게 나타납니다.](Samples/SSAOScene/images/ambient-occlusion.png)
@@ -186,51 +204,33 @@ G-buffer에 색상, 노멀, 깊이를 기록한 뒤 광원마다 조명을 누�
 
 MRT로 색상과 오브젝트 ID(`R32_UINT`)를 동시에 기록합니다. 클릭한 위치의 ID 한 픽셀만 CPU로 읽어 오브젝트를 선택합니다. 아웃라인은 후처리에서 ID 버퍼를 읽어, 선택된 ID와 다른 ID가 맞닿은 경계 픽셀을 칠해 그립니다.
 
-### InstancingScene
-
-![65,536개 큐브의 인스턴싱 렌더링](Samples/InstancingScene/images/cubes.png)
-
-큐브 65,536개의 월드 행렬을 인스턴스 버퍼에 모아 드로우 콜 한 번으로 그립니다. 큐브마다 드로우 콜을 호출할 때 190–210 FPS였고, 인스턴싱 적용 후 550–600 FPS로 약 2.9배 빨라졌습니다.
-
-### CullingScene
-
-![옥트리의 공간 분할과 탑뷰의 카메라 프러스텀](Samples/CullingScene/images/spatial-partition-04.png)
-
-오브젝트 20만 개를 옥트리에 넣고, 프러스텀 밖에 있는 노드는 하위 오브젝트까지 한 번에 제외합니다.
-
-| 컬링 방식 | 평균 FPS | 프레임 시간 |
-| --- | ---: | ---: |
-| 컬링 없음 | 71.44 | 14.0 ms |
-| 오브젝트별 선형 검사 | 86.92 | 11.5 ms |
-| 옥트리 | 97.20 | 10.3 ms |
-
 ### 기타 샘플
 
 <table width="100%">
   <tbody>
     <tr>
-      <td align="center" width="50%"><img src="Samples/SkinningScene/images/animation.png" alt="SkinningScene" width="100%"></td>
-      <td align="center" width="50%"><img src="Samples/TerrainScene/images/terrain.png" alt="TerrainScene" width="100%"></td>
-    </tr>
-    <tr>
-      <td>SkinningScene: 선형 블렌드 스키닝, 대기·걷기·공격 애니메이션 간 전환 블렌딩</td>
-      <td>TerrainScene: Perlin Noise 하이트맵, 높이·경사에 따른 텍스처 블렌딩</td>
-    </tr>
-    <tr>
-      <td align="center" width="50%"><img src="Samples/StencilScene/images/reflection-and-outline.png" alt="StencilScene" width="100%"></td>
-      <td align="center" width="50%"><img src="Samples/TextureScene/images/texture-mapping.png" alt="TextureScene" width="100%"></td>
-    </tr>
-    <tr>
-      <td>StencilScene: 스텐실 버퍼를 이용한 평면 반사와 아웃라인</td>
-      <td>TextureScene: 알베도, 노멀, AO 텍스처 매핑</td>
-    </tr>
-    <tr>
-      <td align="center" width="50%"><img src="Samples/MultiVertexStreamScene/images/vertex-streams.png" alt="MultiVertexStreamScene" width="100%"></td>
       <td align="center" width="50%"><img src="Samples/SimpleScene/images/rendering.png" alt="SimpleScene" width="100%"></td>
+      <td align="center" width="50%"><img src="Samples/MultiVertexStreamScene/images/vertex-streams.png" alt="MultiVertexStreamScene" width="100%"></td>
     </tr>
     <tr>
-      <td>MultiVertexStreamScene: 위치와 색상을 별도 정점 버퍼 슬롯으로 전달</td>
       <td>SimpleScene: 모델 로딩, 트랜스폼, 노멀 기반 조명</td>
+      <td>MultiVertexStreamScene: 위치와 색상을 별도 정점 버퍼 슬롯으로 전달</td>
+    </tr>
+    <tr>
+      <td align="center" width="50%"><img src="Samples/TextureScene/images/texture-mapping.png" alt="TextureScene" width="100%"></td>
+      <td align="center" width="50%"><img src="Samples/StencilScene/images/reflection-and-outline.png" alt="StencilScene" width="100%"></td>
+    </tr>
+    <tr>
+      <td>TextureScene: 알베도, 노멀, AO 텍스처 매핑</td>
+      <td>StencilScene: 스텐실 버퍼를 이용한 평면 반사와 아웃라인</td>
+    </tr>
+    <tr>
+      <td align="center" width="50%"><img src="Samples/TerrainScene/images/terrain.png" alt="TerrainScene" width="100%"></td>
+      <td align="center" width="50%"><img src="Samples/SkinningScene/images/animation.png" alt="SkinningScene" width="100%"></td>
+    </tr>
+    <tr>
+      <td>TerrainScene: Perlin Noise 하이트맵, 높이·경사에 따른 텍스처 블렌딩</td>
+      <td>SkinningScene: 선형 블렌드 스키닝, 대기·걷기·공격 애니메이션 간 전환 블렌딩</td>
     </tr>
   </tbody>
 </table>
