@@ -211,8 +211,8 @@ Metallic·Roughness 워크플로의 물리 기반 렌더링(PBR)을 구현했습
 <table width="100%">
   <tbody>
     <tr>
-      <td align="center"><img src="Samples/SSAOScene/images/ssao-off.webp" alt="SSAO를 끈 Sponza 장면" width="100%"></td>
-      <td align="center"><img src="Samples/SSAOScene/images/ssao-on.webp" alt="SSAO를 켠 Sponza 장면" width="100%"></td>
+      <td align="center"><img src="Samples/SSAOScene/images/sponza-ssao-disabled.webp" alt="SSAO를 끈 Sponza 장면" width="100%"></td>
+      <td align="center"><img src="Samples/SSAOScene/images/sponza-ssao-enabled.webp" alt="SSAO를 켠 Sponza 장면" width="100%"></td>
     </tr>
     <tr>
       <td align="center">SSAO 끔</td>
